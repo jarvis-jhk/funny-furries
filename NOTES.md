@@ -1036,3 +1036,15 @@ Source delivery/CI follows within this turn; no schedule/continuation created.
 Combined furries-exporter-spec remains started/sol: compound/global/opcode
 semantics, placement/arena geometry/spawns and observed behaviour remain open.
 No second slice or release.
+
+
+Delivery: tested source589cb99d0c7e453eeae882ca13033523ddad4102 pushed main;
+CI38431370537 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38431370537 . Downloaded
+job115414109092 log verifies actual source/reader git log outputs, Python3.10,
+compileall and151 cases (132 pass/nineteen original-file fixtures skipped).
+All151 passed locally with original enabled; saved source/docs/test hashes
+match. CI snapshots/logs and runtime oracle saved with local evidence in
+ data/furries/expression-literals/. This delivery edit is Markdown only;
+tested source unchanged. No unfinished implementation/schedule/continuation;
+combined exporter/spec remains started/sol, no release or second slice.
