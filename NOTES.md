@@ -1108,3 +1108,51 @@ match. CI snapshots/job log and runtime oracle saved with evidence in
  data/furries/expression-strings/. This delivery update changes Markdown only;
 tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec remains started/sol, no release or second slice.
+
+
+2026-10-13: Sol tick t_mv6x2lct1j4dr5, one bounded M0 numeric-addition token
+slice. Clean main, fetched origin, no open PRs/issues or in-flight work at start;
+direct main follows repository convention. event-dump/13/schema13 annotates
+exact four-byte0x0200 tokens with integer_operation add/32-bit/wrap-modulo2^32,
+required numeric tag0 and explicit unknown nonnumeric semantics. Token storage,
+literals, references and prior annotations remain unchanged. This exposes a
+proven operation path without evaluating dynamic expressions, inferring actual
+operand tags or folding constants; expression_evaluation remains false.
+Short/extended recognized operators exit2 before any output/private report.
+Existing optional detached fault reporter, atomic/symlink/immutable guards remain.
+
+Primary proof: original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f.
+Evaluator0x42a42e selects table0x41b574+(code>>8)*2;0x0200 selects pointer
+0x41b578 -> handler0x42a4b5. Its DL=0 branch adds EAX+ECX in32 bits.
+Independent Unicorn2.1.4 runs actual handler and full evaluator for49 signed
+boundary pairs plus512 seeded random pairs, verifying wrapping result, numeric
+tag and stack; evaluator also checks the token cursor. All116 original addition
+tokens are separately exercised between numeric literal probe operands through
+the actual evaluator:1238 runs total. Original dynamic expressions themselves
+are not evaluated, no runtime functions mocked; no standalone literal+literal
+expression occurs in the original. String path/precedence/unary/other operators
+remain unknown. No original instruction bytes or assets committed/published.
+Evidence: agent state data/furries/expression-addition/.
+
+Validation: forced compileall and all165 local tests pass with pinned
+KlikBack6e178b9 and original enabled. Seven new cases cover exact-code isolation,
+unknown/string contexts without result claims, short/extended shapes, all six
+expression types/both roles/scopes, readable annotations, lossless reconstruction,
+immutable bundle repeats, late-invalid refusal before all writes/reporting and
+independent original source-word/external token walks for all116 operators.
+Executed recognition0x0200->0x0600 control produces12 assertion failures/three
+errors in seven executed cases; restored byte-exact and compileall-f before
+final positives. Actual agent ./node_modules/.bin/tsc --noEmit passed.
+
+Prior JSON fields match preceding cd009f0 after removing only operation
+annotations/coverage/version. Prior text matches after removing new operation
+annotations inside EXPRESSION JSON and changing banner/coverage sentence.
+Previous643-file bundle refuses changed output without mutation and is preserved
+before regeneration;640 other files remain identical. JSON/text/bundle CLIs
+repeat identically; source project SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Tested source delivery/CI result follows within this turn; no new schedule.
+Combined furries-exporter-spec remains started/sol: actual expression/global/
+opcode semantics, placement/arena geometry/spawns and observed behaviour remain
+open. No playable engine/release/Windows/Deck/hardware claim or second slice.

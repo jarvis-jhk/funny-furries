@@ -650,3 +650,63 @@ program scopes, readable escaping, lossless reconstruction, immutable repeats,
 and late-invalid CLI refusal before all writes/reporting. Original-file test
 independently walks the pinned reader tokens and reads values/tails directly
 from source-program spans. Native Windows/Deck gameplay remains untested.
+
+
+## Numeric addition operator token (schema13)
+
+Exactly four-byte token `0x0200` adds `integer_operation` to JSON and the
+existing readable EXPRESSION line. `name: add`, `bits: 32` and
+`overflow: wrap_modulo_2_32` describe the original evaluator's numeric path.
+`required_operand_tag: 0` limits that claim to numeric operands;
+`other_operand_tags: unknown` leaves the separate nonnumeric path unresolved.
+`evidence: cnc_runtime_operator_table` records the independent runtime proof.
+This annotation identifies the token's numeric operation, without determining
+the actual surrounding operand types, evaluating dynamic object/file calls,
+folding constants or producing an expression result. Strings adjacent to the
+operator retain their byte-literal annotations; their concatenation is not
+claimed. Other operators, unary markers and precedence remain undecoded.
+
+Only the exact supported code/extent is accepted. Short or extended addition
+tokens fail as input errors before JSON/text/research-bundle output or private
+fault reporting. Token raw bytes, ordering, prefix/suffix and every existing
+annotation remain unchanged; the legacy `meaning: unknown` field remains for
+consumers. `coverage.expression_integer_addition` is true, while
+`expression_evaluation`, `parameter_semantics` and `opcode_semantics` remain
+false. Immutable bundles containing earlier event bytes must be moved aside
+before regeneration, as with earlier event-schema additions.
+
+### Original instruction evidence and limits
+
+Player-supplied FF2xmas.exe SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`:
+evaluator0x42a42e reads the operation code, advances four bytes, evaluates the
+right operand, and selects the function pointer at0x41b574+(code>>8)*2.
+For0x0200, the pointer at0x41b578 is0x42a4b5. With numeric tag DL=0, that
+handler executes 32-bit EAX+ECX and returns without changing the numeric tag.
+Carry/overflow is not converted to a wider result or an exception. DL!=0
+branches into a different path which this slice does not implement or certify.
+These binary-specific addresses are evidence, never game-data offsets or
+exporter dependencies. Inspect `objdump -D -j TEXT_1`; this PE marks the
+runtime section DATA. No original instructions or assets are committed.
+
+Private independent Unicorn2.1.4 execution in agent state
+`data/furries/expression-addition/runtime_oracle.py` runs both that handler and
+the complete evaluator entry against49 signed-boundary pairs and512 seeded
+random numeric pairs. All1122 executions verify modulo2^32 results, numeric
+result tag and balanced stack; evaluator runs also verify the next-token
+cursor. Each of116 original four-byte addition tokens is separately inserted
+between independent numeric literal probe operands and executed through the
+actual evaluator, bringing the total to1238 runs. This validates the stored
+operation code/extent, **not** the results of the surrounding original dynamic
+expressions. The original contains no standalone literal+literal expressions.
+No functions are mocked as original behavior; the string branch and complete
+gameplay are not run by this proof.
+
+Seven new cases cover exact-code isolation, opaque strings/unknown operand
+contexts, short/extended operator refusal, all expression types/roles/scopes,
+readable escaping, late-invalid refusal before output/reporting, lossless
+programs and immutable repeat bundles. The local-original fixture independently
+walks pinned KlikBack tokens and reads every operator code/extent directly
+from source-program spans. CI runs synthetic cases and explicitly skips the
+original fixture unless locally supplied; native Windows/Deck gameplay remains
+outside this research slice.

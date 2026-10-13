@@ -41,6 +41,8 @@
       raw bits and unsupported shapes; compound evaluation remains unresolved.
 - [x] Runtime-proven byte string expression literals with bounded NUL, reversible
       byte views and opaque tails; encoding and compound evaluation remain unknown.
+- [x] Runtime-proven numeric addition token annotations, with wrapping integer
+      arithmetic documented and nonnumeric/dynamic expression results unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 
