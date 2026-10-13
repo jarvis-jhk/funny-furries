@@ -75,7 +75,7 @@ class FrameTargetContainerTests(unittest.TestCase):
         raw, source = target_project([(26, target_payload(0)), (26, target_payload(1)),
                                       (26, target_payload(3)), (26, target_payload(4))], [data])
         doc = events.event_document(self.reader, raw)
-        self.assertEqual(doc['schema_version'], 14)
+        self.assertEqual(doc['schema_version'], 15)
         self.assertTrue(doc['coverage']['frame_target_storage'])
         self.assertFalse(doc['coverage']['frame_target_resolution'])
         self.assertFalse(doc['coverage']['parameter_semantics'])
@@ -164,7 +164,7 @@ class FrameTargetContainerTests(unittest.TestCase):
         self.assertEqual(files['events.json'], export_project.json_bytes(events.event_document(self.reader, raw)))
         self.assertIn(b'FRAME_TARGET ', files['events.txt'])
         self.assertIn(b'LEVEL_NUMBER_STORAGE ', files['events.txt'])
-        self.assertEqual(manifest['components']['events.json'], {'exporter': 'event-dump/14', 'schema_version': 14})
+        self.assertEqual(manifest['components']['events.json'], {'exporter': 'event-dump/15', 'schema_version': 15})
         with tempfile.TemporaryDirectory(dir=project.REPO / 'build') as scratch:
             target = export_project.save_bundle(manifest, files, Path(scratch))
             self.assertEqual(export_project.save_bundle(manifest, files, Path(scratch)), target)

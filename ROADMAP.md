@@ -45,6 +45,8 @@
       arithmetic documented and nonnumeric/dynamic expression results unresolved.
 - [x] Runtime-proven minus-token subtraction/prefix negation annotations, with
       operand order and wrapping numeric arithmetic; actual contexts/results unresolved.
+- [x] Runtime-proven numeric multiplication token annotations, preserving wrapping
+      32-bit results and unresolved operand contexts/nonnumeric expression semantics.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

@@ -1229,3 +1229,51 @@ CI snapshots/job log and runtime oracle saved with evidence in agent state
  data/furries/expression-minus/. This delivery update is Markdown only; tested
 source unchanged. No unfinished implementation/schedule/continuation; combined
 exporter/spec remains started/sol, no release or second slice.
+
+
+2026-10-13: Sol tick t_mv74xn6m0z9w5, one bounded M0 numeric multiplication
+slice. Clean main, fetched origin, no open PRs/issues or in-flight work at start;
+direct main follows repository convention. event-dump/15/schema15 annotates
+exact four-byte0x0600 with multiply/32-bit/wrap-modulo2^32 and required numeric
+tag0; nonnumeric semantics/actual operand contexts remain unknown. No grammar,
+precedence, constant folding, prefix multiplication or dynamic expression result
+is claimed. Unsupported multiplication extents exit2 before JSON/text/bundle
+writes or reporting. Existing optional detached FF_FAULT_REPORT_URL fault handler
+and atomic/symlink/immutable output guards remain unchanged.
+
+Original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+evaluator0x42a42e selects table0x41b574/pointer0x41b580 ->0x42a52d. The handler
+performs signed32 IMUL, returns low32 product bits and clears DX (upper16 EDX
+may retain product bits). Independent Unicorn2.1.4 executes actual handler and
+complete evaluator for49 signed-boundary pairs and512 seeded pairs, plus the
+one original token between asymmetric numeric probes:1123 executions pass.
+Results modulo2^32, low16 numeric tags and balanced stacks verified; evaluator
+also verifies cursor. Original surrounding dynamic expressions/nonnumeric
+inputs/gameplay are not executed; no dynamic functions mocked as evidence.
+A deliberate addition expectation fails an executed product assertion.
+
+Forced compileall and all181 local tests pass with original and pinned
+KlikBack6e178b9. Eight new cases cover exact-code isolation, unsupported extents,
+opaque contexts, signed boundary literals/mixed existing operations without
+folding, all expression types/both roles/scopes, readable text, lossless programs,
+late-invalid refusal before every output/report and immutable repeat bundles.
+Independent source-program walks verify the sole original multiplication word
+and extent. Recognition0x0600->0x0C00 control fails12 intended assertions/four
+errors in eight executed cases; source restored byte-exact and compileall-f
+forced before positives. Previous unknown-operator tests use still-opaque codes
+now that0x0600 is supported; existing version assertions updated to15.
+Actual agent ./node_modules/.bin/tsc --noEmit passes after locked dev dependencies
+restored using npm ci --include=dev --ignore-scripts; agent source/lock unchanged.
+
+Prior fields/literals/addition/minus/reference/group annotations and text match
+831eb18 after removing only multiplication additions/coverage/version/banner.
+Previous643-file immutable bundle refuses replacement without mutation, preserved
+before regeneration;640 other files unchanged. JSON/text/bundle CLIs repeat
+identically and input SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+No original instructions/assets/exported metadata/private endpoint committed or
+published. Evidence: agent state data/furries/expression-multiplication/;
+source delivery/CI follows within this turn. Combined furries-exporter-spec stays
+started/sol: dynamic/global/opcode/placement/arenas/spawns/behaviour remain open.
+No second slice, new schedule/continuation, release or hardware claim.

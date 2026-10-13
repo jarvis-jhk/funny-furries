@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 14 and `exporter` is `event-dump/14`.
+  fingerprints. `schema_version` is 15 and `exporter` is `event-dump/15`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -772,3 +772,55 @@ all outputs/reporting and immutable bundle repeats. The optional original-file
 fixture reads all63 operator words/extents directly from source-program spans
 and independently traverses pinned KlikBack tokens. CI skips that fixture when
 the player's local project is absent.
+
+
+## Numeric multiplication token (schema15)
+
+Exactly four-byte token `0x0600` now has `integer_operation` identifying
+`multiply`, `bits: 32`, `overflow: wrap_modulo_2_32`,
+`required_operand_tag: 0`, `other_operand_tags: unknown` and
+`evidence: cnc_runtime_operator_table`. This describes the independently
+executed numeric operation, without inferring the containing operands, choosing
+expression contexts, folding constants or evaluating original expressions.
+Signed overflow keeps the low 32 product bits, including INT32_MIN times -1.
+String/pointer inputs and grammar/precedence remain uncertified. There is no
+prefix-operation annotation for this code.
+
+Short/extended recognized multiplication tokens fail exit2 before JSON/text/
+bundle writes or fault reporting. Unknown codes retain their storage rules;
+all prior raw fields, annotations, prefixes/suffixes and ordering are preserved.
+`coverage.expression_integer_multiplication` is true; `expression_evaluation`,
+`parameter_semantics` and `opcode_semantics` remain false. The existing readable
+EXPRESSION JSON displays the annotation. Earlier immutable research bundles
+must be moved aside before regeneration; media and other components do not change.
+
+### Original instruction evidence and limits
+
+Original FF2xmas.exe SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`:
+evaluator0x42a42e selects table0x41b574+(code>>8)*2, so0x0600 selects
+pointer0x41b580 to handler0x42a52d. The handler clears EDX, performs signed
+32-bit IMUL ECX with EAX and clears DX before returning. EAX is the low 32
+product bits; only the low16-bit numeric result tag is certified (the upper
+EDX bits can retain part of the product). These executable-specific addresses
+are evidence, not exporter dependencies. No original instructions/assets or
+exported metadata are committed.
+
+Private independent Unicorn2.1.4 oracle in agent state
+`data/furries/expression-multiplication/runtime_oracle.py` executes both the
+actual handler and complete evaluator for49 signed-boundary pairs and512
+seeded random pairs. Each run checks modulo2^32 result, low16-bit numeric tag
+and balanced stack; evaluator runs additionally check the next-token cursor.
+The single original multiplication token is separately placed between numeric
+probe literals and executed through the evaluator. All1123 runs pass. This
+validates operation code/extent, not the original surrounding dynamic
+expression, nonnumeric inputs, gameplay or Windows/Deck hardware acceptance.
+No dynamic functions are mocked as original behavior.
+
+Eight new tests cover code isolation, opaque/invalid contexts, boundary literals
+and mixed existing operations without folding, short/extended refusal, all six
+expression types/both roles/scopes, readable annotations, lossless reconstruction,
+late-invalid refusal before all outputs/reporting and immutable bundle repeats.
+The optional original fixture independently walks source-program token boundaries
+with the pinned reader registry and checks the one operator's stored code,
+extent and annotation. CI skips that fixture when the player's project is absent.
