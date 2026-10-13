@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 15 and `exporter` is `event-dump/15`.
+  fingerprints. `schema_version` is 16 and `exporter` is `event-dump/16`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -824,3 +824,61 @@ late-invalid refusal before all outputs/reporting and immutable bundle repeats.
 The optional original fixture independently walks source-program token boundaries
 with the pinned reader registry and checks the one operator's stored code,
 extent and annotation. CI skips that fixture when the player's project is absent.
+
+## Numeric division token (schema16)
+
+Exactly four-byte token `0x0800` now has `integer_operation` identifying
+`divide`, `operand_order: left_divided_by_right`, `bits: 32`, `signed: true`,
+`rounding: toward_zero`, `zero_divisor_result: 0`, `overflow: x86_divide_error`,
+`exception_recovery: unknown`, `required_operand_tag: 0`,
+`other_operand_tags: unknown` and `evidence: cnc_runtime_operator_table`.
+This describes the independently executed numeric path. It does not identify
+actual operand contexts, validate grammar/precedence or fold/evaluate expressions.
+For example, -7 / 3 and 7 / -3 return -2, any numeric left operand / 0 returns 0,
+and INT32_MIN / -1 triggers the x86 divide-error exception instead of wrapping.
+The original process's response to that exception remains unverified; no crash,
+recovery or replacement result is claimed. String/pointer inputs remain unknown.
+There is no prefix-operation annotation for division.
+
+Short/extended recognized division tokens fail exit2 before JSON/text/bundle
+writes or fault reporting. Unknown codes keep their storage rules. All prior raw
+fields, annotations, prefixes/suffixes and ordering are preserved.
+`coverage.expression_integer_division` is true; `expression_evaluation`,
+`parameter_semantics` and `opcode_semantics` remain false. The existing readable
+EXPRESSION JSON displays this annotation. Move earlier immutable research bundles
+aside before regenerating; media and other research components do not change.
+
+### Original instruction evidence and limits
+
+Original FF2xmas.exe SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`:
+evaluator0x42a42e selects table0x41b574+(code>>8)*2, so0x0800 selects
+pointer0x41b584 to handler0x42a535. That handler swaps EAX (right) with ECX
+(left), tests the divisor in ECX and returns EAX=0/DX=0 if zero. Otherwise it
+sign-extends EAX using CDQ, executes signed IDIV ECX at0x42a53b and clears DX
+before returning the quotient. INT32_MIN / -1 traps at IDIV before the tag clear
+and return. These addresses are binary-specific evidence, not exporter
+requirements. No original instructions, assets or exported metadata are committed.
+
+Independent Unicorn2.1.4 execution is saved privately in agent state
+`data/furries/expression-division/runtime_oracle.py`. The actual handler and
+complete evaluator each execute49 signed-boundary pairs, four explicit rounding
+pairs and512 seeded random pairs. Each of15 original operator tokens is then
+inserted between independent numeric probes for both signed rounding directions,
+a zero divisor and the overflow pair. All1190 executions pass:1173 return
+with checked result, low16 numeric tag and balanced stack (evaluator also checks
+cursor), and17 raise vector0 at the actual IDIV with the fault operands/stack
+and evaluator cursor verified. Each execution uses a fresh CPU: Unicorn can
+retain a pending fault and raise double-fault on a reused instance. The oracle
+stops at the divide-error interrupt; it does not emulate OS exception recovery.
+Original surrounding dynamic expressions, gameplay and nonnumeric inputs are
+not executed or mocked as evidence. A floor-division expectation fails an
+executed negative non-integral pair.
+
+Eight new tests cover exact code isolation, opaque/invalid contexts, boundary/
+zero/overflow literal storage without folding, unsupported extents, all six
+expression types/both roles/scopes, readable output, lossless source programs,
+late-invalid refusal before all outputs/reporting and immutable repeats. The
+optional original fixture walks source-program token spans independently with
+the pinned reader registry and checks all15 stored division words/extents and
+annotations. CI skips that fixture when the player's local project is absent.

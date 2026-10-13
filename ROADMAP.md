@@ -47,6 +47,8 @@
       operand order and wrapping numeric arithmetic; actual contexts/results unresolved.
 - [x] Runtime-proven numeric multiplication token annotations, preserving wrapping
       32-bit results and unresolved operand contexts/nonnumeric expression semantics.
+- [x] Runtime-proven signed division token annotations, with truncation toward zero,
+      zero-divisor result and CPU overflow exception; runtime recovery stays unknown.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

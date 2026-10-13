@@ -51,7 +51,7 @@ class AdditionTests(unittest.TestCase):
         for size in range(4):
             with self.subTest(size=size), self.assertRaises(project.InputError):
                 events.decode_expression(expression([struct.pack('<HH', 0x200, size)]))
-        for code in (0x800, 0xA00, 0xC00):
+        for code in (0xA00, 0xC00, 0xE00):
             out = events.decode_expression(expression([token(code, b'opaque')]))
             self.assertNotIn('integer_operation', out['tokens'][0])
 
