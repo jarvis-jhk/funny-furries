@@ -57,6 +57,8 @@
       priority, wrapping intermediates and CPU faults; dynamic forms unresolved.
 - [x] Runtime-proven closed recursive integer operand results, with both evaluator
       stops, nested prefix signs and ordered faults; dynamic/function forms unresolved.
+- [x] Placement first-word/local-object-slot equality probes, preserving actual
+      frame/block scopes and ambiguity; runtime references/coordinates stay unproven.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

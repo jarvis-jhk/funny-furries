@@ -1,8 +1,9 @@
-# Frame layout structure v1
+# Frame layout structure v2
 
 This M0 research slice exports frame headers and object-placement **storage**
 as local JSON. It supplies the lossless placement tables needed for a later
-arena decoder. It does not yet identify coordinates, object references,
+arena decoder. Version 2 adds first-word/local-object-slot equality probes.
+It does not yet establish runtime object references, coordinates,
 collision geometry, player spawns, drawing order or playable arenas.
 
 Use the Python 3.10+ and externally supplied KlikBack reader from
@@ -24,6 +25,8 @@ endpoint, paths, exception text or original data enters fault reports.
 ## Contract
 
 - Source and external reader fingerprints match the project index.
+- `schema_version` is 2 and `exporter` is `frame-layout/2`. Existing raw fields,
+  record/slot order, pointer aliases and header bytes are unchanged.
 - Every frame retains its zero-based storage ID, absolute segment-header
   offset, and exact pre-block header as `header_hex`. The reader establishes
   header sizes 0xB8 or 0x78; header field meanings remain unknown.
@@ -40,7 +43,9 @@ endpoint, paths, exception text or original data enters fault reports.
   record; aliases are retained without inventing extra instances.
 - The supported dialect stores 32-byte records. Each exported record retains
   its storage ID, offset relative to the placement payload, `raw_hex`, and
-  `meaning: unknown`. No word is labelled as an object ID or x/y coordinate.
+  `meaning: unknown`. No word is labelled as a resolved object ID or x/y coordinate.
+  Within `layout_document`, each record adds `object_slot_probe`, described below.
+  The standalone `decode_placements` function remains a context-free storage decoder.
 - The record area must be divisible by 32. Every live pointer must be aligned
   and in bounds, and every stored record must be referenced. No trailing or
   unreachable bytes are discarded. Other record dialects are refused.
@@ -72,3 +77,48 @@ unless `FF_TEST_PROJECT` is supplied locally. Neither tests nor CI contain game
 assets. Decoding record/header fields needs separate evidence, ideally a paired
 editor/runtime or controlled original observation. Arena classification,
 geometry/spawns JSON and the behaviour specification remain open.
+
+## First-word local slot probes
+
+For each stored record, `object_slot_probe` retains `record_offset: 0` and
+`word_raw_u16`: the unsigned little-endian word at record bytes 0..1. It looks
+up that number as a slot in every object-definition list of the **same frame**.
+Candidates retain the actual definition `block_id` among all frame blocks,
+`id`, `name`, `type`, `type_name`, `flags`, `global` and `deleted`. Definition
+order and multiple lists remain visible. A global-flagged local header is a
+candidate; application-global definitions and other frames are never searched.
+
+`status` is `missing_local_slot` for no equality candidate, `local_slot_probe`
+for exactly one live candidate, `deleted_local_slot` for exactly one deleted
+candidate, or `ambiguous_local_slot` for multiple candidates, even if only one
+is live. There is no proven expected type, so no type is inferred from another
+record word. All u16 values, including 0x4000, 0x8000 and 0xFFFF, receive the
+same equality lookup: event reference encodings and placement **pointer**
+sentinels do not establish record-word semantics.
+
+Every annotation states `runtime_resolution: false` and
+`evidence: stored_word_local_slot_equality`. These are explicit index probes,
+not a proven CnC record-field specification. An independently traversed original
+has exactly one live same-frame slot for every one of its 7,968 records,
+including backdrop, active, display and extension definitions. That complete
+correlation supports investigation of the first word as an object reference;
+it does not prove runtime identity, global body selection, creation, collision,
+draw order or that every placement is an initial live instance/player spawn.
+No editor/runtime instructions were executed for this claim.
+
+`coverage.placement_object_slot_probes` is true; `placement_semantics`,
+`arena_geometry`, `spawns` and `behaviour` remain false. Raw record/header bytes
+and complete placement reconstruction remain lossless. Pointer aliases keep
+one stored record and one probe, rather than multiplying presumed instances.
+The research bundle automatically includes schema 2 and its component version;
+an existing different immutable bundle must be moved aside before regenerating.
+
+Synthetic tests cover differing frame scopes, actual block identities, missing,
+deleted and repeated/ambiguous definitions, unsigned boundaries, no global
+fallback, aliases, gaps, reversed pointers, empty/repeated placement blocks and
+JSON-escaped names. A late unaligned placement refuses both standalone JSON and
+combined bundle before writing or fault reporting. The original-file test reads
+each word directly from its source span and builds candidates independently
+with the pinned reader's `object_definitions`, without calling the annotation
+or project-index helpers. Every source span and all twelve placement blocks
+still reconstruct, and repeat documents/input bytes remain identical.

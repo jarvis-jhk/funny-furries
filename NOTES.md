@@ -931,6 +931,8 @@ tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec stays started/sol, no release or second slice.
 
 
+
+
 2026-10-13: Sol tick t_mv6va9ai1d4bmf, one bounded M0 action frame-target
 storage/level-number probe slice. Clean main, fetched origin, no open PRs/issues
 or in-flight work at start; direct main follows the repository convention.
@@ -1609,3 +1611,44 @@ match the CI-tested source. Evidence/CI snapshots/job log in agent state
  data/furries/expression-recursive/. This delivery edit changes Markdown only;
 tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec stays started/sol, no release or second slice.
+
+2026-10-13: Sol tick t_mv77fo0qc1dn3, one bounded M0 placement/local-object
+probe slice. Clean main, fetched origin, no open PRs/issues or in-flight work at
+start; direct main follows repo convention. frame-layout/2/schema2 adds an
+explicit object_slot_probe per stored placement record: u16 at record0 looked
+up as an index in every same-frame object-definition list. Candidates retain
+actual definition block identities, names/types/flags/global/deleted state;
+missing/deleted/ambiguous cases remain explicit. No global-body fallback, event
+reference encodings, pointer sentinels or expected object types are borrowed.
+Every probe says runtime_resolution=false/stored_word_local_slot_equality.
+This is a storage correlation for investigating arena object references, not a
+decoded runtime field or verified geometry, spawns, ordering/collision/behaviour.
+General placement/arena/spawn/behaviour coverage remains false. Existing
+detached optional private fault handler is unchanged; malformed placements
+still exit2 before either standalone/bundle writes or fault reports.
+
+Independent original source-span reads and pinned-reader object_definitions
+traversal verify all7,968 records across12 placement blocks: each first word has
+exactly one live same-frame slot candidate. Global-flagged local headers stay
+local candidates, not selected application-global payloads. All record/slot/
+header fields and bytes compare exactly with c17af61 after removing only the
+new annotation/coverage/version. Original unchanged and repeat CLIs identical:
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Previous643-file immutable bundle refuses replacement without mutation and is
+preserved before regeneration;641 files unchanged, only frame-layout.json and
+manifest.json differ. No original code/assets/exported metadata/private endpoint
+committed or published; no editor/runtime/hardware execution claimed.
+
+Forced compileall and all232 local tests pass with original/pinned KlikBack
+6e178b9 enabled. Eight new cases cover source spans/independent candidates,
+same-frame scope/actual block IDs/repeated definitions, all u16 boundaries,
+missing/deleted/ambiguous slots, no global fallback, reversed pointers/aliases/
+gaps, empty/repeated blocks/escaped names, immutable bundles and late malformed
+refusal before all outputs/reporting. Slot-index+1 negative control causes six
+intended assertion failures/one missing-candidate error in8 executed cases;
+restored byte-exact and compileall-f before final positives. Actual agent
+./node_modules/.bin/tsc --noEmit passes. Evidence in agent state
+data/furries/placement-object-probes/; source delivery/CI follows within this
+tick. Combined furries-exporter-spec stays started/sol: record coordinates,
+arena geometry/spawns/dynamic/global/opcode/observed behaviour remain open.
+No second slice, new schedule/continuation or release.

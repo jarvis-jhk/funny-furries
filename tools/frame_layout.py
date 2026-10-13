@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "frame-layout/1"
+VERSION = "frame-layout/2"
 UNUSED = 0xFFFFFFFF
 RECORD_BYTES = 32
 
@@ -59,15 +59,42 @@ def layout_document(reader, raw):
         placements = [{"block_id": block_id, "frame_offset": block.offset,
                        **decode_placements(block.data)}
                       for block_id, block in enumerate(blocks) if block.ident == 3]
+        lists = iter(inventory["frames"][frame_id]["object_lists"])
+        annotate_object_slot_probes(placements, [(block_id, next(lists))
+            for block_id, block in enumerate(blocks) if block.ident == 2])
         frames.append({"id": frame_id, "offset": level.offset,
                        "header_bytes": start, "header_meaning": "unknown",
                        "header_hex": level.data[:start].hex(), "placements": placements})
-    return {"schema_version": 1, "exporter": VERSION,
+    return {"schema_version": 2, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "frames": frames,
             "coverage": {"frame_headers": True, "placement_storage": True,
+                         "placement_object_slot_probes": True,
                          "placement_semantics": False, "arena_geometry": False,
                          "spawns": False, "behaviour": False}}
+
+
+def annotate_object_slot_probes(placements, object_lists):
+    # Equality with a local slot is research evidence, not a decoded runtime
+    # reference. Do not import event encodings/sentinels or choose a global body.
+    slots = {}
+    for block_id, objects in object_lists:
+        for obj in objects:
+            slots.setdefault(obj["id"], []).append({"block_id": block_id,
+                **{key: obj[key] for key in
+                   ("id", "name", "type", "type_name", "flags", "global", "deleted")}})
+    for block in placements:
+        for record in block["records"]:
+            value = struct.unpack_from("<H", bytes.fromhex(record["raw_hex"]))[0]
+            candidates = slots.get(value, [])
+            status = ("missing_local_slot" if not candidates else
+                      "ambiguous_local_slot" if len(candidates) > 1 else
+                      "deleted_local_slot" if candidates[0]["deleted"] else
+                      "local_slot_probe")
+            record["object_slot_probe"] = {
+                "record_offset": 0, "word_raw_u16": value, "status": status,
+                "candidates": candidates, "runtime_resolution": False,
+                "evidence": "stored_word_local_slot_equality"}
 
 
 def save_layout(document, repo=project.REPO):
