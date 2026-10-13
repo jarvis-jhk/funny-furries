@@ -82,3 +82,12 @@ Combined furries-exporter-spec stays started/sol. Next bounded slice can decode
 the global-event container or establish opcode/parameter semantics against
 independent evidence. Media files, arena JSON and observation-backed behaviour
 spec remain. No new schedule, release, hardware claim or second slice.
+
+Delivery: tested source 9fa50502cb7f6c4004709aa67efdb0259446a0ad pushed main.
+Exact-source CI38355190154 completed/success:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38355190154 . Downloaded
+job115156318783 log verifies actual checkout SHA and pinned reader SHA, Python3.10
+compileall and all18 cases (16 pass, only the two original-file fixtures skipped).
+All18 passed locally with the original enabled. Current evidence and CI logs:
+data/furries/event-dump/. No in-flight work or CI continuation remains; this
+delivery update changes NOTES only and preserves the tested source.
