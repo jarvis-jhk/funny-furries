@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "event-dump/17"
+VERSION = "event-dump/18"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 
@@ -53,6 +53,23 @@ def decode_expression(payload):
                        "bytes": size, "code_raw_u16": code,
                        "meaning": "unknown", "raw_hex": payload[cursor:cursor + size].hex(),
                        "object_reference_annotation": target})
+        if code in (0xFFFF, 0xFEFF, 0xFDFF):
+            # The original dispatcher recursively evaluates an operand for
+            # FFFF; its evaluator leaves either stop word at the cursor.
+            # This does not establish delimiter pairing or argument grammar.
+            if size != 4:
+                raise project.InputError("expression control token has an unsupported extent")
+            if code == 0xFFFF:
+                tokens[-1]["expression_control"] = {
+                    "operation": "recursive_operand", "inner_start_token_offset": 4,
+                    "inner_return_cursor": "unconsumed_evaluator_stop",
+                    "dispatch_return_cursor": "after_stop_token",
+                    "delimiter_pairing": "unknown", "other_operand_tags": "unknown",
+                    "evidence": "cnc_runtime_dispatch"}
+            else:
+                tokens[-1]["expression_control"] = {
+                    "operation": "evaluator_stop", "return_cursor": "unconsumed",
+                    "delimiter_role": "unknown", "evidence": "cnc_runtime_evaluator"}
         if code == 0x0200:
             # The original evaluator's operator table selects an addition
             # handler. Only its numeric branch has independent execution proof;
@@ -534,7 +551,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 17, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 18, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -548,6 +565,7 @@ def event_document(reader, raw):
                          "expression_integer_multiplication": True,
                          "expression_integer_division": True,
                          "expression_integer_remainder": True,
+                         "expression_control_tokens": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "audio_bank_reference_candidates": True,
@@ -617,7 +635,7 @@ def readable_program(program):
 
 def readable(document):
     lines = [f"Funny Furries {VERSION}", f"Source SHA-256: {document['source']['sha256']}",
-             "Opcode/parameter execution UNKNOWN; integer/string literals and numeric addition/minus/multiplication/division/remainder tokens decoded.",
+             "Opcode/parameter execution UNKNOWN; integer/string literals, numeric addition/minus/multiplication/division/remainder and expression control tokens decoded.",
              "Row/record/parameter offsets are relative to the event program."]
     for table in document.get("level_number_storage", []):
         lines.append("LEVEL_NUMBER_STORAGE " + json.dumps(table, ensure_ascii=True, sort_keys=True))

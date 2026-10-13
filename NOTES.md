@@ -1408,3 +1408,49 @@ CI snapshots/job log and runtime evidence saved in agent state
  data/furries/expression-remainder/. This delivery edit changes Markdown only;
 tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec stays started/sol, no release or second slice.
+
+2026-10-13: Sol tick t_mv76091x6nxz4, one bounded M0 expression-control
+slice. Clean main, fetched origin, no open PRs/issues or in-flight work at start;
+direct main follows repository convention. event-dump/18/schema18 annotates
+exact four-byte0xFFFF recursive operands and0xFEFF/0xFDFF evaluator stops,
+including the unconsumed inner cursor and outer dispatcher consumption. No
+pairing, function argument role, grammar validation or dynamic result guessed.
+Placement fields were inspected but have no independent field evidence yet;
+no placement change made. Unsupported control extents exit2 before all outputs
+or fault reporting; existing detached optional private reporter unchanged.
+No original instructions/content/assets/metadata/private endpoint committed.
+
+Original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+dispatch0x42a474/type-1 table0x41b2b8 entry0x41b2b4 -> recursive handler0x42a4ac;
+ADD EDI,4 then evaluator0x42a42e. Stops checked at0x42a449/0x42a450 remain
+at EDI; dispatcher consumes returned cursor's extent. Independent Unicorn2.1.4
+executes real handler/dispatcher/evaluator on177 boundary/seeded pairs with both
+stops, nested arithmetic/prefix signs, depths1/2/4/8/16/32 and numeric/string
+tags. All1906 runs verify result/pointer/low16 tag/cursor/return/balanced stack.
+Poison tokens after stops do not execute. Grouped(7+3)*5 returns50 versus
+ungrouped7+3*5 returns22; this is not a complete precedence/grammar spec.
+An independent original source walk verifies all126 tokens (4 recursive,
+105FEFF/17FDFF stops), each run between independent probes. No original dynamic
+operands/global gameplay/function calls mocked or executed. Unmatched recursion
+runtime safety/zero-terminator length reads remain unknown, storage stays lossless.
+
+Forced compileall and all205 local tests pass with original/pinned KlikBack6e178b9.
+Eight new cases cover source words/extents and lossless programs, nested/unbalanced
+storage, unknown neighbours, runtime-stop versus storage-terminator scanning,
+both roles/all six expression types/scopes, readable annotations, immutable
+repeats and late-invalid refusal before all outputs/reporting. FFFF->FCFF
+recognition control fails12 assertions/three errors in8 executed cases; restored
+byte-exact and compileall-f before final positives. Grouped-result22 expectation
+fails actual runtime result50; consumed-stop cursor expectation fails a direct
+evaluator probe. Actual agent ./node_modules/.bin/tsc --noEmit passes.
+
+Prior fields/annotations and text match3e7d8c9 after removing only control
+additions/coverage/version/banner. Previous643-file immutable bundle refuses
+replacement without mutation and is preserved before regeneration;640 other
+files unchanged. JSON/text/bundle CLIs repeat identically; original unchanged:
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/expression-control/; delivery/CI follows
+within this tick. Combined furries-exporter-spec stays started/sol: actual
+expression/global/opcode/placement/arenas/spawns/observed behaviour remain open.
+No second slice, schedule/continuation, release or hardware claim.

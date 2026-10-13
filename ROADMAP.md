@@ -51,6 +51,8 @@
       zero-divisor result and CPU overflow exception; runtime recovery stays unknown.
 - [x] Runtime-proven signed remainder capability, including dividend-preserving zero
       divisors and CPU overflow; original project contains no instances.
+- [x] Runtime-proven recursive operand and evaluator-stop token annotations,
+      retaining unknown delimiter roles/pairing and unevaluated dynamic expressions.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

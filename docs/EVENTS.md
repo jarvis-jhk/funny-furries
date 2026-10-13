@@ -1,4 +1,4 @@
-# Event structure export v11
+# Event structure export v18
 
 This bounded M0 slice exports the **structure** of frame and global event programs in
 unprotected CnC projects. It does not decode gameplay opcode or parameter meanings and
@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 17 and `exporter` is `event-dump/17`.
+  fingerprints. `schema_version` is 18 and `exporter` is `event-dump/18`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -938,3 +938,71 @@ repeats and late-invalid refusal before all outputs/reports. The optional origin
 fixture independently walks source spans with the pinned reader registry and
 confirms absence of remainder tokens and annotations. Synthetic inputs exercise
 positive annotations; CI skips only the local-original fixture when absent.
+
+## Expression control tokens (schema18)
+
+Exactly four-byte `0xFFFF`, `0xFEFF` and `0xFDFF` tokens receive an
+`expression_control` annotation. `0xFFFF` has `operation: recursive_operand`,
+`inner_start_token_offset: 4`, `inner_return_cursor: unconsumed_evaluator_stop`
+and `dispatch_return_cursor: after_stop_token`. The inner evaluator returns
+with EDI pointing at its stopping token; the outer operand dispatcher then
+advances EDI by that token's stored length. This permits nested numeric/string
+operands in isolated runtime probes. `other_operand_tags` and
+`delimiter_pairing` remain `unknown`; evidence is `cnc_runtime_dispatch`.
+
+`0xFEFF` and `0xFDFF` both have `operation: evaluator_stop`,
+`return_cursor: unconsumed`, `delimiter_role: unknown` and evidence
+`cnc_runtime_evaluator`. This establishes their control flow, without claiming
+which delimiter closes a grouping or separates function arguments. Neither is
+the zero word that terminates the **storage** token list: the exporter continues
+preserving subsequent stored tokens after both runtime stop words. It does not
+pair markers, check expression grammar or evaluate any expression. The zero
+storage terminator also stops the runtime evaluator; unmatched recursion and
+its subsequent length read were not executed as valid runtime behaviour. Unbalanced
+markers remain exportable storage. Control words in the opaque suffix after
+the first zero storage terminator remain opaque.
+
+Other codes stay unchanged. Unsupported extents of these three recognized
+control tokens fail exit2 before JSON/text/bundle output or fault reporting.
+`meaning: unknown`, all previous raw fields, order, literals, arithmetic,
+references and editor-group annotations remain unchanged. The only additions
+are `expression_control`, `coverage.expression_control_tokens`, versions and
+the readable coverage sentence. `expression_evaluation`, parameter/opcode
+semantics and behaviour remain false. Preserve the older immutable research-v1
+bundle before regenerating; its contents are never silently replaced.
+
+### Original-runtime evidence
+
+The local FF2xmas.exe SHA256 is
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`.
+Dispatcher0x42a474 sign-extends both token bytes. For `0xFFFF`, type-1 table
+pointer0x41a384 ->0x41b2b8, entry0x41b2b4 selects handler0x42a4ac. The handler
+advances EDI by4, calls evaluator0x42a42e and returns. The dispatcher subsequently
+reads the returned cursor's length at+2 and advances EDI by that extent.
+Evaluator comparisons0x42a449 and0x42a450 explicitly stop on `0xFEFF`/`0xFDFF`
+without advancing the cursor. These addresses refer to the original CnC runtime,
+not a newer SDK dialect. Original instruction bytes are not committed.
+
+Independent Unicorn2.1.4 evidence in private agent state
+`data/furries/expression-control/runtime_oracle.py` executes the real handler,
+dispatcher and complete evaluator: 177 boundary/seeded numeric pairs with both
+stop words, nested arithmetic/prefix signs, depths1/2/4/8/16/32, and both
+numeric/string result tags. Every run checks the result/pointer, low16 tag,
+cursor, return address and balanced stack. Direct handler/evaluator probes
+leave stops unconsumed; dispatcher probes consume them. Poison tokens after
+stops establish that the inner evaluator actually stops. Grouped `(7+3)*5`
+returns50; ungrouped `7+3*5` returns22. These are isolated execution probes,
+not a complete precedence specification or original gameplay evaluation.
+
+A separate source-program walk, with pinned KlikBack expression traversal,
+verifies all126 original control tokens: four `0xFFFF`, 105 `0xFEFF`, 17 `0xFDFF`,
+all with extent4. Each stored original token is executed with independent
+numeric probes, not its original dynamic operands. Total1906 executions pass.
+An ungrouped-result negative expectation fails the grouped runtime probe; a
+consumed-stop cursor expectation fails a direct evaluator probe. Delimiter
+pairing, function argument roles, dynamic/global evaluation, nonnumeric
+operators and gameplay remain unresolved. Local tests separately verify source
+words/extents, lossless program reconstruction, both event roles/all six
+expression parameter types/scopes, unbalanced storage, suffix isolation,
+strict malformed-input refusal and immutable bundle repeats. CI skips only
+user-supplied original fixtures; no original content is committed or published.
