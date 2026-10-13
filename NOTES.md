@@ -931,8 +931,6 @@ tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec stays started/sol, no release or second slice.
 
 
-
-
 2026-10-13: Sol tick t_mv6va9ai1d4bmf, one bounded M0 action frame-target
 storage/level-number probe slice. Clean main, fetched origin, no open PRs/issues
 or in-flight work at start; direct main follows the repository convention.
@@ -1652,3 +1650,15 @@ data/furries/placement-object-probes/; source delivery/CI follows within this
 tick. Combined furries-exporter-spec stays started/sol: record coordinates,
 arena geometry/spawns/dynamic/global/opcode/observed behaviour remain open.
 No second slice, new schedule/continuation or release.
+
+Delivery: tested source99ce9472cd6dc82f2d34e195a765113145f8628d pushed main;
+CI38473067395 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38473067395 . Downloaded
+job115556823693 log verifies actual source and pinned-reader checkout outputs,
+Python3.10, compileall and232 tests (203 pass/29 original fixtures skipped).
+All232 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test hashes match the CI-tested revision. Evidence/CI snapshots/
+job log in agent state data/furries/placement-object-probes/. This delivery edit
+changes Markdown only; tested source unchanged. No unfinished implementation,
+continuation/new schedule/release/second slice; combined exporter/spec remains
+started/sol, placement/arena/spawn/observed behaviour semantics still open.
