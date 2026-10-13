@@ -918,3 +918,14 @@ evaluation, placement fields/arena geometry/spawns and observed behaviour remain
 open. The placement field investigation found the external modern Inst/IPIn
 writer is a different layout; no guessed CnC coordinates were committed.
 No playable engine/release/Windows/Deck/hardware claim or second slice.
+
+Delivery: tested source8823e097eecb67b1f8f83cef9d8902c466c793c0 pushed main;
+CI38426502150 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38426502150 . Downloaded
+job115397174104 log verifies actual source/reader checkout, Python3.10.22,
+compileall and136 cases (119 pass/17 original-file fixtures explicitly skipped).
+All136 passed locally with original enabled; all saved source/docs/test hashes
+still match. CI snapshots/log and verification saved with local evidence in
+ data/furries/event-group-parameters/. This delivery edit is Markdown only;
+tested source unchanged. No unfinished implementation/schedule/continuation;
+combined exporter/spec stays started/sol, no release or second slice.
