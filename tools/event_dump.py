@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "event-dump/6"
+VERSION = "event-dump/7"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 
@@ -74,6 +74,46 @@ def decode_position_references(payload, kind):
     return {"references": references}
 
 
+def decode_audio_reference(payload, kind):
+    if len(payload) < 2:
+        raise project.InputError("audio parameter has no complete bank handle")
+    return {"kind": "sound" if kind == 6 else "music", "payload_offset": 0,
+            "reference_raw_u16": word(payload, 0),
+            "status": "bank_context_unresolved", "candidates": []}
+
+
+def audio_banks(reader, game):
+    banks = []
+    for segment_id, segment in enumerate(game.segments):
+        kind = reader.BANK_SEGMENTS.get(segment.ident)
+        if kind not in ("sound", "music"):
+            continue
+        entries = {slot: {"segment_id": segment_id, "id": slot, "kind": kind,
+                          "offset": offset, "bytes": size,
+                          "record_sha256": hashlib.sha256(segment.data[offset:offset + size]).hexdigest()}
+                   for slot, offset, size in reader.walk_bank(segment.data)}
+        banks.append((kind, entries))
+    return banks
+
+
+def annotate_audio(program, banks):
+    # Application banks are shared by frame and global programs. A duplicate
+    # bank is evidence of ambiguity, never a reason to choose its first entry.
+    for row in program["rows"]:
+        for record in row["records"]:
+            for parameter in record["parameters"]:
+                target = parameter.get("audio_reference_storage")
+                if target is None:
+                    continue
+                candidates = [entries[target["reference_raw_u16"]]
+                              for kind, entries in banks
+                              if kind == target["kind"] and target["reference_raw_u16"] in entries]
+                target["candidates"] = candidates
+                target["status"] = ("missing_bank_slot" if not candidates else
+                                    "bank_slot_candidate" if len(candidates) == 1 else "ambiguous_bank_slot")
+    return program
+
+
 def decode_record(data, role, offset, index):
     header_size = 14 if role == "condition" else 12
     if len(data) < header_size:
@@ -93,6 +133,8 @@ def decode_record(data, role, offset, index):
         if code in POSITION_PARAMETER_BYTES:
             parameters[-1]["position_reference_storage"] = decode_position_references(
                 data[cursor + 4:cursor + size], code)
+        if code in (6, 7):
+            parameters[-1]["audio_reference_storage"] = decode_audio_reference(data[cursor + 4:cursor + size], code)
         cursor += size
     if cursor != len(data):
         raise project.InputError("event parameter count leaves trailing record bytes")
@@ -260,6 +302,7 @@ def event_document(reader, raw):
     # Reuse strict container, object-table and bank validation before any output.
     inventory = project.inventory(reader, raw)
     game = reader.read(raw)
+    banks = audio_banks(reader, game)
     frames = []
     for frame, level in enumerate(game.levels()):
         programs = []
@@ -268,7 +311,7 @@ def event_document(reader, raw):
         object_lists = list(zip(list_ids, frame_index["object_lists"]))
         for block_id, block in enumerate(reader.level_blocks(level.data)[1]):
             if block.ident == 4:
-                program = decode_program(block.data)
+                program = annotate_audio(decode_program(block.data), banks)
                 for row in program["rows"]:
                     for record in row["records"]:
                         record["object_reference_annotation"] = reference_annotation(record, object_lists)
@@ -287,7 +330,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return {"schema_version": 6, "exporter": VERSION,
+    return {"schema_version": 7, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -295,13 +338,14 @@ def event_document(reader, raw):
                          "editor_group_structure": True,
                          "expression_token_storage": True,
                          "position_reference_storage": True,
+                         "audio_bank_reference_candidates": True,
                          "global_reference_resolution": False},
             "frames": frames,
             "global_events": [{"segment_id": slot, "offset": segment.offset,
                                "bytes": len(segment.data), "meaning": "unknown",
                                "sha256": hashlib.sha256(segment.data).hexdigest(),
                                "raw_hex": segment.data.hex(),
-                               **decode_global_program(segment.data)}
+                               **annotate_audio(decode_global_program(segment.data), banks)}
                               for slot, segment in enumerate(game.segments) if segment.ident == 3]}
 
 
@@ -334,6 +378,9 @@ def readable_program(program):
                 if "position_reference_storage" in parameter:
                     lines.append("          POSITION_REFERENCES " + json.dumps(
                         parameter["position_reference_storage"], ensure_ascii=True, sort_keys=True))
+                if "audio_reference_storage" in parameter:
+                    lines.append("          AUDIO_REFERENCE " + json.dumps(
+                        parameter["audio_reference_storage"], ensure_ascii=True, sort_keys=True))
     lines.append("    TERMINATOR 0000")
     lines.append("    GROUP_STRUCTURE " + json.dumps(program["event_groups"], sort_keys=True))
     for auxiliary in program["auxiliary"]:

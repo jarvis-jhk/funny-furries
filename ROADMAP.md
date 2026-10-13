@@ -29,6 +29,8 @@
       preserving opaque prefixes/suffixes and unknown operator/evaluation semantics.
 - [x] Position-parameter object references and creation targets with role-specific
       absolute sentinels and frame-local candidates; coordinates/flags stay opaque.
+- [x] Event audio-handle candidates joined to application sound/music bank slots,
+      with gaps/duplicate banks explicit and all playback semantics still unknown.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

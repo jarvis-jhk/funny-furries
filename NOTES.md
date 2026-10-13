@@ -761,3 +761,51 @@ still match. CI snapshot/job log and verification accompany
  data/furries/event-positions/. This delivery edit is Markdown only; tested
 source unchanged. No unfinished implementation/schedule/CI continuation;
 exporter/spec stays started/sol, no release or second slice.
+
+2026-10-13: Sol tick t_mv6u7nop17tbb0, one bounded M0 event-audio bank
+reference slice. Clean main, fetched origin, no open PRs/issues or in-flight
+work at start; direct main follows the repository convention. event-dump/7,
+schema7 adds sound/music parameter handle words and application-bank slot
+candidates to JSON/readable text. Pinned KlikBack6e178b9 converter establishes
+parameter types6/7 and u16 at payload0; a separate executed converter probe
+confirms only that exact word is cleared to the respective editor value.
+
+Frame/global programs share application audio banks partitioned by kind. Missing
+slots/empty or absent banks and duplicate-bank ambiguity stay explicit; handle0
+is a valid slot,0xFFFF receives no invented sentinel meaning. Candidate segment/
+slot/offset/length/record hash joins the existing audio manifest and filenames;
+no unsupported media filename is guessed. All other parameter bytes stay opaque,
+with no name decoder, opcode playback/looping/timing/volume or runtime claim.
+Direct source table/word reads verify all891 original references (870 sound,
+21 music) against independently exported audio entries. Each has exactly one
+candidate; original parameter/bank name-prefix bytes independently corroborate
+slot identity without being decoded by production code.
+
+Validation: force compileall and all120 local tests pass with original enabled
+and pinned external reader6e178b9470206f71871417dec852fbfa24cd01b9. Eight new
+cases cover both types/roles/frame/global scope, minimum handle lengths and
+opaque tails, kind separation, gaps/absent/empty/repeated banks, slot0/0xFFFF,
+exact external-converter changes, direct original words/tables/media identities,
+late-invalid rejection before JSON/text/bundle output/reporting and integrated
+immutable bundle/media readback. Executed candidate-slot+1 control fails three
+intended assertions in eight executed cases; source restored byte-exact and
+compileall -f forced before final positives. Existing atomic/symlink/fault
+checks pass; optional detached FF_FAULT_REPORT_URL handler remains unchanged,
+no private endpoint/original content/metadata committed or published.
+
+All prior raw JSON and object/group/expression/position annotations match prior
+source b97bb39 after removing only additions/version. Old text matches after
+removing AUDIO_REFERENCE lines/version. Old immutable research bundle refused
+changed bytes without mutation and was preserved privately before updated643-
+file installation/repeat. Only events.json/events.txt/manifest.json change;
+640 other files including all audio/images stay identical. JSON/text/bundle
+CLIs repeat identically; original SHA256 unchanged
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Actual agent ./node_modules/.bin/tsc --noEmit passed before commit. Evidence:
+agent state data/furries/event-audio/. Source delivery/CI follows within this
+turn; no schedule or continuation created.
+
+Combined furries-exporter-spec remains started/sol: opcode/parameter/global
+evaluation, placement coordinates/arena geometry/spawns and observation-backed
+behaviour still open. No playable engine/release/Windows/Deck/hardware claim
+or second slice.

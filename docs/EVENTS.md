@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 6 and `exporter` is `event-dump/6`.
+  fingerprints. `schema_version` is 7 and `exporter` is `event-dump/7`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -360,3 +360,52 @@ The remaining parameter bytes, including coordinates, flags, cached words,
 shoot speed, relative-position selection and extension tails, remain opaque.
 These annotations do not establish action/opcode meanings, runtime execution,
 spawn positions or a complete behaviour specification.
+
+## Audio bank reference candidates (v7)
+
+`event-dump/7`, schema7 adds `audio_reference_storage` to parameter types6
+(sample/sound) and7 (music). Pinned KlikBack6e178b9
+`common/reconstruct_event_test.py::compiled_event_to_editor_event` identifies
+the little-endian u16 handle at parameter+4 (payload+0): its conversion clears
+exactly this word to0 for samples and0xFFFF for music. It retains the name and
+other bytes. The exporter reads the word without rewriting anything. A
+parameter must contain at least those two payload bytes; all remaining bytes
+stay opaque in the existing `payload_hex`. Other parameter types are unchanged.
+
+The annotation contains `kind`, `payload_offset`, `reference_raw_u16`, `status`
+and `candidates`. A standalone program decoder has no application banks and
+uses `bank_context_unresolved`. In a complete project, both frame and global
+programs use the same application-level banks, partitioned by sound/music.
+Only occupied slots with the exact stored ID are candidates. Status is
+`bank_slot_candidate` for one, `missing_bank_slot` for none and
+`ambiguous_bank_slot` for multiple matches in repeated banks. Missing/empty
+banks, slot gaps and duplicate banks are preserved; no candidate is chosen
+from an ambiguous result. Handles0/0xFFFF have no invented sentinel rule.
+
+Each candidate carries `segment_id`, slot `id`, `kind`, bank-relative record
+`offset`, record `bytes` and `record_sha256`. These identities join directly to
+`audio-manifest.json` in the research bundle (or the standalone audio manifest),
+whose entry supplies the exported filename. The event exporter never invents a
+filename for an unsupported audio dialect or requires audio decoding to expose
+a raw bank candidate. It never matches by name or guesses ownership from the
+containing event record. `AUDIO_REFERENCE` lines provide the same JSON annotation
+in readable text. `coverage.audio_bank_reference_candidates` is true; opcode,
+parameter evaluation and playback semantics remain unclaimed.
+
+Independent direct slot-table/parameter-word reads verify all891 original
+references (870 sample/21 music) against the audio manifest. All have one exact
+kind/slot candidate. The original's16-byte parameter name-prefix spans also
+match the corresponding bank headers, independently corroborating these slot
+identities; no production name-field decoder or encoding claim is added.
+Synthetic fixtures test both parameter types/record roles, frame/global scope,
+opaque tails, minimum lengths, gaps, absent/empty/repeated banks, the valid slot0,
+0xFFFF without a sentinel assumption, and media identity in a complete bundle.
+The pinned converter test verifies its exact two-byte change separately.
+
+Migration from schema6: only the audio annotations, coverage flag and version
+are added. Existing raw fields, object/group/expression/position annotations
+and lossless reconstruction stay unchanged. Existing immutable research bundles
+will refuse changed event bytes; preserve/move the old bundle aside explicitly
+before generating the new one. Audio/media bytes and standalone audio schema
+remain unchanged. This is storage-to-bank evidence, not proof of which opcode
+plays/stops/loops audio or its timing, volume, name resolution or runtime use.
