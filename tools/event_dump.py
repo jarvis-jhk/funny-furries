@@ -13,8 +13,9 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "event-dump/5"
+VERSION = "event-dump/6"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
+POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 
 
 def word(data, offset, form="<H"):
@@ -55,6 +56,24 @@ def decode_expression(payload):
         cursor += size
 
 
+def decode_position_references(payload, kind):
+    """Expose proven reference words; all position/flag fields stay opaque."""
+    if len(payload) + 4 < POSITION_PARAMETER_BYTES[kind]:
+        raise project.InputError("object-position parameter is shorter than its supported layout")
+    references = []
+    fields = [("position_reference", 0)]
+    if kind in (9, 18):
+        fields.append(("creation_target", 24))
+    for role, offset in fields:
+        reference = word(payload, offset)
+        absolute = role == "position_reference" and reference in (0xFFFE, 0xFFFF)
+        references.append({"role": role, "payload_offset": offset,
+                           "reference_raw_u16": reference,
+                           "status": "absolute_position_sentinel" if absolute else "frame_context_unresolved",
+                           "candidates": []})
+    return {"references": references}
+
+
 def decode_record(data, role, offset, index):
     header_size = 14 if role == "condition" else 12
     if len(data) < header_size:
@@ -71,6 +90,9 @@ def decode_record(data, role, offset, index):
                            "payload_hex": data[cursor + 4:cursor + size].hex()})
         if code in EXPRESSION_TYPES:
             parameters[-1]["expression_storage"] = decode_expression(data[cursor + 4:cursor + size])
+        if code in POSITION_PARAMETER_BYTES:
+            parameters[-1]["position_reference_storage"] = decode_position_references(
+                data[cursor + 4:cursor + size], code)
         cursor += size
     if cursor != len(data):
         raise project.InputError("event parameter count leaves trailing record bytes")
@@ -251,6 +273,11 @@ def event_document(reader, raw):
                     for record in row["records"]:
                         record["object_reference_annotation"] = reference_annotation(record, object_lists)
                         for parameter in record["parameters"]:
+                            for target in parameter.get("position_reference_storage", {}).get("references", []):
+                                if target["status"] != "absolute_position_sentinel":
+                                    target.update(reference_annotation({
+                                        "object_type": None,
+                                        "object_reference": target["reference_raw_u16"]}, object_lists))
                             for token in parameter.get("expression_storage", {}).get("tokens", []):
                                 target = token["object_reference_annotation"]
                                 if target is not None:
@@ -260,13 +287,14 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return {"schema_version": 5, "exporter": VERSION,
+    return {"schema_version": 6, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
                          "frame_local_reference_candidates": True,
                          "editor_group_structure": True,
                          "expression_token_storage": True,
+                         "position_reference_storage": True,
                          "global_reference_resolution": False},
             "frames": frames,
             "global_events": [{"segment_id": slot, "offset": segment.offset,
@@ -303,6 +331,9 @@ def readable_program(program):
                 if "expression_storage" in parameter:
                     lines.append("          EXPRESSION " + json.dumps(
                         parameter["expression_storage"], ensure_ascii=True, sort_keys=True))
+                if "position_reference_storage" in parameter:
+                    lines.append("          POSITION_REFERENCES " + json.dumps(
+                        parameter["position_reference_storage"], ensure_ascii=True, sort_keys=True))
     lines.append("    TERMINATOR 0000")
     lines.append("    GROUP_STRUCTURE " + json.dumps(program["event_groups"], sort_keys=True))
     for auxiliary in program["auxiliary"]:

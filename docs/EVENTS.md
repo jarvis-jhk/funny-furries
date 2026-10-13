@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 5 and `exporter` is `event-dump/5`.
+  fingerprints. `schema_version` is 6 and `exporter` is `event-dump/6`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -305,3 +305,58 @@ are empty for 3,686 expressions, eight zero bytes for 173 and four zeros for
 nine. Types15/52/53 and malformed, empty, unknown-code, repeated-list,
 type-mismatch, encoded-reference and nonzero-tail shapes have synthetic proof,
 not original/runtime observation. Geometry, spawns and behaviour remain open.
+
+
+## Position-parameter object references (schema 6)
+
+Types 9, 16, 18 and 21 now add `position_reference_storage.references` to the
+parameter. Minimum total parameter lengths (including the four-byte size/type
+header) are respectively 34, 26, 36 and 34 bytes. Shorter supported shapes are
+refused before JSON, text or bundle output; longer payloads retain every byte.
+All previous fields, raw payloads, expression/group annotations and ordering
+are unchanged. Unknown parameter types remain opaque.
+
+Each of the four types carries a u16 reference at payload offset 0 (parameter
++4). Types 9 and 18 also carry a u16 creation-target reference at payload offset
+24 (parameter +0x1C). The offset is relative to the payload, independent of the
+condition/action header and of the frame/global container. Every entry retains
+its `role`, `payload_offset`, `reference_raw_u16`, `status` and `candidates`.
+
+The position-reference values 0xFFFE and 0xFFFF are explicit
+`absolute_position_sentinel` entries with no candidates. This distinction
+applies only to the position reference: the same words in creation targets
+remain unresolved. The sentinel alone does not establish coordinates or
+which absolute-position mode the runtime uses.
+
+Other frame references use the existing frame-local slot candidate resolver:
+unique live slots yield `local_slot_candidate`, without inventing an expected
+object type. Missing, deleted, ambiguous and encoded references retain their
+existing explicit statuses. Actual object-list block IDs, slot IDs, names,
+types and global/deleted flags remain in candidates. Local global-flagged
+headers are storage candidates, not resolved global definitions. Global
+programs retain `frame_context_unresolved` (or the absolute sentinel); no frame
+is assigned to them. Creation targets and position references are resolved
+independently, and the containing record's type is never used as their type.
+
+Readable text adds one JSON-escaped POSITION_REFERENCES line per recognized
+parameter, preserving names with control characters. The research bundle
+includes the same annotations and updates its component version and hashes;
+immutable older bundles must be explicitly moved aside before regeneration.
+`coverage.position_reference_storage` is true, while parameter evaluation,
+global resolution, arena geometry and behaviour remain unsupported.
+
+Evidence: pinned KlikBack 6e178b9470206f71871417dec852fbfa24cd01b9,
+`common/event_object_registry.py::event_object_slots` and
+`common/reconstruct_event_test.py::remap_object_position_parameter` agree on
+these four minimum sizes, both word locations and the role-specific sentinel
+handling. Synthetic tests independently observe the remapper changing exactly
+those reference words. Original-file tests compare every position/creation
+reference with direct source reads and the separate event-object traversal,
+and compare local candidates with the external object definitions. All 1,263
+original position parameters (1,150 type 9, three type 16, 110 type 18) and
+2,523 reference words are retained; type 21 is synthetic-only evidence.
+
+The remaining parameter bytes, including coordinates, flags, cached words,
+shoot speed, relative-position selection and extension tails, remain opaque.
+These annotations do not establish action/opcode meanings, runtime execution,
+spawn positions or a complete behaviour specification.

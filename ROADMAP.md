@@ -27,6 +27,8 @@
       retaining unknown title shapes/unbalanced programs and opaque activation words.
 - [x] Ordered expression-token storage and embedded frame-local object candidates,
       preserving opaque prefixes/suffixes and unknown operator/evaluation semantics.
+- [x] Position-parameter object references and creation targets with role-specific
+      absolute sentinels and frame-local candidates; coordinates/flags stay opaque.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

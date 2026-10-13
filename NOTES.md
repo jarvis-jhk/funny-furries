@@ -702,3 +702,51 @@ still match. CI snapshot/log and verification accompany data/furries/event-expre
 This final delivery edit is Markdown only; tested source unchanged. No unfinished
 implementation, new schedule or CI continuation. Combined exporter/spec stays
 started/sol; no release or second slice.
+
+2026-10-13: Sol tick t_mv6tut0815kyf5, one bounded M0 position-parameter
+reference slice. Clean main, fetched origin, no open PRs/issues or in-flight
+work at start; direct main follows the repository convention. event-dump/6,
+schema6 adds position_reference_storage for types9/16/18/21, with position
+reference words at payload0 and creation targets at payload24 for9/18. Pinned
+KlikBack event_object_registry traversal and reconstruct_event_test remapper
+establish minimum sizes/word locations/role-specific absolute sentinels.
+The original has1263 supported parameters and2523 reference words:2520
+frame-local untyped candidates/three unresolved globals. Type21 is synthetic
+only. No containing-record type is imposed on these independent references.
+
+Absolute position0xFFFE/0xFFFF stays explicit and candidate-free; creation
+targets with those words remain unresolved. Local missing/deleted/ambiguous/
+encoded slots, reference-only/global-flagged headers and actual object-list
+block identities remain explicit. Global programs acquire no guessed frame.
+Raw coordinates, flags, relative-position selection, shoot speed and all other
+bytes remain opaque; no opcode/execution/geometry/spawn/gameplay claim.
+Readable POSITION_REFERENCES lines JSON-escape names/control characters.
+Supported truncated shapes now refuse exit2 before JSON/text/bundle output
+or fault reporting. Existing detached optional FF_FAULT_REPORT_URL handler,
+atomic writes/symlink protection and immutable bundle rules remain unchanged.
+No private endpoint or original data/assets/metadata committed or published.
+
+Validation: force compileall and all112 local unittest cases pass with original
+enabled and pinned reader6e178b9470206f71871417dec852fbfa24cd01b9. Eight new
+cases cover all four types/condition+action/frame+global containers, exact
+raw payload preservation including arbitrary tails, both absolute sentinels,
+strict minimum lengths, unknown types, names/separate frames/multiple lists,
+deleted/missing/encoded slots, late invalid input before writes/reporting,
+independent remapper/source-word/traversal/candidate checks on the original.
+Executed creation-target offset+1 control fails five intended assertions in
+eight cases; source restored byte-exact and compileall -f forced before final
+positives. Actual agent ./node_modules/.bin/tsc --noEmit passed before commit.
+
+All previous raw JSON/reference/group/expression annotations match prior source
+a094d62 after removing only additions/version; text matches after removing new
+lines/version. Old immutable research bundle refused changes without mutation,
+preserved privately before updated643-file installation/repeat. Only events.json,
+events.txt and manifest.json change;640 other files remain byte-identical.
+JSON/text/bundle CLIs repeat identically; original unchanged SHA256
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/event-positions/. Source delivery/CI follows
+within this turn; no schedule or CI continuation created.
+
+Combined exporter/spec stays started/sol: opcode/parameter/global evaluation,
+placement coordinates/arena geometry/spawns and observed behaviour remain open.
+No playable engine/release/Windows/Deck/hardware claim or second slice.
