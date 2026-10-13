@@ -1465,3 +1465,61 @@ CI snapshots/job log and runtime evidence saved in agent state
  data/furries/expression-control/. This delivery edit changes Markdown only;
 tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec stays started/sol, no release or second slice.
+
+2026-10-13: Sol tick t_mv76d2tv80u8u, one bounded M0 closed integer-expression
+slice. Clean main, fetched origin, no open PRs/issues or in-flight work at start;
+direct main follows repository convention. event-dump/19/schema19 adds
+`constant_integer_evaluation` to expression storage. New tools/integer_constants.py
+conservatively evaluates complete ungrouped integer-literal streams with the five
+supported numeric binary operators and at most one prefix minus per operand.
+Unsupported tokens/shapes refuse the whole stream before arithmetic; no dynamic,
+string, recursive/stop-token or grouped evaluation is invented. Raw prefix/suffix,
+tokens/annotations/references and unknown parameter/opcode meanings stay preserved.
+General expression/parameter/behaviour coverage remains false; new bounded
+constant_integer_expressions coverage is true. CPU divide errors are research
+results with pending operator ID and unknown OS recovery, not exporter crashes;
+existing detached optional private fault handler remains unchanged.
+
+Original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+evaluator0x42a42e compares raw signed16 operator codes at0x42a457 and uses
+table0x41b574. Each code has distinct priority (remainder > divide > multiply >
+subtract > add), equal codes associate left; prefix minus wraps before binary
+arithmetic. In particular20*7/3 gives40, not46. Every intermediate wraps32 bits;
+signed divide/remainder truncate toward zero, zero divisors retain prior proven
+behavior and INT32_MIN/-1 faults. Independent Unicorn2.1.4 executes unmodified
+original evaluator/dispatcher/operators on all25 ordered operator pairs ×six
+triples ×eight prefix-sign masks,1024 seeded streams (up to16 operands), four
+priority/association probes and all3490 eligible original expression byte streams.
+All5718 runs pass:5667 checked normal results/numeric tags/cursors/balanced stacks,
+51 vector0 faults with matching IDIV address, fault operands and retained return
+address. All3490 original eligible expressions are SINGLE LITERALS; compound
+capability is synthetic evidence, not new compound gameplay observation.
+The other378 original expressions remain unresolved. No OS exception recovery,
+dynamic/nonnumeric/grouped/gameplay execution or mocks claimed. A conventional
+arithmetic46 expectation fails on actual original result40.
+
+Forced compileall and all215 local tests pass with original/pinned KlikBack6e178b9.
+Ten new cases cover raw-code priority/equal-code association, signed/prefix
+boundaries, wrapping intermediates, rounding/zero/overflow and pending fault
+identity, complete-stream refusal, unknown/unbalanced forms, opaque tails, long
+iterative streams, all six expression types/both roles/scopes, readable results,
+lossless programs, immutable repeats, late malformed extents before every output
+or fault report, and independently classified original source words/results.
+Reversed >= to <= operator-reduction control fails seven intended assertions in
+ten executed cases; restored byte-exact and compileall-f before final positives.
+Existing version assertions become19; literal-text assertion includes the new
+separate whole-expression result. Actual agent ./node_modules/.bin/tsc --noEmit
+passes before commit.
+
+Prior JSON fields/annotations and text match971d55c after stripping only the new
+constant_integer_evaluation/coverage/version/banner additions. Previous643-file
+immutable bundle refuses replacement without mutation and is preserved before
+regeneration;640 other files remain identical. JSON/text/bundle CLIs repeat
+identically; input unchanged:
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+No original code/instructions/assets/exported metadata/private endpoint committed
+or published. Evidence: agent state data/furries/expression-constants/;
+source delivery/CI follows within this tick. Combined furries-exporter-spec stays
+started/sol: dynamic/global/opcode/placement/arenas/spawns/observed behaviour open.
+No second slice, new schedule/continuation, release or hardware claim.

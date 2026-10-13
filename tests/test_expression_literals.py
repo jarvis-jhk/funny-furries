@@ -69,7 +69,8 @@ class LiteralContainerTests(unittest.TestCase):
                     self.assertEqual(q['expression_storage']['tokens'][0]['integer_literal']['value_signed_i32'],
                                      -16777217)
             text = events.readable(doc)
-            self.assertEqual(text.count('"value_signed_i32": -16777217'), 10)
+            # Each literal now also has a separately proven whole-expression result.
+            self.assertEqual(text.count('"value_signed_i32": -16777217'), 20)
             self.assertEqual(events.event_document(self.reader, raw), doc)
 
     def test_late_invalid_literal_refuses_all_outputs_without_fault_report(self):

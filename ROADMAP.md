@@ -53,6 +53,8 @@
       divisors and CPU overflow; original project contains no instances.
 - [x] Runtime-proven recursive operand and evaluator-stop token annotations,
       retaining unknown delimiter roles/pairing and unevaluated dynamic expressions.
+- [x] Runtime-proven closed ungrouped integer expression results, preserving raw-code
+      priority, wrapping intermediates and CPU faults; dynamic/grouped forms unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

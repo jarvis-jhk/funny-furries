@@ -1,4 +1,4 @@
-# Event structure export v18
+# Event structure export v19
 
 This bounded M0 slice exports the **structure** of frame and global event programs in
 unprotected CnC projects. It does not decode gameplay opcode or parameter meanings and
@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 18 and `exporter` is `event-dump/18`.
+  fingerprints. `schema_version` is 19 and `exporter` is `event-dump/19`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -1006,3 +1006,75 @@ words/extents, lossless program reconstruction, both event roles/all six
 expression parameter types/scopes, unbalanced storage, suffix isolation,
 strict malformed-input refusal and immutable bundle repeats. CI skips only
 user-supplied original fixtures; no original content is committed or published.
+
+
+## Closed ungrouped integer constants (schema 19)
+
+Every `expression_storage` adds `constant_integer_evaluation`. This is a
+conservative evaluation of the complete stored token stream, starting after
+its opaque prefix and ending at its first zero code. It evaluates only one or
+more exact integer literals, separated by the supported binary numeric
+operators (add, subtract, multiply, divide, remainder). Each operand may have
+one prefix minus. All token annotations, raw bytes, offsets, references and
+opaque prefix/suffix remain unchanged; no tokens are substituted or folded.
+The new result also appears inside the existing JSON-escaped EXPRESSION line.
+
+The original evaluator compares **raw signed16 operator codes**, pushing an
+operator only when its code is greater than the pending one. For this bounded
+positive-code subset the priority is thus `0x0A00` remainder > `0x0800` divide >
+`0x0600` multiply > `0x0400` subtract > `0x0200` add. Equal codes associate left.
+These are distinct priorities, not conventional groups: `20 * 7 / 3` gives 40
+(`20 * (7 / 3)`), `20 / 7 remainder 3` gives 20 (`20 / (7 remainder 3)`), while
+`20 / 3 / 2` gives 3. Prefix minus is consumed by the operand dispatcher before
+binary evaluation. Every intermediate numeric result uses 32-bit wrapping;
+division truncates toward zero, remainder follows the dividend's sign, and
+zero divisors give quotient 0 or the unchanged dividend for remainder.
+
+- `status: value` adds `value_signed_i32`, `value_raw_u32`, numeric `result_tag: 0`
+  and `evidence: cnc_runtime_evaluator`.
+- `status: cpu_exception` records `fault: x86_divide_error`, vector 0, the pending
+  `operator_token_id`, and unknown exception recovery. INT32_MIN divided by or
+  remainder -1 traps; no result is invented. The pending operator is identified
+  after prior reductions, which can wrap or change its operands.
+- `status: unsupported_tokens` lists every unsupported storage `token_ids`.
+  String literals, dynamic/object/function operands, unknown operators and all
+  recursive/stop tokens are excluded from this slice, even when part of the
+  stream appears constant. No original dynamic operands are mocked.
+- `status: unsupported_shape` retains empty streams, missing operands,
+  adjacent literals, repeated prefix minus and incomplete operator sequences.
+  This means outside the supported grammar, not proven invalid in the original.
+
+The entire stream is checked for supported tokens and shape before arithmetic.
+An unsupported tail cannot produce a speculative value or divide-error claim
+from a supported-looking prefix. Unsupported forms and recorded CPU exceptions
+are ordinary research output, never exporter faults or private fault reports.
+Existing malformed literal/operator extents still refuse all output with exit2.
+No expression prefix, parameter role, event execution, comparison, game-state
+change, string/grouped arithmetic or general grammar is inferred. New
+`coverage.constant_integer_expressions` is true; general
+`coverage.expression_evaluation` and parameter/opcode/behaviour coverage remain
+false. Results are expression-level evidence, not a playable behaviour spec.
+
+Independent local execution uses unmodified instructions from FF2xmas.exe
+SHA256 `f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`:
+evaluator `0x42a42e`, raw-code comparison `0x42a457`, operand dispatcher
+`0x42a474`, and operator table `0x41b574`. Unicorn2.1.4 runs all 25 ordered
+operator pairs on asymmetric/rounding/zero/boundary triples with eight prefix
+sign combinations, 1,024 seeded streams of up to 16 operands, and four focused
+priority/association probes. All 3,490 eligible original expressions additionally
+execute their exact source bytes: in this project they are single literals,
+not compound arithmetic. All other 378 original expressions remain unresolved.
+In total 5,718 executions pass: 5,667 normal results with numeric tag, cursor and
+balanced stack checks, plus 51 divide errors with vector, IDIV address and fault
+operands verified. This proves compound capability on synthetic streams and
+literal-only results in the project; it does not prove OS exception recovery or
+execute dynamic, nonnumeric, grouped expressions or gameplay.
+
+Synthetic tests cover raw-code priority, equal-code associativity, wrapping
+intermediates, unary boundaries, signed rounding/zero/overflow, fault operator
+identity, whole-stream refusal, opaque tails, a long iterative stream, every
+expression parameter type in both record roles/scopes, readable results,
+lossless reconstruction, immutable bundle repeats and malformed late inputs
+before JSON/text/bundle writes or reporting. Original-only tests independently
+classify complete source streams and check every eligible value/raw word and
+unresolved remainder. CI skips that private fixture without `FF_TEST_PROJECT`.
