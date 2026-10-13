@@ -416,3 +416,48 @@ All64 passed locally with original enabled; saved source/docs/test hashes still
 match. Verification/CI snapshots/job log accompany data/furries/display-dump/.
 This delivery update is Markdown only; tested source unchanged. No unfinished
 implementation or CI continuation; exporter/spec remains started/sol.
+
+2026-10-13: Sol tick t_mv6k7rcknd5mk, one bounded M0 global-event storage
+slice. Clean main/fetched origin, no open PRs/issues or in-flight work at start;
+direct main follows the repository convention. tools/event_dump.py now emits
+schema2/event-dump/2 with ordered global rows/conditions/actions/raw parameters
+in events.json and readable events.txt. All existing frame JSON fields and
+frame text (apart from the version line) match the previous tested exporter.
+Global payload fingerprints/raw bytes/segment IDs remain, with preserved header,
+program extents and intervening opaque editor bytes. docs/EVENTS.md documents
+migration: unsupported global containers are now refused rather than silently
+exported as opaque. No frame/global execution order or opcode semantics guessed.
+
+Observed global dialect has40-byte header, total u32 at0, header extent at8,
+program offset at12/size at16. The single original segment is63602 bytes:
+9876 intervening opaque bytes, then53686 program bytes at9916. All398 rows,
+765 conditions,968 actions and1475 parameters reconstruct byte-for-byte;
+external pinned KlikBack event_groups agrees on every row offset/length.
+Header interpretation is observation-backed against this one original, not an
+independently established universal container spec. Other header words stay raw;
+no guessed editor fields or global reference resolution. Original has no font
+bank/type3 or4 text/question payloads; no text/font implementation invented.
+
+All input validates before output. Bad totals/header extents/pointers/sizes,
+records/parameters/counts/terminators and late-invalid repeated global segments
+fail exit2 before either JSON/text write or reporting. Existing atomic writer,
+symlink protection and detached optional FF_FAULT_REPORT_URL fault handler
+remain; unexpected/write faults report only version/platform/exception class.
+No private endpoint, original data or generated metadata committed/published.
+
+Validation: compileall and all72 local unittest cases pass with pinned reader
+6e178b9470206f71871417dec852fbfa24cd01b9 and original enabled. Eight new tests
+cover ordered parameters/unknown header/editor bytes, empty programs/regions,
+missing/repeated global segments, malformed/overflow-sized extents, invalid
+rows, readable output and late-invalid input before save. Executed reversed-
+global-row negative control fails four intended synthetic/text/container/original
+assertions; source restored byte-exact before all72 positives. Both CLI formats
+run twice with identical files; original unchanged, SHA-256
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Actual agent ./node_modules/.bin/tsc --noEmit passed before commit. Evidence:
+agent state data/furries/global-events/; source delivery/CI result follows below.
+
+Combined exporter/spec stays started/sol: global execution/opcode/parameter and
+object/placement semantics, extension data, arena geometry/spawns and observed
+behaviour remain open. No playable engine, release, Windows/Deck/hardware claim,
+new schedule, continuation or second slice.

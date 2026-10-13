@@ -2,8 +2,9 @@
 
 The first M0 slice inventories an unprotected CnC project. A separate
 [event structure exporter](EVENTS.md) now preserves ordered frame records and
-raw parameters in JSON/readable text. These are research tools, not yet the
-asset/arena exporter or a decoded behaviour specification.
+raw parameters in JSON/readable text, including structured global programs.
+These are research tools, not yet the asset/arena exporter or a decoded behaviour
+specification.
 The [audio exporter](AUDIO.md) adds original PCM WAV/MIDI files in an ignored,
 immutable bundle. The [image exporter](IMAGES.md) adds mode4 RGBA PNG files
 with bank IDs, explicit opacity and raw anchors. The [frame layout exporter](FRAME-LAYOUT.md)
@@ -38,8 +39,9 @@ The frame layout exporter's two synthetic container tests also require the reade
 The active animation exporter's two container tests also require the reader.
 The backdrop exporter's two synthetic container tests also require the reader.
 The display exporter's two synthetic container tests also require the reader.
+The global-event exporter's two synthetic container tests also require the reader.
 CI fetches the pinned external reader, runs the synthetic parser tests and
-skips only the eight original-file tests.
+skips only the nine original-file tests.
 
 Output is always `export/<source-sha256>/project-index.json`, ignored by git.
 Never commit, publish or release it. The JSON contains object names and layout
@@ -82,7 +84,7 @@ No endpoint or secret is stored in the
 repo; tests use mocks and never send a real report. Game runtime fault delivery
 via ntfy remains part of M2.
 
-Remaining M0 work: decoded opcode/parameter meanings and global events;
+Remaining M0 work: decoded opcode/parameter meanings and global execution semantics;
 remaining text/font/extension artwork and global reference mapping (active
 animation image sequences, backdrop header artwork, display image lists, mode4 PNG and PCM/MIDI
 audio now supported);

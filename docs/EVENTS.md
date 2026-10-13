@@ -1,6 +1,6 @@
-# Event structure export v1
+# Event structure export v2
 
-This bounded M0 slice exports the **structure** of frame event programs in
+This bounded M0 slice exports the **structure** of frame and global event programs in
 unprotected CnC projects. It does not decode opcode or parameter meanings and
 cannot yet specify movement, combat, weapon trajectories or event execution.
 All meanings are explicitly `unknown`, including familiar-looking opcodes.
@@ -33,7 +33,10 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 1 and `exporter` is `event-dump/1`.
+  fingerprints. `schema_version` is 2 and `exporter` is `event-dump/2`.
+  Version 2 retains all frame fields and the global raw payload fields from v1,
+  adds structured global programs, and refuses unsupported global containers
+  instead of silently exporting them as opaque. Consumers must check the version.
 - `frames` preserve every zero-based frame slot. A missing event block is an
   empty `programs` list, distinct from a present program with no rows.
 - Each program's `block_id` is its position among **all** frame blocks,
@@ -64,12 +67,29 @@ class; no path, event data or exception text leaves the process.
   block 3 bytes with offsets relative to the event block payload. Editor
   layout/comment data is opaque. The decompiler may have regenerated editor
   metadata; retaining it does not recover lost authored comments.
-- Top-level `global_events` retains each global-event segment as an opaque
-  payload, with its segment-list position (`segment_id`), absolute segment
-  header offset, length, fingerprint and `raw_hex`. Its container differs from
-  the frame `Fra` header; no frame or global-event merge is invented.
-- `coverage.frame_event_structure` is true; `opcode_semantics`,
-  `parameter_semantics` and `global_event_structure` remain false.
+- Top-level `global_events` retains each global-event segment in segment order,
+  with segment-list position (`segment_id`), absolute segment header offset,
+  complete payload length, SHA-256 and `raw_hex`. Multiple global segments stay
+  separate; missing segments differ from a present program containing no rows.
+  No frame/global-event merge or execution order is inferred.
+- Supported global payloads have a **40-byte header without a Fra signature**.
+  Four little-endian u32 fields are interpreted: total payload length at +0,
+  header extent at +8 (must be 40), program offset at +12 and program byte length
+  at +16. The declared total must match the segment payload, program offset
+  must be at least 40, and program offset plus length must equal the total.
+  At least the two-byte row terminator must be present. Other header words
+  remain opaque; no guessed editor-field relationships are imposed.
+- Each global segment adds `header_hex`, `program_offset`, `program_bytes`,
+  `rows` and `auxiliary`. Row/record/parameter structure and offsets follow the
+  same contract as frame programs, with offsets relative to the global program.
+  The single auxiliary entry (ID 0) preserves all bytes between header end and
+  program start, with payload-relative offset 40, length and unknown meaning.
+  It is not split or interpreted as editor metadata. An empty region remains
+  a present zero-byte entry. Header + auxiliary bytes + reconstructed rows and
+  terminator reproduce the entire global payload, independently of `raw_hex`.
+- `coverage.frame_event_structure` and `global_event_structure` are true;
+  `opcode_semantics` and `parameter_semantics` remain false. Global record
+  object references remain signed raw numbers, without runtime resolution.
 
 ## Evidence and remaining work
 
@@ -82,13 +102,31 @@ execution semantics. Tests contain only independently authored synthetic data.
 The original-file test runs only when `FF_TEST_PROJECT` is supplied locally.
 It verifies frame row counts `0/4/52` then ten times `113` (1,186 total), 2,490
 conditions, 5,083 actions and 6,685 parameters; reconstructs every complete
-frame event block and the opaque global payload byte-for-byte; and checks
+frame event block byte-for-byte; and checks
 unchanged input and repeat output. Synthetic tests cover ordering, unknown
 codes, signed references, empty/absent programs, bad sizes/counts/terminators,
 truncation, atomic output failures, symlinks and fault classification. CI uses
-the pinned external reader without original data and explicitly skips both
-original-file tests (index and events).
+the pinned external reader without original data and explicitly skips the nine
+original-file tests across all exporters.
 
-Next slices: decode the global-event container; map opcode/parameter semantics
-with independent evidence; export media and arena geometry; build a behaviour
-spec from these exports and actual original observations. M0 remains open.
+Global header-field interpretation is observation-backed against the single
+63,602-byte original global segment, not an independent universal format spec.
+Its header extent is 40, program starts at 9,916, and 53,686 program bytes run
+exactly to payload end. All 398 rows, 765 conditions, 968 actions and 1,475
+parameters reconstruct byte-for-byte; the pinned reader's independent
+`event_groups` traversal agrees on every row offset and length. The 9,876-byte
+intervening region stays opaque, including any data regenerated by decompiling.
+This does not prove which global events run in which frames, their order relative
+to frame events, or any opcode meaning. The original has no font-bank segment
+or type-3/4 text/question data blocks; none were invented for this slice.
+
+Synthetic global tests cover known ordered rows/parameters, arbitrary opaque
+header words and editor bytes, no editor bytes, empty programs, missing/repeated
+segments, overflow-sized and malformed extents, unsupported header lengths,
+truncated records/parameters/terminators and late-invalid segments before either
+JSON/text write. Existing frame, atomic write/symlink and detached private fault
+handling tests still run. Unknown global dialects now fail validation with exit 2.
+
+Next slices: map opcode/parameter semantics with independent evidence; resolve
+object/global references and extension data; export arena geometry; build a
+behaviour spec from these exports and actual original observations. M0 remains open.

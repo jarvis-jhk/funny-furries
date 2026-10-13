@@ -17,6 +17,8 @@
       and orientation, raw headers; global resolution and arena semantics remain open.
 - [x] Score/lives/counter artwork sections and counted image lists, with opaque
       modes/attributes retained; numeric rendering and player ownership remain unknown.
+- [x] Ordered global-event programs with preserved opaque header/editor bytes,
+      source extents, lossless reconstruction and readable text; semantics stay unknown.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

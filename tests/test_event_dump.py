@@ -40,6 +40,13 @@ def event_block(program):
     return b"Fra\0" + struct.pack("<HI", 0x0217, len(program)) + program + b"\x02\0ABCD"
 
 
+def global_block(program, auxiliary=b"own editor bytes"):
+    header = bytearray(range(40))
+    struct.pack_into("<I", header, 0, 40 + len(auxiliary) + len(program))
+    struct.pack_into("<III", header, 8, 40, 40 + len(auxiliary), len(program))
+    return bytes(header) + auxiliary + program
+
+
 def reconstruct_program(document):
     out = b""
     for event_row in document["rows"]:
@@ -166,10 +173,11 @@ class ContainerTests(unittest.TestCase):
         block = event_block(sample_program())
         level += struct.pack("<HI", 0x8004, len(block)) + block
         raw = game.raw[:0x16A] + struct.pack("<HI", 8, len(level)) + level
-        raw += struct.pack("<HI", 0x8003, 7) + b"unknown"
+        global_data = global_block(sample_program())
+        raw += struct.pack("<HI", 0x8003, len(global_data)) + global_data
         document = events.event_document(self.reader, raw)
-        self.assertEqual(document["global_events"][0]["raw_hex"], b"unknown".hex())
-        self.assertFalse(document["coverage"]["global_event_structure"])
+        self.assertEqual(document["global_events"][0]["raw_hex"], global_data.hex())
+        self.assertTrue(document["coverage"]["global_event_structure"])
         self.assertFalse(document["coverage"]["opcode_semantics"])
         self.assertEqual(reconstruct_program(document["frames"][0]["programs"][0]), sample_program())
 

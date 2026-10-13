@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "event-dump/1"
+VERSION = "event-dump/2"
 
 
 def word(data, offset, form="<H"):
@@ -99,6 +99,26 @@ def decode_program(data):
                            "meaning": "unknown", "raw_hex": data[third:].hex()}]}
 
 
+def decode_global_program(data):
+    # This CnC container has no Fra signature. Only the observed 40-byte
+    # header dialect is supported; the intervening editor region stays opaque.
+    if len(data) < 40:
+        raise project.InputError("global event header is truncated")
+    total = word(data, 0, "<I")
+    header_size = word(data, 8, "<I")
+    start = word(data, 12, "<I")
+    size = word(data, 16, "<I")
+    if total != len(data) or header_size != 40:
+        raise project.InputError("unsupported global event header extent")
+    if start < header_size or size < 2 or start + size != total:
+        raise project.InputError("global event program extent is invalid")
+    return {"header_hex": data[:header_size].hex(), "program_offset": start,
+            "program_bytes": size, "rows": decode_rows(data[start:start + size]),
+            "auxiliary": [{"id": 0, "offset": header_size,
+                           "bytes": start - header_size, "meaning": "unknown",
+                           "raw_hex": data[header_size:start].hex()}]}
+
+
 def event_document(reader, raw):
     # Reuse strict container, object-table and bank validation before any output.
     inventory = project.inventory(reader, raw)
@@ -111,16 +131,40 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **decode_program(block.data)})
         frames.append({"id": frame, "programs": programs})
-    return {"schema_version": 1, "exporter": VERSION,
+    return {"schema_version": 2, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
-                         "parameter_semantics": False, "global_event_structure": False},
+                         "parameter_semantics": False, "global_event_structure": True},
             "frames": frames,
             "global_events": [{"segment_id": slot, "offset": segment.offset,
                                "bytes": len(segment.data), "meaning": "unknown",
                                "sha256": hashlib.sha256(segment.data).hexdigest(),
-                               "raw_hex": segment.data.hex()}
+                               "raw_hex": segment.data.hex(),
+                               **decode_global_program(segment.data)}
                               for slot, segment in enumerate(game.segments) if segment.ident == 3]}
+
+
+def readable_program(program):
+    lines = []
+    for row in program["rows"]:
+        lines.append(f"    ROW {row['id']} offset={row['offset']} bytes={row['bytes']} "
+                     f"conditions={row['condition_count']} actions={row['action_count']} "
+                     f"header={row['header_hex']}")
+        for record in row["records"]:
+            lines.append(f"      {record['role'].upper()} {record['id']} "
+                         f"offset={record['offset']} bytes={record['bytes']} "
+                         f"type={record['object_type']} opcode={record['opcode']} "
+                         f"reference={record['object_reference']} meaning=UNKNOWN "
+                         f"header={record['header_hex']}")
+            for parameter in record["parameters"]:
+                lines.append(f"        PARAM {parameter['id']} offset={parameter['offset']} "
+                             f"bytes={parameter['bytes']} type={parameter['type']} "
+                             f"meaning=UNKNOWN payload={parameter['payload_hex']}")
+    lines.append("    TERMINATOR 0000")
+    for auxiliary in program["auxiliary"]:
+        lines.append(f"    AUX {auxiliary['id']} offset={auxiliary['offset']} "
+                     f"bytes={auxiliary['bytes']} meaning=UNKNOWN raw={auxiliary['raw_hex']}")
+    return lines
 
 
 def readable(document):
@@ -132,27 +176,12 @@ def readable(document):
         for program in frame["programs"]:
             lines.append(f"  BLOCK {program['block_id']} frame_offset={program['frame_offset']} "
                          f"program_offset={program['program_offset']} header={program['header_hex']}")
-            for row in program["rows"]:
-                lines.append(f"    ROW {row['id']} offset={row['offset']} bytes={row['bytes']} "
-                             f"conditions={row['condition_count']} actions={row['action_count']} "
-                             f"header={row['header_hex']}")
-                for record in row["records"]:
-                    lines.append(f"      {record['role'].upper()} {record['id']} "
-                                 f"offset={record['offset']} bytes={record['bytes']} "
-                                 f"type={record['object_type']} opcode={record['opcode']} "
-                                 f"reference={record['object_reference']} meaning=UNKNOWN "
-                                 f"header={record['header_hex']}")
-                    for parameter in record["parameters"]:
-                        lines.append(f"        PARAM {parameter['id']} offset={parameter['offset']} "
-                                     f"bytes={parameter['bytes']} type={parameter['type']} "
-                                     f"meaning=UNKNOWN payload={parameter['payload_hex']}")
-            lines.append("    TERMINATOR 0000")
-            for auxiliary in program["auxiliary"]:
-                lines.append(f"    AUX {auxiliary['id']} offset={auxiliary['offset']} "
-                             f"bytes={auxiliary['bytes']} meaning=UNKNOWN raw={auxiliary['raw_hex']}")
+            lines.extend(readable_program(program))
     for segment in document["global_events"]:
         lines.append(f"GLOBAL SEGMENT {segment['segment_id']} offset={segment['offset']} "
-                     f"bytes={segment['bytes']} meaning=UNKNOWN raw={segment['raw_hex']}")
+                     f"bytes={segment['bytes']} program_offset={segment['program_offset']} "
+                     f"program_bytes={segment['program_bytes']} header={segment['header_hex']}")
+        lines.extend(readable_program(segment))
     return "\n".join(lines) + "\n"
 
 
