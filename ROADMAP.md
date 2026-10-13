@@ -37,6 +37,8 @@
       preserving runtime words/partial keys and ambiguous local/global matches.
 - [x] Action frame-target words and lossless application level-number word views,
       with explicit table-index probes; CnC runtime destinations remain unresolved.
+- [x] Runtime-proven integer expression literal values in readable events, retaining
+      raw bits and unsupported shapes; compound evaluation remains unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

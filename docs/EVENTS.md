@@ -1,10 +1,10 @@
-# Event structure export v4
+# Event structure export v11
 
 This bounded M0 slice exports the **structure** of frame and global event programs in
 unprotected CnC projects. It does not decode gameplay opcode or parameter meanings and
 cannot yet specify movement, combat, weapon trajectories or event execution.
-All opcode/parameter meanings are explicitly `unknown`, including familiar-looking
-opcodes. Frame records now carry evidence-based local object-slot candidates;
+Raw opcode/parameter `meaning` fields remain `unknown`, including familiar-looking
+opcodes. Schema11 separately decodes proven integer literal tokens. Frame records now carry evidence-based local object-slot candidates;
 this aids reading the events without inventing runtime behaviour. Editor group
 boundaries and stored titles are annotated separately in v4.
 
@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 9 and `exporter` is `event-dump/9`.
+  fingerprints. `schema_version` is 11 and `exporter` is `event-dump/11`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -243,8 +243,9 @@ immutable repeat checks deliberately refuse to replace their old bytes.
 
 Parameters of types 15, 22, 23, 45, 52 and 53 now add `expression_storage`.
 All existing raw fields, row/group/reference annotations and ordering remain;
-parameter and token `meaning` stays unknown. No arithmetic, literal, function,
-comparison, selection or runtime evaluation semantics are inferred. Other
+parameter and token `meaning` stays unknown. Schema5 inferred no arithmetic, literal,
+function, comparison, selection or runtime evaluation semantics; schema11 adds
+only independently proven integer literal values as described below. Other
 parameter types remain opaque. The six-type set and token traversal have
 independent evidence in pinned KlikBack
 `common/reconstruct_event_test.py::EXPRESSION_PARAMETER_TYPES` and
@@ -543,3 +544,57 @@ Only events JSON/text and the composed bundle manifest change; media and the
 other research components remain identical. Existing immutable research bundles
 must be explicitly preserved/moved aside before regeneration. The optional
 private fault handler and atomic/symlink protections stay unchanged.
+
+
+## Integer expression literals (schema11)
+
+Expression token code0x00FF with extent8 now carries `integer_literal`:
+`token_offset: 4`, `value_signed_i32`, `value_raw_u32` and
+`evidence: cnc_runtime_dispatch`. The four bytes at token+4 are a little-endian
+32-bit integer. Signed and unsigned views retain the same bits. Existing token
+raw bytes/offsets/order and reference annotations remain unchanged; the generic
+legacy `meaning: unknown` field is retained for consumers. This specific
+annotation establishes a numeric literal value, not the meaning of its containing
+parameter or event. It applies in both roles, frame/global programs and all six
+supported expression parameter types. Readable EXPRESSION JSON includes values.
+
+Only this exact code/extent is supported. Short or extended0x00FF tokens fail
+as input errors before any JSON/text/bundle write or private fault report.
+Other codes remain opaque; in particular0xFFFF is **not** an integer literal
+alias. Prefix words, first terminator, suffix bytes, unary markers, operators,
+object tokens and expression evaluation retain their existing treatment.
+Two literals separated by a token never become an evaluated expression.
+`coverage.expression_integer_literals` is true; `expression_evaluation`,
+`opcode_semantics` and `parameter_semantics` remain false. The text's opening
+coverage sentence now names this limited decoding instead of calling every
+expression value unknown. Immutable bundle migration rules still apply.
+
+Evidence comes from the player's original FF2xmas.exe, SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f.
+At preferred image base0x400000, entry0x42a417 starts tokens at parameter+6.
+Dispatcher0x42a474 sign-extends the token's low/high bytes to object type and
+opcode, respectively. Low byte-1 selects pointer slot0x41a384, yielding table
+0x41b2b8; opcode0 selects handler0x428823. That handler loads the dword at
+token+4 into EAX and clears DX's low16 bits, the numeric result tag. The
+caller advances by the u16 extent at token+2. These addresses identify the
+examined binary, not offsets exported as game data or runtime dependencies.
+
+Private independent Unicorn2.1.4 execution loads the original PE sections,
+executes the actual dispatcher and the lone-literal evaluator0x42a42e, and
+checks EAX, numeric tag, token cursor and balanced stack. All3776 original
+literal tokens and seven signed boundary inputs pass through each entry
+(7566 executions). The original's TEXT_1 section is marked DATA in PE section
+flags; `objdump -d` omits it, so the audit uses `objdump -D -j TEXT_1`.
+This is isolated instruction execution, not running the game or certifying
+movement/combat, compound evaluation, Windows/Deck operation or hardware.
+
+The newer Clickteam runtime offers corroboration only: its EXP_LONG uses a
+32-bit signed value but has a wider token code0x0000FFFF. See the
+[Clickteam SDK runtime distribution](https://github.com/AITYunivers/CTFJavaSDK)
+(revision5f8f266d507a35557e294c62fc8ff418e9335b65, RuntimeSDK.jar,
+Expressions.CExp/EXP_LONG). Its different token header is
+never used to decode this CnC dialect. No SDK code or original executable bytes
+are copied into the implementation, tests or repository. Runtime files,
+disassembly, generated JSON/text/assets and the optional emulator stay private
+in agent state. CI requires only the pinned KlikBack reader; local original
+fixtures separately read literal values directly from source program spans.

@@ -987,3 +987,52 @@ still match. CI snapshot/job log and verification saved with local evidence in
  data/furries/event-frame-targets/. This delivery update changes Markdown only;
 tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec remains started/sol, no release or second slice.
+
+
+2026-10-13: Sol tick t_mv6vzza71faf6w, one bounded M0 integer-expression
+literal slice. Clean main, fetched origin, no open PRs/issues or in-flight
+work at start; direct main follows the repository convention. event-dump/11,
+schema11 annotates exactly8-byte token0x00FF with signed32/raw-u32 values at
+byte4, proven from the player's original executable's dispatcher and numeric
+handler. Both roles/frame/global programs and all six expression types use it.
+Unknown tokens/prefix/suffix/operators remain opaque; compound evaluation and
+containing event/parameter meanings stay unresolved. Extended/short recognized
+tokens exit2 before JSON/text/bundle output or fault reporting.
+
+Primary evidence: original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f.
+Dispatcher0x42a474 selects table0x41b2b8 for type-1 and handler0x428823 for
+opcode0; handler loads EAX from token+4 and clears numeric tag DX. Independent
+Unicorn2.1.4 runs actual dispatcher AND lone-literal evaluator0x42a42e for
+all3776 original tokens plus seven signed boundary cases:7566 executions,
+matching result/tag/cursor/stack. TEXT_1 is marked PE DATA, so objdump -d misses
+the runtime: use objdump -D -j TEXT_1. A newer Clickteam Java SDK corroborates
+signed32 only; its wider0x0000FFFF code is explicitly NOT borrowed as a CnC
+alias. SDK pin5f8f266/jar hash and disassembly remain private evidence.
+This is isolated original instruction execution, not original gameplay or a
+playable fork/Windows/Deck/controller acceptance claim.
+
+Validation: force compileall and all151 local tests pass with original and
+pinned KlikBack6e178b9. Seven new cases cover signed boundaries, mixed tokens,
+unknown modern codes, unsupported literal extents, both roles/all expression
+types/scopes, late-invalid refusal before every output/report, bundle repeats
+and independent source/external token-walk original proof. Executed byte4->3
+signed-value control fails four intended assertions in seven executed cases;
+source restored byte-exact and compileall -f forced before final positives.
+Actual agent ./node_modules/.bin/tsc --noEmit passes before commit. Existing
+optional detached FF_FAULT_REPORT_URL fault handler, atomic/symlink protections
+and immutable bundles remain unchanged. No private endpoint/original assets,
+metadata, SDK code or original machine bytes are committed/published.
+Evidence: agent state data/furries/expression-literals/.
+
+All prior raw event fields/reference/group annotations match preceding source
+da390a6 after removing only additions/version. Text matches after removing
+literal annotations inside EXPRESSION JSON and new version/coverage sentence.
+Prior643-file immutable bundle rejects changed bytes without mutation and is
+preserved before regeneration;640 other component/media files stay identical.
+JSON/text/bundle CLIs repeat identically; source SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Source delivery/CI follows within this turn; no schedule/continuation created.
+Combined furries-exporter-spec remains started/sol: compound/global/opcode
+semantics, placement/arena geometry/spawns and observed behaviour remain open.
+No second slice or release.

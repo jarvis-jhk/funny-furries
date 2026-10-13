@@ -84,7 +84,7 @@ class GroupParameterContainerTests(unittest.TestCase):
     def test_scope_equality_ambiguity_names_and_repeat(self):
         raw = project_bytes()
         doc = events.event_document(self.reader, raw)
-        self.assertEqual(doc['schema_version'], 10)
+        self.assertEqual(doc['schema_version'], 11)
         self.assertTrue(doc['coverage']['group_parameter_stored_word_candidates'])
         self.assertFalse(doc['coverage']['parameter_semantics'])
         ts = list(targets(doc))
@@ -167,7 +167,7 @@ class GroupParameterContainerTests(unittest.TestCase):
         manifest, files = export_project.research_bundle(self.reader, raw)
         self.assertEqual(files['events.json'], export_project.json_bytes(events.event_document(self.reader, raw)))
         self.assertIn(b'GROUP_PARAMETER', files['events.txt'])
-        self.assertEqual(manifest['components']['events.json'], {'exporter': 'event-dump/10', 'schema_version': 10})
+        self.assertEqual(manifest['components']['events.json'], {'exporter': 'event-dump/11', 'schema_version': 11})
         self.assertEqual(export_project.research_bundle(self.reader, raw), (manifest, files))
 
     @unittest.skipUnless(os.environ.get('FF_TEST_PROJECT'), 'set FF_TEST_PROJECT for original verification')
