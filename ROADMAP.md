@@ -63,6 +63,8 @@
       words and flags with actual object/global/spawn positions unresolved.
 - [x] Runtime-proven placement creation coordinate inputs, preserving signed/raw X/Y
       words and independent override rules; final positions/arena geometry stay open.
+- [x] Runtime-proven placement creation type inputs, preserving opaque high bytes
+      and all local-header comparisons; allocation/global/arena semantics stay open.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

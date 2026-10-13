@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "frame-layout/3"
+VERSION = "frame-layout/4"
 UNUSED = 0xFFFFFFFF
 RECORD_BYTES = 32
 
@@ -63,17 +63,38 @@ def layout_document(reader, raw):
         annotate_object_slot_probes(placements, [(block_id, next(lists))
             for block_id, block in enumerate(blocks) if block.ident == 2])
         annotate_coordinate_inputs(placements)
+        annotate_creation_types(placements)
         frames.append({"id": frame_id, "offset": level.offset,
                        "header_bytes": start, "header_meaning": "unknown",
                        "header_hex": level.data[:start].hex(), "placements": placements})
-    return {"schema_version": 3, "exporter": VERSION,
+    return {"schema_version": 4, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "frames": frames,
             "coverage": {"frame_headers": True, "placement_storage": True,
                          "placement_object_slot_probes": True,
                          "placement_coordinate_inputs": True,
+                         "placement_creation_type_inputs": True,
                          "placement_semantics": False, "arena_geometry": False,
                          "spawns": False, "behaviour": False}}
+
+
+def annotate_creation_types(placements):
+    # The creator masks record6 to its low byte before dispatching allocation.
+    # Header equality does not prove body selection or successful creation.
+    for block in placements:
+        for record in block["records"]:
+            word = struct.unpack_from("<H", bytes.fromhex(record["raw_hex"]), 6)[0]
+            kind = word & 0xFF
+            record["creation_type_input"] = {
+                "record_offset": 6, "raw_u16": word,
+                "type_raw_u8": kind, "opaque_high_u8": word >> 8,
+                "meaning": "creation_type_input",
+                "evidence": "original_runtime_creation_type_dispatch",
+                "runtime_resolution": False,
+                "local_definition_comparisons": [{
+                    **{key: obj[key] for key in ("block_id", "id", "type", "deleted")},
+                    "type_equal": obj["type"] == kind}
+                    for obj in record["object_slot_probe"]["candidates"]]}
 
 
 def annotate_coordinate_inputs(placements):

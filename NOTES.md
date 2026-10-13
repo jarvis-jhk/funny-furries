@@ -1785,3 +1785,57 @@ snapshots/job log in agent state data/furries/placement-coordinates/. This deliv
 edit changes Markdown only; tested source unchanged. No unfinished implementation,
 continuation/new schedule/release/second slice; combined exporter/spec remains
 started/sol, full creation/selection/arena geometry/spawn/observed behaviour open.
+
+2026-10-13: Sol tick t_mv78i9bbizfps, one bounded M0 placement creation-type
+input slice. Clean main/fetched origin, no open PRs/issues or in-flight work;
+direct main follows repository convention. frame-layout/4/schema4 adds
+creation_type_input: raw-u16 at record6, masked low-byte type and opaque high
+byte, plus every existing same-frame header candidate's type comparison. Missing,
+deleted/mismatching/ambiguous candidates stay explicit, no global fallback or
+sentinel rules borrowed. Raw records/probes/coordinates and context-free decoder
+unchanged; runtime_resolution=false throughout. Existing optional detached
+private fault reporter unchanged; malformed input still exit2 before writes/
+reporting. No original code/instructions/content/assets/exported metadata/private
+endpoint committed or published.
+
+Unmodified original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+creator0x420af3 reads record6, masks CX with0xff at0x420af7, then calls actual
+allocation-dispatch helper0x420984. Independent Unicorn2.1.4 runs all65536 words,
+224 missing extension entries,512 seeded records/all7968 originals plus wrong
+full-word257 expectation:74241 executions pass (10735 zero-entry returns,
+5707 built-in call entries,57799 extension call entries). Actual masked selector,
+mixed-width stack arguments, real helper target/zero result/stack and untouched
+records checked. Observational hooks only; original built-in pointers retained,
+extension callback addresses/body offsets supplied as synthetic DATA inputs.
+No callback code/stub/import replacement or allocation callback execution.
+Full creator/object initialization/definition lookup/gameplay remain unproven.
+
+Independent source spans/pinned-reader definitions confirm all7968 low bytes
+match exactly one live same-frame header;1722 high bytes nonzero (still opaque).
+Protected/decompiled placement blocks equal. Built-in table0/1 entries are zero:
+5090 original records yield no helper callback in synthetic creator contexts;
+this does NOT imply backdrop absence, since other rendering/filtering paths
+were not executed. Actual arena geometry/spawn/global/body selection remain open.
+
+Eight new tests/all256 local tests pass with original/pinned KlikBack6e178b9.
+Coverage includes all low bytes/seven high-byte patterns, opaque neighbours,
+all candidate shapes/scopes, aliases/gaps/reversed pointers/both frame headers,
+empty/repeated blocks, original word/header traversal, standalone/bundle repeats
+and late malformed refusal before output/reporting. Low-byte mask0xff->0xffff
+control fails7 intended assertions in8 executed cases; restored byte-exact and
+forced compileall-f before all256 final positives. First full run caught three
+accidental fixture slot edits during version-assertion updates; original slots
+restored and caches rebuilt before accepting final positives. Actual agent
+./node_modules/.bin/tsc --noEmit passes before commit.
+
+Prior document fields match807a114 after stripping only the new annotation/
+coverage/version. Previous643-file immutable bundle refuses replacement without
+mutation and is preserved before regeneration;641 other files identical, only
+frame-layout.json/manifest.json differ. Both standalone/bundle CLI repeats
+identical/input unchanged:
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/placement-types/; source delivery/CI follows
+within this tick. Combined exporter/spec stays started/sol: arena geometry/spawns,
+actual allocation/selection/global/opcode/observed behaviour remain open.
+No second slice, new schedule/continuation/release or hardware claim.

@@ -104,7 +104,7 @@ class ProbeContainerTests(unittest.TestCase):
     def test_same_frame_scope_actual_block_identity_and_repeated_list_ambiguity(self):
         raw, placement = synthetic_probes()
         out = layout.layout_document(self.reader, raw)
-        self.assertEqual((out["schema_version"], out["exporter"]), (3, "frame-layout/3"))
+        self.assertEqual((out["schema_version"], out["exporter"]), (4, "frame-layout/4"))
         self.assertTrue(out["coverage"]["placement_object_slot_probes"])
         for key in ["placement_semantics", "arena_geometry", "spawns", "behaviour"]:
             self.assertFalse(out["coverage"][key])
@@ -131,7 +131,7 @@ class ProbeContainerTests(unittest.TestCase):
     def test_bundle_repeats_and_late_invalid_placement_precedes_writes_and_reports(self):
         raw, _ = synthetic_probes()
         manifest, files = bundle.research_bundle(self.reader, raw)
-        self.assertEqual(manifest["components"]["frame-layout.json"], {"exporter": "frame-layout/3", "schema_version": 3})
+        self.assertEqual(manifest["components"]["frame-layout.json"], {"exporter": "frame-layout/4", "schema_version": 4})
         (project.REPO / "build").mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=project.REPO / "build") as scratch:
             target = bundle.save_bundle(manifest, files, Path(scratch))

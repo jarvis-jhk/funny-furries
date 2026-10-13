@@ -1,9 +1,9 @@
-# Frame layout structure v3
+# Frame layout structure v4
 
 This M0 research slice exports frame headers and object-placement **storage**
 as local JSON. It supplies the lossless placement tables needed for a later
-arena decoder. Version 3 adds runtime-proven creation coordinate inputs beside the existing
-first-word/local-object-slot equality probes. It does not yet establish runtime
+arena decoder. Version 4 adds runtime-proven creation type inputs beside the existing
+coordinate inputs and first-word/local-object-slot equality probes. It does not yet establish runtime
 object references, final positions,
 collision geometry, player spawns, drawing order or playable arenas.
 
@@ -26,7 +26,7 @@ endpoint, paths, exception text or original data enters fault reports.
 ## Contract
 
 - Source and external reader fingerprints match the project index.
-- `schema_version` is 3 and `exporter` is `frame-layout/3`. Existing raw fields,
+- `schema_version` is 4 and `exporter` is `frame-layout/4`. Existing raw fields,
   record/slot order, pointer aliases and header bytes are unchanged.
 - Every frame retains its zero-based storage ID, absolute segment-header
   offset, and exact pre-block header as `header_hex`. The reader establishes
@@ -46,7 +46,7 @@ endpoint, paths, exception text or original data enters fault reports.
   its storage ID, offset relative to the placement payload, `raw_hex`, and
   `meaning: unknown`. No word is labelled as a resolved object ID or final world position.
   Within `layout_document`, each record adds `object_slot_probe` and
-  `coordinate_inputs`, described below.
+  `coordinate_inputs` and `creation_type_input`, described below.
   The standalone `decode_placements` function remains a context-free storage decoder.
 - The record area must be divisible by 32. Every live pointer must be aligned
   and in bounds, and every stored record must be referenced. No trailing or
@@ -112,7 +112,7 @@ No editor/runtime instructions were executed for this claim.
 `arena_geometry`, `spawns` and `behaviour` remain false. Raw record/header bytes
 and complete placement reconstruction remain lossless. Pointer aliases keep
 one stored record and one probe, rather than multiplying presumed instances.
-The research bundle automatically includes schema 3 and its component version;
+The research bundle automatically includes schema 4 and its component version;
 an existing different immutable bundle must be moved aside before regenerating.
 
 Synthetic tests cover differing frame scopes, actual block identities, missing,
@@ -183,3 +183,60 @@ or fault reporting. The optional original fixture independently reads every
 coordinate word from each source span and preserves complete reconstruction,
 repeat equality and the original fingerprint. Original instructions, content,
 generated metadata and runtime proof outputs stay local and are not committed.
+
+
+## Creation type inputs
+
+Schema 4 adds `creation_type_input` to each stored placement record. It retains
+`record_offset: 6`, the little-endian `raw_u16`, `type_raw_u8` (the low byte) and
+`opaque_high_u8` (the high byte). The original creator reads this word and masks
+it with 0xFF before passing it to its allocation dispatch helper. The high byte
+is preserved, but no flag meanings are assigned. Neither a 0xFFFF word nor type
+255 is labelled deleted/missing: storage encodings from another field do not
+establish a type sentinel. Raw records and context-free decoding are unchanged.
+
+`meaning: creation_type_input` and
+`evidence: original_runtime_creation_type_dispatch` distinguish a proven runtime
+input from a successful live-object type. Every annotation still says
+`runtime_resolution: false`. `local_definition_comparisons` contains **every**
+same-frame equality candidate from the existing `object_slot_probe`, retaining
+`block_id`, `id`, `type`, `deleted` and a `type_equal` boolean. Missing slots have
+an empty comparison list; deleted, differing and ambiguous candidates are not
+filtered or chosen. Application-global bodies and other frames are not searched.
+A matching header does not prove runtime definition selection or creation.
+
+Evidence is the local original FF2xmas executable (SHA-256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`): creator
+0x420AF3 reads the word at record+6, 0x420AF7 masks CX with 0xFF and the genuine
+mixed-width call passes it to helper 0x420984. That helper branches on type <32
+to a built-in table or >=32 to extension descriptor storage. Original
+instructions were independently executed unmodified with Unicorn 2.1.4, using
+observational stop hooks at the actual helper/callback entry or return. Original
+built-in pointers were retained. Extension callback-address fields and definition
+body offsets were synthetic **data** inputs; no callback implementation or import
+was patched/stubbed. No allocation callback was executed.
+
+All 65,536 word values, every missing extension-entry path, 512 seeded records
+and all 7,968 original source records pass: 74,241 executions check masked type,
+actual stack arguments, original helper target/zero-entry return and untouched
+record bytes. An expected full-word type of 257 fails against the actual returned
+selector 1. Protected/decompiled placement bytes agree. Every original low byte
+matches exactly one live same-frame definition header: types 0/1/2/5/6/7/32/33/34;
+1,722 records have nonzero high bytes. These counts are independently traversed
+from source spans and the pinned reader, not inferred from exporter annotations.
+
+In this executable, built-in allocation table entries for types 0 and 1 are zero;
+5,090 original records take the helper's no-callback return when supplied as
+synthetic creation inputs. This does **not** prove those placements are absent or
+that backdrop rendering is unsupported: other original rendering paths and
+initial creation filtering are outside this proof. Full allocation, definition
+lookup, initialization, arena geometry/spawns and gameplay remain unresolved.
+
+`coverage.placement_creation_type_inputs` is true. General placement semantics,
+arena geometry, spawns and behaviour remain false. Synthetic tests cover all low
+bytes with multiple high-byte patterns, opaque neighbours, missing/deleted/
+mismatching/ambiguous header comparisons, frame scopes, aliases/gaps/reversed
+pointers, both frame headers, empty/repeated blocks, lossless source bytes and
+standalone/bundle immutable repeats. Late malformed placement storage fails
+before output or fault reporting. Original-file tests separately verify every
+word/header comparison; CI skips only that fixture without local game content.
