@@ -136,3 +136,12 @@ parameter semantics, images, arena JSON and an observation-backed behaviour
 spec remain. Initial global-container research found the newer reader's
 KLBEDAEH format does not match this CnC source; no guessed decoder was committed.
 No engine, release, Windows/Deck/hardware claim, new schedule or second slice.
+
+Delivery: source ef3b76ccf6bad4d6a6a0fb4fe6dd90ed51ba9dde pushed to main;
+Exporter tests CI38357851622 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38357851622 . Downloaded
+job115164807756 log confirms actual checkout SHA, pinned reader SHA, Python3.10
+compileall and all26 cases (23 pass; only three local-original fixtures skipped).
+All26 passed locally with the original. CI snapshot/logs saved alongside local
+evidence in data/furries/audio-dump/. No in-flight work or CI continuation.
+This final delivery update changes NOTES only; tested source unchanged.
