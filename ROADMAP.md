@@ -21,6 +21,8 @@
       source extents, lossless reconstruction and readable text; semantics stay unknown.
 - [x] Frame-event local object-slot candidates with names/types/flags, unresolved
       encodings and ambiguous lists explicit; global/runtime semantics remain open.
+- [x] One-command atomic research bundle composing all supported exports, with
+      source/reader agreement, version/hash manifest and immutable repeat checks.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

@@ -526,3 +526,48 @@ All80 passed locally with original enabled; saved source/docs/test hashes still
 match. Verification/CI snapshots/job log accompany data/furries/event-references/.
 This delivery update is Markdown only; tested source unchanged. No unfinished
 implementation or CI continuation; combined exporter/spec remains started/sol.
+
+
+2026-10-13: Sol tick t_mv6kxh29r3vv0, one bounded M0 combined research-export
+slice. Clean main, fetched origin, no open PRs/issues or in-flight work at start;
+direct main follows repository convention. tools/export_project.py and
+ docs/PROJECT-BUNDLE.md compose all existing supported exports from one input
+read into ignored export/<sha>/research-v1/. Nine component files/text plus
+614 PNGs,17 WAVs,2 unchanged MIDI files and top-level manifest make643 files.
+All642 component/media bytes equal the previously verified standalone outputs;
+individual outputs and original input remain unchanged. Component schemas,
+media names/relative references and bank gaps/repeated/empty/missing data stay
+intact. Top manifest supplies source/reader identity, component versions and
+sorted hashes/lengths for every other file, without circular self-hashing.
+
+Every component validates before any output creation; fingerprint disagreement
+is an unexpected implementation fault. A late unsupported image rejects the
+whole export. One sibling staging-directory rename installs the complete tree;
+write/rename failures clean staging. Repeat runs verify every name/byte without
+repairing changed/missing/extra files, directory substitutions or symlinks.
+Source digest and flat filenames validate before directory creation. Existing
+bundles produced by changed exporter/zlib bytes require explicit move-aside.
+Private optional detached FF_FAULT_REPORT_URL handling identifies export-project/1
+and sends only version/platform/exception class; malformed input/output conflicts
+are not reported. No private endpoint/original content is committed/published.
+
+Validation: compileall and all89 local tests pass with pinned external reader
+6e178b9470206f71871417dec852fbfa24cd01b9 and original enabled. Nine new cases cover
+all component/media integration, independent synthetic WAV/PNG readback,
+lossless frame/global events and placement reconstruction, repeated/gapped/empty
+banks, absent frames, late-invalid input before save/report, component identity
+mismatch, immutable-tree conflicts, invalid paths/symlinks, actual late write and
+rename failures, fault classification and complete original installation/readback.
+Executed omitted-MIDI negative control fails two intended assertions in two
+executed synthetic/original cases; source restored byte-exact before final89
+positives. CLI twice verifies the identical643-file tree, all642 prior component
+files match byte-for-byte and are unchanged, and original SHA-256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Actual agent ./node_modules/.bin/tsc --noEmit passed after restoration.
+Evidence: agent state data/furries/research-bundle/; source delivery/CI follows.
+
+Combined furries-exporter-spec remains started/sol. This is an atomic composition
+of existing research tools, not completed arena JSON/behaviour spec or an engine.
+Event/parameter/global runtime and placement semantics, geometry/spawns and
+observation-backed gameplay still open. No release, Windows/Deck/hardware claim,
+new schedule, CI continuation or second slice.
