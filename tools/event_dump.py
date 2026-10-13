@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "event-dump/9"
+VERSION = "event-dump/10"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 
@@ -136,6 +136,52 @@ def annotate_group_program(program, available):
                                     else "stored_word_candidate" if count == 1 else "ambiguous_stored_word")
 
 
+def decode_frame_target(payload):
+    if len(payload) < 2:
+        raise project.InputError("frame-target action parameter has no complete target word")
+    return {"payload_offset": 0, "target_raw_u16": word(payload, 0),
+            "probe_method": "raw_target_as_level_number_table_index",
+            "status": "table_context_unresolved", "candidates": [],
+            "runtime_resolution": "unknown"}
+
+
+def level_number_storage(game):
+    # The CnC reader names this segment but does not interpret its fields.
+    # Word views and index probes preserve evidence without inventing frame IDs.
+    tables = []
+    for segment_id, segment in enumerate(game.segments):
+        if segment.ident != 7:
+            continue
+        data = segment.data
+        tables.append({"segment_id": segment_id, "offset": segment.offset,
+                       "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(),
+                       "raw_hex": data.hex(), "meaning": "unknown",
+                       "words": [{"id": i // 2, "payload_offset": i,
+                                  "raw_u16": word(data, i)}
+                                 for i in range(0, len(data) - 1, 2)],
+                       "suffix_hex": data[len(data) // 2 * 2:].hex()})
+    return tables
+
+
+def annotate_frame_targets(program, tables):
+    for row in program["rows"]:
+        for record in row["records"]:
+            for parameter in record["parameters"]:
+                target = parameter.get("frame_target_storage")
+                if target is None:
+                    continue
+                index = target["target_raw_u16"]
+                candidates = [{"segment_id": table["segment_id"], "slot_id": index,
+                               "payload_offset": table["words"][index]["payload_offset"],
+                               "raw_u16": table["words"][index]["raw_u16"]}
+                              for table in tables if index < len(table["words"])]
+                target["candidates"] = candidates
+                target["status"] = ("table_slot_unavailable" if not candidates else
+                                    "table_slot_probe" if len(candidates) == 1 else
+                                    "ambiguous_table_slot_probes")
+    return program
+
+
 def decode_audio_reference(payload, kind):
     if len(payload) < 2:
         raise project.InputError("audio parameter has no complete bank handle")
@@ -190,6 +236,8 @@ def decode_record(data, role, offset, index):
         parameters.append({"id": number, "offset": offset + cursor, "bytes": size,
                            "type": code, "meaning": "unknown",
                            "payload_hex": data[cursor + 4:cursor + size].hex()})
+        if code == 26 and role == "action":
+            parameters[-1]["frame_target_storage"] = decode_frame_target(data[cursor + 4:cursor + size])
         if code == 39:
             parameters[-1]["group_parameter_storage"] = decode_group_parameter(data[cursor + 4:cursor + size])
         if code == 1:
@@ -369,6 +417,7 @@ def event_document(reader, raw):
     inventory = project.inventory(reader, raw)
     game = reader.read(raw)
     banks = audio_banks(reader, game)
+    number_tables = level_number_storage(game)
     frames = []
     for frame, level in enumerate(game.levels()):
         programs = []
@@ -377,7 +426,7 @@ def event_document(reader, raw):
         object_lists = list(zip(list_ids, frame_index["object_lists"]))
         for block_id, block in enumerate(reader.level_blocks(level.data)[1]):
             if block.ident == 4:
-                program = annotate_audio(decode_program(block.data), banks)
+                program = annotate_frame_targets(annotate_audio(decode_program(block.data), banks), number_tables)
                 for row in program["rows"]:
                     for record in row["records"]:
                         record["object_reference_annotation"] = reference_annotation(record, object_lists)
@@ -401,7 +450,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 9, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 10, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -412,13 +461,16 @@ def event_document(reader, raw):
                          "audio_bank_reference_candidates": True,
                          "object_parameter_reference_candidates": True,
                          "group_parameter_stored_word_candidates": True,
+                         "frame_target_storage": True,
+                         "level_number_word_probes": True,
+                         "frame_target_resolution": False,
                          "global_reference_resolution": False},
-            "frames": frames,
+            "frames": frames, "level_number_storage": number_tables,
             "global_events": [{"segment_id": slot, "offset": segment.offset,
                                "bytes": len(segment.data), "meaning": "unknown",
                                "sha256": hashlib.sha256(segment.data).hexdigest(),
                                "raw_hex": segment.data.hex(),
-                               **annotate_audio(decode_global_program(segment.data), banks)}
+                               **annotate_frame_targets(annotate_audio(decode_global_program(segment.data), banks), number_tables)}
                               for slot, segment in enumerate(game.segments) if segment.ident == 3]})
 
 
@@ -445,6 +497,9 @@ def readable_program(program):
                 lines.append(f"        PARAM {parameter['id']} offset={parameter['offset']} "
                              f"bytes={parameter['bytes']} type={parameter['type']} "
                              f"meaning=UNKNOWN payload={parameter['payload_hex']}")
+                if "frame_target_storage" in parameter:
+                    lines.append("          FRAME_TARGET " + json.dumps(
+                        parameter["frame_target_storage"], ensure_ascii=True, sort_keys=True))
                 if "group_parameter_storage" in parameter:
                     lines.append("          GROUP_PARAMETER " + json.dumps(
                         parameter["group_parameter_storage"], ensure_ascii=True, sort_keys=True))
@@ -472,6 +527,8 @@ def readable(document):
     lines = [f"Funny Furries {VERSION}", f"Source SHA-256: {document['source']['sha256']}",
              "All opcode/parameter meanings UNKNOWN; this is structure, not behaviour.",
              "Row/record/parameter offsets are relative to the event program."]
+    for table in document.get("level_number_storage", []):
+        lines.append("LEVEL_NUMBER_STORAGE " + json.dumps(table, ensure_ascii=True, sort_keys=True))
     for frame in document["frames"]:
         lines.append(f"FRAME {frame['id']} ({len(frame['programs'])} event blocks)")
         for program in frame["programs"]:

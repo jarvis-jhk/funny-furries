@@ -35,6 +35,8 @@
       words retained and global/encoded references explicitly unresolved.
 - [x] Event-group parameter storage and explicit stored-word title candidates,
       preserving runtime words/partial keys and ambiguous local/global matches.
+- [x] Action frame-target words and lossless application level-number word views,
+      with explicit table-index probes; CnC runtime destinations remain unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

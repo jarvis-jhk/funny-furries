@@ -929,3 +929,49 @@ still match. CI snapshots/log and verification saved with local evidence in
  data/furries/event-group-parameters/. This delivery edit is Markdown only;
 tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec stays started/sol, no release or second slice.
+
+
+2026-10-13: Sol tick t_mv6va9ai1d4bmf, one bounded M0 action frame-target
+storage/level-number probe slice. Clean main, fetched origin, no open PRs/issues
+or in-flight work at start; direct main follows the repository convention.
+event-dump/10/schema10 adds action parameter type26's u16 at payload0 and
+lossless application segment7 word views to JSON/readable text. Independent
+pinned KlikBack6e178b9 editor converter remaps exactly that action word;
+conditions remain unannotated. Every table preserves segment/source identity,
+full bytes/hash, ordered u16 views and an odd-byte suffix, without guessing a
+count/header/terminator. Empty/absent/repeated tables remain distinct.
+
+The raw target used as a table index is an explicitly named research probe,
+not a resolved runtime destination. Missing/duplicate table slots remain
+explicit; 0xFFFF targets/words have no invented sentinel rule, and candidates
+contain no frame ID. Original has only two recognized actions, both global
+object type-3/opcode2, target13. Its one28-byte/14-word table has slot13 raw
+word1; this does not prove destination frame1 or one-based frame13. The pinned
+reader's complete frame resolver reads later MMF chunk0x222B, not CnC segment7;
+no cross-format mapping or transition behavior was borrowed.
+
+Validation: force compileall and all144 local tests pass with the original and
+pinned reader enabled. Eight new cases cover both scopes, action-only evidence,
+boundary targets/opaque tails, missing/empty/odd/repeated tables, nonidentity
+words, duplicate candidate identities, 0xFFFF indexing an actual available slot,
+strict short-action refusal before JSON/text/bundle output or fault reporting,
+source program/table reconstruction and two actual original converter probes.
+Executed table-index+1 control fails three intended assertions in eight executed
+cases; source restored byte-exact and compileall -f forced before positives.
+Actual agent ./node_modules/.bin/tsc --noEmit passed before commit. Existing
+optional detached FF_FAULT_REPORT_URL handler, atomic/symlink guards and immutable
+bundle behavior stay unchanged. No private endpoint/original content/metadata
+published or committed. Evidence: data/furries/event-frame-targets/.
+
+All prior raw event fields/annotations/text lines match source089123a after
+removing only additions/version. Older immutable bundle refuses changed bytes
+without mutation and is preserved privately before updated643-file installation.
+Only events.json/events.txt/manifest.json change;640 other files remain identical.
+JSON/text/bundle CLIs repeat identically; input SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Source delivery/CI follows within this turn; no schedule or continuation created.
+
+Combined furries-exporter-spec remains started/sol: runtime frame destinations,
+opcode/global/parameter evaluation, placement/arena geometry/spawns and observed
+behaviour remain open. No playable engine/release/Windows/Deck/hardware claim
+or second slice.

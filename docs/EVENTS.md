@@ -490,3 +490,56 @@ and lossless parameter byte span. Seventy-one actual original rows also run
 through the external converter. This corroborates the storage and equality
 relation in this one original, not activation/deactivation/condition polarity,
 runtime addresses, a universal CnC layout or a behaviour specification.
+
+
+## Frame-target storage and level-number index probes (v10)
+
+`event-dump/10`, schema10 adds `frame_target_storage` to **action** parameters
+of type26. Pinned KlikBack6e178b9 `compiled_event_to_editor_event` uses a u16
+at parameter+4 (payload+0) as a frame-target map key and rewrites exactly that
+word. Synthetic and actual original-row probes run this converter separately.
+Condition type26 parameters remain unannotated: that converter offers no
+condition-target evidence. Recognized actions need at least two payload bytes;
+shorter forms refuse exit2 before any JSON/text/bundle write or fault reporting.
+Unknown parameter types and all suffix bytes remain unchanged in `payload_hex`.
+
+The annotation preserves `target_raw_u16`, `payload_offset: 0`, and
+`runtime_resolution: unknown`. Standalone decoders use `table_context_unresolved`.
+The complete project also exports each application segment7, named
+`level-numbers` by the CnC reader, as `level_number_storage`. Each retains the
+actual segment index/header offset, byte length/hash, complete `raw_hex`, and
+ordered little-endian u16 **views** (`id`, `payload_offset`, `raw_u16`). A final
+odd byte remains `suffix_hex`. Missing, empty, repeated and odd-length segments
+stay distinct. These are storage views, with no inferred header/count/terminator
+or table validity rule. The full payload reconstructs exactly from words/suffix.
+
+For research comparison, the raw action target is used as an **index probe**
+into each table's complete word views. `probe_method` explicitly names
+`raw_target_as_level_number_table_index`. Each candidate carries `segment_id`,
+`slot_id`, `payload_offset` and `raw_u16`; zero candidates gives
+`table_slot_unavailable`, one `table_slot_probe`, multiple
+`ambiguous_table_slot_probes`. Both frame and global programs use the same
+application tables. No candidate is selected from repeated tables. Neither
+0xFFFF targets nor 0xFFFF table words acquire sentinel semantics. No `frame_id`,
+name, destination offset or successful transition is inferred from the probe.
+
+Why the limit matters: the pinned reader's full `frame_item_target_map` reads
+MMF chunk0x222B and does not establish the CnC segment7 layout. Applying that
+later-format resolver here would invent cross-format evidence. The local original
+has one28-byte segment containing14 words, including0xFFFF and a nonidentity
+permutation. Its only two type26 actions occur in globals (object type-3/opcode2),
+and both contain target13. The explicit index probe reads slot13's raw word1;
+that observation does **not** prove a jump to exported frame1 or a one-based
+frame13. Runtime destinations, activation/opcode and condition/evaluation
+semantics still need separate original/editor/runtime evidence.
+
+Readable `FRAME_TARGET` lines preserve the parameter annotation;
+`LEVEL_NUMBER_STORAGE` lines expose the full raw table on one escaped line.
+`coverage.frame_target_storage` and `level_number_word_probes` are true;
+`frame_target_resolution`, `opcode_semantics`, `parameter_semantics` and the
+behaviour specification remain false. Prior raw fields and every earlier
+annotation/text line remain unchanged apart from version and these additions.
+Only events JSON/text and the composed bundle manifest change; media and the
+other research components remain identical. Existing immutable research bundles
+must be explicitly preserved/moved aside before regeneration. The optional
+private fault handler and atomic/symlink protections stay unchanged.
