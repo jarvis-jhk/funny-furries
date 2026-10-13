@@ -1597,3 +1597,15 @@ Evidence: agent state data/furries/expression-recursive/; source delivery/CI fol
 within this turn. Combined exporter/spec stays started/sol: placement/arenas/
 spawns/dynamic/global/opcode/observed behaviour remain open. No second slice,
 schedule/continuation or release.
+
+Delivery: tested source94bb4d47b8fe26e204bf46ffabaf6bb11dbbcb11 pushed main;
+CI38471902797 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38471902797 . Downloaded
+job115552822284 log verifies actual source and pinned-reader checkout outputs,
+Python3.10, compileall and224 tests (196 pass/28 original fixtures skipped).
+All224 passed locally after restoration with original enabled; nine new affected
+cases passed again after the coverage sentence follow-up. Saved tested file hashes
+match the CI-tested source. Evidence/CI snapshots/job log in agent state
+ data/furries/expression-recursive/. This delivery edit changes Markdown only;
+tested source unchanged. No unfinished implementation/schedule/continuation;
+combined exporter/spec stays started/sol, no release or second slice.
