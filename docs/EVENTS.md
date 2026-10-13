@@ -4,7 +4,7 @@ This bounded M0 slice exports the **structure** of frame and global event progra
 unprotected CnC projects. It does not decode gameplay opcode or parameter meanings and
 cannot yet specify movement, combat, weapon trajectories or event execution.
 Raw opcode/parameter `meaning` fields remain `unknown`, including familiar-looking
-opcodes. Schema11 separately decodes proven integer literal tokens. Frame records now carry evidence-based local object-slot candidates;
+opcodes. Schema12 separately decodes runtime-proven integer and string literal tokens. Frame records now carry evidence-based local object-slot candidates;
 this aids reading the events without inventing runtime behaviour. Editor group
 boundaries and stored titles are annotated separately in v4.
 
@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 11 and `exporter` is `event-dump/11`.
+  fingerprints. `schema_version` is 12 and `exporter` is `event-dump/12`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -598,3 +598,55 @@ are copied into the implementation, tests or repository. Runtime files,
 disassembly, generated JSON/text/assets and the optional emulator stay private
 in agent state. CI requires only the pinned KlikBack reader; local original
 fixtures separately read literal values directly from source program spans.
+
+
+## Byte string expression literals (schema12)
+
+Exactly token code `0x03FF` adds `string_literal`. The original CnC runtime
+returns a pointer to token+4 and sets DX to1, its string result tag. The
+exporter records `token_offset: 4`, `bytes_hex` up to the first NUL,
+`terminator_token_offset`, and `suffix_hex` for every byte after that NUL
+within this token. `byte_view_latin1` is a reversible byte view, with
+`source_encoding: "unknown"`; it does not claim a codepage or Unicode meaning.
+Empty strings, odd token extents, high bytes and opaque post-NUL tails stay
+lossless. Readable EXPRESSION JSON escapes names, newlines and quotes onto one
+line. String tokens in the expression's opaque suffix are not interpreted.
+
+An absent NUL **inside the token** fails with exit2 before JSON/text/research
+bundle writes or fault reporting. This intentionally refuses an unbounded
+runtime pointer; it never borrows a following token/parameter's terminator.
+Other token codes remain opaque, including0x01FF/0xFFFF. Integer literals,
+object candidates, all raw fields and original ordering remain unchanged.
+`coverage.expression_string_literals` is true, but `expression_evaluation`,
+`parameter_semantics`, `opcode_semantics`, and global resolution remain false.
+No compound result, filename action, INI access or gameplay meaning is inferred.
+Immutable bundles must be moved aside before regenerating changed event bytes.
+
+### Original runtime evidence
+
+Player-supplied FF2xmas.exe SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`:
+dispatcher0x42a474 sign-extends low byte-1 and high byte3, selecting table
+0x41b2b8 at slot0x41a384 and its fourth handler0x42881b. That handler returns
+`EDI+4` in EAX and sets DX to1; dispatcher then advances EDI by stored token
+size. Lone-literal evaluator0x42a42e preserves that pointer and tag. Inspect
+`objdump -D -j TEXT_1` because this executable marks runtime instructions as
+PE DATA. No executable bytes or original content are committed.
+
+Private independent Unicorn2.1.4 execution in agent state
+`data/furries/expression-strings/runtime_oracle.py` loads the player's original
+PE sections and runs both entries. All seven original tokens and seven synthetic
+cases (empty, path, high bytes, escaped characters, maximal u16 extent and a
+post-NUL tail) pass28 runs: returned pointer, byte string+NUL, DX string tag,
+next-token cursor and balanced stack. Original tokens all contain the same
+14-byte field (13 bytes before NUL), without a tail; that observation does not
+establish the string's containing event behavior. Synthetic suffix shapes are
+preserved as storage, not claimed as editor-generated layouts. No executable
+file API or whole game is invoked by this isolated instruction proof.
+
+Seven new tests cover exact-code isolation, mixed tokens, malformed strings
+that cannot borrow a later NUL, both roles/all expression parameter types and
+program scopes, readable escaping, lossless reconstruction, immutable repeats,
+and late-invalid CLI refusal before all writes/reporting. Original-file test
+independently walks the pinned reader tokens and reads values/tails directly
+from source-program spans. Native Windows/Deck gameplay remains untested.

@@ -39,6 +39,8 @@
       with explicit table-index probes; CnC runtime destinations remain unresolved.
 - [x] Runtime-proven integer expression literal values in readable events, retaining
       raw bits and unsupported shapes; compound evaluation remains unresolved.
+- [x] Runtime-proven byte string expression literals with bounded NUL, reversible
+      byte views and opaque tails; encoding and compound evaluation remain unknown.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

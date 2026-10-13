@@ -1048,3 +1048,51 @@ match. CI snapshots/logs and runtime oracle saved with local evidence in
  data/furries/expression-literals/. This delivery edit is Markdown only;
 tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec remains started/sol, no release or second slice.
+
+
+2026-10-13: Sol tick t_mv6wprad1hgrnp, one bounded M0 byte-string expression
+literal slice. Clean main, fetched origin, no open PRs/issues or in-flight work
+at start; direct main follows repository convention. event-dump/12/schema12
+annotates only token0x03FF's NUL-terminated bytes at token+4, with byte hex,
+reversible Latin-1 byte view, terminator offset and opaque post-NUL tail.
+Encoding remains unknown; raw fields/ordering and integer/object/group/parameter
+annotations remain unchanged. No compound evaluation, containing opcode, INI
+access or global/gameplay meaning is inferred. Missing token-local NUL fails
+exit2 before JSON/text/bundle writes or reporting; later terminators cannot
+rescue a malformed token. Existing detached optional private fault reporter and
+atomic/symlink/immutable output guards stay unchanged.
+
+Primary proof: original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f.
+Dispatcher0x42a474 selects type-1 table0x41b2b8, opcode3 handler0x42881b;
+that handler returns EDI+4/string DX tag1. Independent Unicorn2.1.4 execution
+of dispatcher and lone-literal evaluator0x42a42e verifies pointer/byte value/
+tag/next-token cursor/balanced stack for seven original tokens and seven
+synthetic boundaries (28 executions). This runs original instructions in
+isolation, not gameplay/file APIs. All original strings have one13-byte value;
+no original machine bytes, data or metadata are committed or published.
+Private evidence: agent state data/furries/expression-strings/.
+
+Validation: forced compileall and all158 local tests pass with pinned
+KlikBack6e178b9 and original enabled. Seven new cases cover empty/high/escaped
+bytes, maximal u16 extent, post-NUL opaque tail, exact-code/mixed isolation,
+all six expression types/both roles/scopes, readable escaping, lossless source
+reconstruction, immutable repeat bundles, late-invalid refusal before every
+output/report, and direct original source/external-token-walk proof. Executed
+string-field offset4->5 control causes two intended assertion failures and
+one bounded-NUL error in seven executed cases; restored byte-exact and forced
+compileall before positives. Full suite initially caught stale schema/version
+expectations; updated those assertions to12 without changing their behavior
+checks. Actual agent ./node_modules/.bin/tsc --noEmit passed before commit.
+
+All prior JSON fields match previous source21d83a7 after removing only string
+annotations/coverage/version. Existing text matches after removing new string
+annotations inside EXPRESSION JSON and updating banner/coverage sentence.
+Prior643-file research bundle rejects changed bytes without mutation, preserved
+before regeneration;640 other files unchanged. JSON/text/bundle CLIs repeat
+identically; source project SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Delivery and CI follow below within this tick; no schedule/continuation created.
+Combined exporter/spec remains started/sol: compound/global/opcode semantics,
+placement/arena geometry/spawns and observation-backed behaviour remain open.
+No playable engine/release/Windows/Deck/hardware claim or second slice.
