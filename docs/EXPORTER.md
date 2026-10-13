@@ -12,6 +12,8 @@ The [active animation exporter](ANIMATIONS.md) adds numeric animation/direction
 slots and ordered image handles; runtime playback/selection remain unknown.
 The [backdrop artwork exporter](BACKDROPS.md) maps ordinary/quick-backdrop
 headers to image handles and editor fill colors; geometry/runtime rendering remain unknown.
+The [display artwork exporter](DISPLAYS.md) preserves score/lives/counter sections
+and counted image lists; numeric rendering and player ownership remain unknown.
 
 Requirements: Python 3.10+, a separate local checkout of GPL-3.0-or-later
 KlikBack, and the player's local original/decompiled project. No third-party
@@ -35,8 +37,9 @@ also require the reader, as do the image exporter's two container tests.
 The frame layout exporter's two synthetic container tests also require the reader.
 The active animation exporter's two container tests also require the reader.
 The backdrop exporter's two synthetic container tests also require the reader.
+The display exporter's two synthetic container tests also require the reader.
 CI fetches the pinned external reader, runs the synthetic parser tests and
-skips only the seven original-file tests.
+skips only the eight original-file tests.
 
 Output is always `export/<source-sha256>/project-index.json`, ignored by git.
 Never commit, publish or release it. The JSON contains object names and layout
@@ -80,8 +83,8 @@ repo; tests use mocks and never send a real report. Game runtime fault delivery
 via ntfy remains part of M2.
 
 Remaining M0 work: decoded opcode/parameter meanings and global events;
-remaining display/text/extension artwork and global reference mapping (active
-animation image sequences, backdrop header artwork, mode4 PNG and PCM/MIDI
+remaining text/font/extension artwork and global reference mapping (active
+animation image sequences, backdrop header artwork, display image lists, mode4 PNG and PCM/MIDI
 audio now supported);
 arena geometry/spawns JSON; a behaviour spec backed by those exports and actual
 original observations. These need their own bounded slices.

@@ -15,6 +15,8 @@
       opaque timing/selection fields, original bytes and unresolved references retained.
 - [x] Ordinary/quick-backdrop header artwork: image handles, editor fill colors
       and orientation, raw headers; global resolution and arena semantics remain open.
+- [x] Score/lives/counter artwork sections and counted image lists, with opaque
+      modes/attributes retained; numeric rendering and player ownership remain unknown.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

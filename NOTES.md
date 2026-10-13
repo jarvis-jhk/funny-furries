@@ -361,3 +361,48 @@ match. Verification/CI snapshots/job log accompany local evidence in
 data/furries/backdrop-dump/. This delivery update is Markdown only; tested
 source unchanged. No unfinished implementation or CI continuation remains.
 Combined exporter/spec stays started/sol; no release or second slice.
+
+2026-10-13: Sol tick t_mv6juvpmhj7fs, one bounded M0 score/lives/counter
+artwork-storage slice. Clean main/fetched origin, no open PRs/issues or in-flight
+work at start; direct main follows the repository convention. tools/display_dump.py
+and docs/DISPLAYS.md export ignored displays.json with original definition slots,
+all display payload bytes, counter attribute storage and ordered sections/image
+lists. Global/local/reference-only definitions remain separate, without guessing
+player ownership, numeric rendering, attribute meanings or global resolution.
+
+SCRE/LIVE/CNTR at42 and counter attribute extent at46 have external editor-art
+evidence in pinned KlikBack icon_census.display_first_frame. Contiguous section
+lengths and counted lists (count+6/image words+8) were inferred and verified on
+all27 original payloads/33 sections. Only modes1/4 are interpreted as image
+lists; other modes stay raw/null, including all13 original counter mode0 and
+both mode3 sections. The local original establishes4 score,2 lives,21 counter
+payloads and178 image refs; all110 reference-only definitions remain unresolved.
+Separate source-word reads verify every list/order, and first images agree with
+the independent editor icon helper. Raw prefix/attributes/sections reconstruct
+every payload byte-for-byte. Other Clickteam dialects/runtime semantics unproven.
+
+Strict signatures/attribute and section extents/counts/trailing bytes/occupied
+handles validate before atomic replacement. All candidate bank identities remain
+explicit; unknown-mode words are not validated as image handles. Empty lists
+remain distinct from opaque modes and reference-only objects. Unexpected/write
+faults use detached optional private FF_FAULT_REPORT_URL handling with version/
+platform/exception class only; malformed input is not reported. No private URL,
+original assets or generated metadata are committed/published.
+
+Validation: compileall and all64 local unittest cases pass with pinned reader
+6e178b9470206f71871417dec852fbfa24cd01b9 and original enabled. Eight new cases
+cover three signatures, ordered/repeated/multiple lists, opaque/empty sections,
+counter attributes, global/deleted/reference-only slots, bank gaps/repeated banks,
+missing/empty object lists, malformed extents/counts/tails, late bad data before
+save, atomic failure cleanup, symlinks and fault classification. Executed reversed
+image-order negative control fails five intended assertions (original/container/
+all three synthetic signatures); source restored before all64 positives. Two
+CLI runs are byte-identical; original unchanged, SHA-256
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Actual agent ./node_modules/.bin/tsc --noEmit passed before commit. Evidence:
+agent state data/furries/display-dump/; source delivery/CI result follows below.
+
+Combined exporter/spec remains started/sol: text/font/extension artwork,
+global/event/placement semantics, arena geometry/spawns and observation-backed
+behaviour still open. No playable engine, release, Windows/Deck/hardware claim,
+new schedule, continuation or second slice.
