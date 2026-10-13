@@ -8,6 +8,8 @@ The [audio exporter](AUDIO.md) adds original PCM WAV/MIDI files in an ignored,
 immutable bundle. The [image exporter](IMAGES.md) adds mode4 RGBA PNG files
 with bank IDs, explicit opacity and raw anchors. The [frame layout exporter](FRAME-LAYOUT.md)
 preserves frame headers and placement slots/records; arena semantics remain unimplemented.
+The [active animation exporter](ANIMATIONS.md) adds numeric animation/direction
+slots and ordered image handles; runtime playback/selection remain unknown.
 
 Requirements: Python 3.10+, a separate local checkout of GPL-3.0-or-later
 KlikBack, and the player's local original/decompiled project. No third-party
@@ -29,8 +31,9 @@ event exporter's two container tests explicitly skip;
 portable output/fault tests still run. The audio exporter's two container tests
 also require the reader, as do the image exporter's two container tests.
 The frame layout exporter's two synthetic container tests also require the reader.
+The active animation exporter's two container tests also require the reader.
 CI fetches the pinned external reader, runs the synthetic parser tests and
-skips only the five original-file tests.
+skips only the six original-file tests.
 
 Output is always `export/<source-sha256>/project-index.json`, ignored by git.
 Never commit, publish or release it. The JSON contains object names and layout
@@ -74,6 +77,7 @@ repo; tests use mocks and never send a real report. Game runtime fault delivery
 via ntfy remains part of M2.
 
 Remaining M0 work: decoded opcode/parameter meanings and global events;
-object-to-image animation mapping (mode4 PNG and PCM/MIDI audio now supported);
+remaining object artwork and global reference mapping (active animation image
+sequences, mode4 PNG and PCM/MIDI audio now supported);
 arena geometry/spawns JSON; a behaviour spec backed by those exports and actual
 original observations. These need their own bounded slices.

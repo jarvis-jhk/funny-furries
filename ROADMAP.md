@@ -11,6 +11,8 @@
       explicit transparency and raw anchors; strict decoding and immutable bundles.
 - [x] Lossless frame-header and placement-slot/record storage JSON, preserving
       gaps, pointer order and unknown fields; arena semantics remain undecoded.
+- [x] Active animation/direction storage and ordered image-bank handles, with
+      opaque timing/selection fields, original bytes and unresolved references retained.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

@@ -251,3 +251,45 @@ All41 passed locally with the original enabled. CI snapshots/logs accompany
 local evidence in data/furries/frame-layout/. Source fingerprints still match;
 this delivery update is Markdown only. No in-flight work or CI continuation.
 Combined exporter/spec remains started/sol; no release or second slice.
+
+2026-10-13: Sol tick t_mv6j568mdyo0f, one bounded M0 active animation/image-handle
+slice. Clean main/fetched origin, no open PRs/issues or in-flight work at start;
+direct main follows the repo convention. tools/animation_dump.py and
+docs/ANIMATIONS.md export ignored animations.json with all active payload bytes,
+16 animation/32 direction slots, raw relative pointers, absent values/aliases,
+ordered image handles and opaque headers/gaps/prefix/tail. Global definition
+storage and reference-only local slots remain separate; no guessed resolution,
+animation names/direction angles, timing/looping/selection or behaviour claim.
+Occupied image handles validate against all retained image banks, without
+selecting a runtime bank when repeated banks are present.
+
+Structural evidence comes from pinned KlikBack icon_census.sprite_first_frame
+and unprotect._active_animation_end; our decoder is independently implemented.
+Animation region's u16 length verified on all83 original active payloads;
+unparsed gaps and80-byte tails retained unchanged. All131 present animations,
+256 directions and940 image references checked by independent source-word
+reads; first image of each payload also agrees with KlikBack's icon helper.
+815 local active definitions have no data and stay unresolved. Unsupported
+signatures/extents, pointers into headers/tables, partial/incompatible overlaps,
+truncation/counts and unoccupied image handles fail before any output write.
+Atomic replacement, failure cleanup, symlink refusal and detached optional
+private FF_FAULT_REPORT_URL reporter follow the existing contract; fault payload
+has only version/platform/exception class. No endpoint/original content published.
+
+Validation: compileall and all49 local unittest cases pass with pinned reader
+6e178b9470206f71871417dec852fbfa24cd01b9 and original enabled. Eight new cases
+cover known ordered/repeated handles, aliases/gaps/raw headers, empty/absent
+sets/zero-frame directions, local/global/deleted/reference-only slots, repeated
+banks, invalid late data, malformed pointers/counts/extents, atomic write failures,
+symlinks and fault classification. Executed reversed-image-order negative control
+fails the two intended synthetic/original assertions; restored byte-exact before
+all49 positives. Both CLI runs byte-identical and original unchanged with SHA-256
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/animation-dump/. Actual agent
+./node_modules/.bin/tsc --noEmit passed before commit; source delivery/CI
+observations follow below.
+
+Combined furries-exporter-spec stays started/sol. Other object artwork/global
+reference resolution, event/global/placement semantics, arena geometry/spawns
+and observation-backed behaviour remain open. No engine, release, Windows/Deck/
+hardware claim, new schedule or second slice; no separate CI continuation.
