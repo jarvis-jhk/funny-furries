@@ -91,16 +91,22 @@ def inventory(reader, raw: bytes):
 
 
 def save_index(document, repo=REPO):
+    payload = json.dumps(document, ensure_ascii=True, indent=2, sort_keys=True) + "\n"
+    return save_export(document, payload, "project-index.json", repo)
+
+
+def save_export(document, payload, filename, repo=REPO):
     export_root = repo / "export"
     directory = export_root / document["source"]["sha256"]
     # Generated data must never overwrite tracked sources or escape via symlinks.
     if export_root.is_symlink() or directory.is_symlink():
         raise InputError("export directories must not be symlinks")
     directory.mkdir(parents=True, exist_ok=True)
-    target = directory / "project-index.json"
+    if filename not in {"project-index.json", "events.json", "events.txt"}:
+        raise InputError("unsupported export filename")
+    target = directory / filename
     if target.is_symlink():
         raise InputError("export target must not be a symlink")
-    payload = json.dumps(document, ensure_ascii=True, indent=2, sort_keys=True) + "\n"
     name = None
     try:
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=directory,
@@ -114,16 +120,16 @@ def save_index(document, repo=REPO):
     return target
 
 
-def report_fault(error_type):
+def report_fault(error_type, *, version=VERSION, title="Project index exporter crashed"):
     url = os.environ.get("FF_FAULT_REPORT_URL")
     if not url:
         return
     # Detached delivery has a short timeout. Only fixed context and exception type
     # leave the process; paths, original content and exception messages stay local.
     payload = json.dumps({"lane": "furries", "kind": "bug",
-                          "title": "Project index exporter crashed",
+                          "title": title,
                           "detail": error_type,
-                          "source": f"funny-furries {VERSION} {sys.platform}"})
+                          "source": f"funny-furries {version} {sys.platform}"})
     try:
         subprocess.Popen([sys.executable, str(Path(__file__).resolve()), "--deliver-fault",
                           url, payload], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,

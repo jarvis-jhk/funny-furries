@@ -44,3 +44,41 @@ job115152630746 log confirms actual checkout SHA, pinned reader SHA and Python3.
 execution: 10 cases, 9 pass, only the local-original case explicitly skipped.
 All10 ran locally with the original enabled. ci.json and ci-job.log saved with
 local evidence. This follow-up changes NOTES only; tested source unchanged.
+
+2026-10-13: Sol tick t_mv69txhy0juws, bounded M0 event-structure v1 slice.
+Clean main, fetched origin, no open PRs/issues or in-flight continuation at start.
+Direct main follows the initial repository convention. `tools/event_dump.py`
+exports ordered frame rows/conditions/actions and typed raw parameter payloads
+as JSON or readable text; `docs/EVENTS.md` specifies offsets and limits.
+All opcode/parameter meanings remain unknown, references remain numeric,
+global-event segments and auxiliary editor blocks remain opaque. No behaviour
+or playable-engine claim. Unexpected faults use the index's detached optional
+private reporter with the event exporter's own version/title; no endpoint is
+committed. Ordinary malformed input is not reported.
+
+Strict Fra v0217 header, signed row lengths, counts, record/parameter sizes,
+terminators and exact byte consumption are checked before an atomic single-file
+write. Missing frame events stay distinct from empty programs. The shared
+writer preserves index output unchanged and rejects symlink destinations.
+Generated events.json/events.txt contain original data and stay ignored.
+
+Local validation: compileall and all18 unittest cases pass with the pinned
+external reader and original enabled. Original SHA-256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+All13 frames, 1186 rows (0/4/52 then ten*113), 2490 conditions, 5083 actions
+and6685 parameters checked; every complete frame event block and the opaque
+global payload reconstruct byte-for-byte. Both CLI formats exercised twice,
+repeat files byte-identical, input unchanged. An executed negative control
+omitting the first parameter payload byte fails three intended reconstruction
+tests; source restored before the final positive run. Malformed sizes/counts,
+unknown codes, signed references, empty/absent programs, truncation, terminator
+tails, failed atomic writes, symlinks and fault classification are covered.
+Evidence: agent state data/furries/event-dump/ (positive/negative logs and
+fingerprints); no original content is committed there or published.
+Actual agent TypeScript compiler passed after restoring locked dependencies
+with `npm ci --include=dev --ignore-scripts`; no agent source/lockfile changed.
+
+Combined furries-exporter-spec stays started/sol. Next bounded slice can decode
+the global-event container or establish opcode/parameter semantics against
+independent evidence. Media files, arena JSON and observation-backed behaviour
+spec remain. No new schedule, release, hardware claim or second slice.

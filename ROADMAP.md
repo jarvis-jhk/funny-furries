@@ -3,6 +3,8 @@
 ## M0 — Exporter
 - [x] Deterministic project index: frame/object slots, segment/bank inventory,
       source/reader fingerprints, strict input checks and synthetic/original tests.
+- [x] Ordered frame-event structure in JSON/readable text, raw typed parameters,
+      explicit unknown meanings, lossless reconstruction and strict validation.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

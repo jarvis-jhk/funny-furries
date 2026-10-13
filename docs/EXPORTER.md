@@ -1,7 +1,9 @@
 # Project index v1
 
-The first M0 slice inventories an unprotected CnC project. It is a research tool,
-not yet the asset/arena exporter or a decoded behaviour specification.
+The first M0 slice inventories an unprotected CnC project. A separate
+[event structure exporter](EVENTS.md) now preserves ordered frame records and
+raw parameters in JSON/readable text. These are research tools, not yet the
+asset/arena exporter or a decoded behaviour specification.
 
 Requirements: Python 3.10+, a separate local checkout of GPL-3.0-or-later
 KlikBack, and the player's local original/decompiled project. No third-party
@@ -18,9 +20,10 @@ python3 -m unittest discover -s tests -v
 
 For parser tests, set `FF_KLIKBACK_SRC` to that source directory. Additionally
 set `FF_TEST_PROJECT` to the local decompiled FF2 Xmas project to verify the
-original inventory. Without the reader, the four parser tests explicitly skip;
+original inventory. Without the reader, the index's four parser tests and the
+event exporter's two container tests explicitly skip;
 portable output/fault tests still run. CI fetches the pinned external reader,
-runs the synthetic parser tests and skips only the original-file test.
+runs the synthetic parser tests and skips only the two original-file tests.
 
 Output is always `export/<source-sha256>/project-index.json`, ignored by git.
 Never commit, publish or release it. The JSON contains object names and layout
@@ -63,7 +66,7 @@ No endpoint or secret is stored in the
 repo; tests use mocks and never send a real report. Game runtime fault delivery
 via ntfy remains part of M2.
 
-Remaining M0 work: readable events with preserved ordering, parameters and
-unknown-opcode evidence; decoded image/audio files with original bank IDs;
+Remaining M0 work: decoded opcode/parameter meanings and global events;
+decoded image/audio files with original bank IDs;
 arena geometry/spawns JSON; a behaviour spec backed by those exports and actual
 original observations. These need their own bounded slices.
