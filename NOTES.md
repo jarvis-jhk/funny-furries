@@ -350,3 +350,14 @@ global reference resolution, event/placement semantics, arena geometry/spawns
 and observation-backed behaviour remain open. Editor-art fields do not establish
 runtime rendering, dimensions, collision or a playable engine. No release,
 Windows/Deck/hardware claim, new schedule, continuation or second slice.
+
+Delivery: tested source1a29f3e08619b9caef86874be47df482783cacba pushed main.
+CI38384593082 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38384593082 . Downloaded
+job115253119587 log verifies actual source/reader checkout SHA, Python3.10.22,
+compileall and56 cases (49 pass/seven local-original fixtures explicitly skipped).
+All56 ran locally with original enabled; saved source/docs/test hashes still
+match. Verification/CI snapshots/job log accompany local evidence in
+data/furries/backdrop-dump/. This delivery update is Markdown only; tested
+source unchanged. No unfinished implementation or CI continuation remains.
+Combined exporter/spec stays started/sol; no release or second slice.
