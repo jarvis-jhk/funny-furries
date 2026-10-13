@@ -571,3 +571,13 @@ of existing research tools, not completed arena JSON/behaviour spec or an engine
 Event/parameter/global runtime and placement semantics, geometry/spawns and
 observation-backed gameplay still open. No release, Windows/Deck/hardware claim,
 new schedule, CI continuation or second slice.
+
+Delivery: tested source e4e9eaf69c12ea8b51ca42012170f2c68f1cb746 pushed main;
+CI38389452777 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38389452777 . Downloaded
+job115269329841 log verifies actual source/reader checkout, Python3.10.22,
+compileall and all89 cases (78 pass/eleven original-file fixtures skipped).
+All89 passed locally with original enabled; saved source/docs/test hashes still
+match. Verification/CI snapshots/job log accompany data/furries/research-bundle/.
+This delivery update is Markdown only; tested source unchanged. No unfinished
+implementation or CI continuation. Combined exporter/spec remains started/sol.
