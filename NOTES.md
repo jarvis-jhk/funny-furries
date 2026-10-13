@@ -1529,3 +1529,18 @@ under this checkout's ignored build/ rather than shared /tmp. All10 affected
 cases pass with the original enabled and forced compileall; actual agent tsc
 passes again. Evaluator/exporter/docs and all other tested files are unchanged
 from13a22cf; final source delivery/CI below covers this fixture revision too.
+
+Delivery: final tested source3b8c6c56e9d378855fe1721d5684980dd336500a pushed main;
+CI38469763055 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38469763055 . Downloaded
+job115545502827 log verifies actual source and pinned-reader checkout outputs,
+Python3.10, compileall and215 tests (188 pass/27 original fixtures skipped).
+All215 passed locally before the scratch-directory-only test change; all10
+new affected cases passed again afterwards with original enabled. Exporter/
+evaluator/docs hashes unchanged across that fixture change; final saved hashes
+match CI-tested source. Initial13a22cf CI38469522395/job115544659852 also green
+with actual source/reader/test outputs verified. CI snapshots/logs, prior bundle
+compatibility and independent runtime proof saved in agent state
+ data/furries/expression-constants/. This delivery edit changes Markdown only;
+tested source unchanged. No unfinished implementation/schedule/continuation;
+combined exporter/spec remains started/sol, no release or second slice.
