@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "event-dump/8"
+VERSION = "event-dump/9"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 
@@ -83,6 +83,59 @@ def decode_object_parameter(payload):
             "status": "frame_context_unresolved", "candidates": []}
 
 
+
+def decode_group_parameter(payload):
+    # The independent converter clears this u32 in actions. Its runtime address
+    # is not a source-program offset. The following word is only an equality key.
+    if len(payload) < 4:
+        raise project.InputError("event-group parameter has no complete runtime word")
+    return {"runtime_raw_u32": word(payload, 0, "<I"),
+            "key_raw_u16": word(payload, 4) if len(payload) >= 6 else None,
+            "suffix_hex": payload[6 if len(payload) >= 6 else 4:].hex(),
+            "status": "program_context_unresolved", "candidates": []}
+
+
+def annotate_group_parameters(document):
+    globals_ = document["global_events"]
+
+    def candidates(program, scope):
+        result = []
+        for row in program["rows"]:
+            annotation = row["event_group_annotation"]
+            title = annotation["title"]
+            if annotation["kind"] == "open" and title is not None:
+                result.append({**scope, "row_id": row["id"], "row_offset": row["offset"],
+                               "matching_row_id": annotation["matching_row_id"],
+                               "key_raw_u16": title["prefix_raw_u16"][1], "title": title})
+        return result
+
+    global_candidates = [c for p in globals_ for c in candidates(p, {"scope": "global", "segment_id": p["segment_id"]})]
+    for frame in document["frames"]:
+        for program in frame["programs"]:
+            available = candidates(program, {"scope": "frame", "frame_id": frame["id"],
+                                             "block_id": program["block_id"]}) + global_candidates
+            annotate_group_program(program, available)
+    for program in globals_:
+        annotate_group_program(program, global_candidates)
+    return document
+
+
+def annotate_group_program(program, available):
+    # Expose ALL byte-equality candidates. Do not pick a scope, infer activation
+    # or discard unclosed groups: those choices need runtime/editor evidence.
+    for row in program["rows"]:
+        for record in row["records"]:
+            for parameter in record["parameters"]:
+                target = parameter.get("group_parameter_storage")
+                if target is None:
+                    continue
+                key = target["key_raw_u16"]
+                target["candidates"] = [c for c in available if key is not None and c["key_raw_u16"] == key]
+                count = len(target["candidates"])
+                target["status"] = ("no_key_word" if key is None else "no_stored_word_match" if not count
+                                    else "stored_word_candidate" if count == 1 else "ambiguous_stored_word")
+
+
 def decode_audio_reference(payload, kind):
     if len(payload) < 2:
         raise project.InputError("audio parameter has no complete bank handle")
@@ -137,6 +190,8 @@ def decode_record(data, role, offset, index):
         parameters.append({"id": number, "offset": offset + cursor, "bytes": size,
                            "type": code, "meaning": "unknown",
                            "payload_hex": data[cursor + 4:cursor + size].hex()})
+        if code == 39:
+            parameters[-1]["group_parameter_storage"] = decode_group_parameter(data[cursor + 4:cursor + size])
         if code == 1:
             parameters[-1]["object_parameter_reference"] = decode_object_parameter(data[cursor + 4:cursor + size])
         if code in EXPRESSION_TYPES:
@@ -346,7 +401,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return {"schema_version": 8, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 9, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -356,6 +411,7 @@ def event_document(reader, raw):
                          "position_reference_storage": True,
                          "audio_bank_reference_candidates": True,
                          "object_parameter_reference_candidates": True,
+                         "group_parameter_stored_word_candidates": True,
                          "global_reference_resolution": False},
             "frames": frames,
             "global_events": [{"segment_id": slot, "offset": segment.offset,
@@ -363,7 +419,7 @@ def event_document(reader, raw):
                                "sha256": hashlib.sha256(segment.data).hexdigest(),
                                "raw_hex": segment.data.hex(),
                                **annotate_audio(decode_global_program(segment.data), banks)}
-                              for slot, segment in enumerate(game.segments) if segment.ident == 3]}
+                              for slot, segment in enumerate(game.segments) if segment.ident == 3]})
 
 
 def readable_program(program):
@@ -389,6 +445,9 @@ def readable_program(program):
                 lines.append(f"        PARAM {parameter['id']} offset={parameter['offset']} "
                              f"bytes={parameter['bytes']} type={parameter['type']} "
                              f"meaning=UNKNOWN payload={parameter['payload_hex']}")
+                if "group_parameter_storage" in parameter:
+                    lines.append("          GROUP_PARAMETER " + json.dumps(
+                        parameter["group_parameter_storage"], ensure_ascii=True, sort_keys=True))
                 if "object_parameter_reference" in parameter:
                     lines.append("          OBJECT_PARAMETER_REFERENCE " + json.dumps(
                         parameter["object_parameter_reference"], ensure_ascii=True, sort_keys=True))

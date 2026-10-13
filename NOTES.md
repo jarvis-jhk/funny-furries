@@ -869,3 +869,52 @@ still match. CI snapshot/job log and verification saved with local evidence in
  data/furries/event-object-parameters/. This delivery edit is Markdown only;
 tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec remains started/sol, no release or second slice.
+
+2026-10-13: Sol tick t_mv6uxe9w1bwzcl, one bounded M0 event-group parameter
+storage/equality slice. Clean main, fetched origin, no open PRs/issues or
+in-flight work at start; direct main follows the repository convention.
+event-dump/9/schema9 exports type39 payload u32/optional following u16/opaque
+suffix, with explicit group-title stored-word candidates in JSON/readable text.
+Pinned KlikBack converter establishes the first four bytes cleared only in
+actions; synthetic probes and71 actual original rows execute that converter.
+Conditions preserve their own word. Runtime addresses are never dereferenced
+or treated as source offsets; activation/opcode/condition polarity stay unknown.
+
+Candidates compare the complete payload+4 word to the second raw title-prefix
+word on known-shape openings: this is byte equality, not authoritative group
+resolution. A frame searches its own program plus application globals; a global
+searches application globals. Scopes, actual frame/block/segment/row identities,
+names and unmatched closes remain explicit. Duplicate/missing/partial keys,
+unknown title shapes, unclosed groups and simultaneous local/global matches
+are retained without selecting a winner or guessing sentinel/precedence rules.
+All159 original parameters (115 actions/44 conditions) have one stored-word
+candidate; separate source reads/external group markers/title spans verify
+every word/candidate and preserve every parameter byte. This one-original
+observation does not establish group execution or universal dialect semantics.
+
+Validation: force compileall and all136 local tests pass with original and
+pinned reader enabled. Eight new cases cover both roles/scopes, arbitrary tails,
+partial/short shapes, zero/0xFFFF keys, repeated programs/multiple global segments,
+duplicate/unknown/unclosed titles, escaped names, external converter probes,
+late-invalid refusal before JSON/text/bundle writes/reporting and bundle repeats.
+Executed key-offset4->2 control fails six intended assertions in eight executed
+cases; source restored byte-exact and compileall -f forced before final positives.
+Actual agent ./node_modules/.bin/tsc --noEmit passed. Existing optional detached
+FF_FAULT_REPORT_URL handler, atomic/symlink guards and immutable bundle behavior
+remain unchanged. No private endpoint/original content/metadata published or
+committed. Evidence: agent state data/furries/event-group-parameters/.
+
+Prior raw event fields and every earlier annotation remain identical after
+removing only new fields/version; old text matches after removing GROUP_PARAMETER
+lines/version. Old immutable research bundle refuses changed bytes without
+mutation and is preserved privately before the updated643-file install/repeat.
+Only events.json/events.txt/manifest.json change;640 other files stay identical.
+JSON/text/bundle CLIs repeat identically; input SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Source delivery/CI follows within this turn; no continuation or schedule.
+
+Combined furries-exporter-spec stays started/sol: runtime/opcode/parameter/global
+evaluation, placement fields/arena geometry/spawns and observed behaviour remain
+open. The placement field investigation found the external modern Inst/IPIn
+writer is a different layout; no guessed CnC coordinates were committed.
+No playable engine/release/Windows/Deck/hardware claim or second slice.

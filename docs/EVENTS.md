@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 8 and `exporter` is `event-dump/8`.
+  fingerprints. `schema_version` is 9 and `exporter` is `event-dump/9`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -443,3 +443,50 @@ record reconstruction are preserved. Schema/version and the added fields/lines
 are the only event-output changes; the composed bundle picks them up normally.
 Existing fault handling, atomic writes, immutable repeat checks and private
 original-content policy are unchanged.
+
+## Event-group parameter storage and stored-word candidates (v9)
+
+`event-dump/9`, schema9 adds `group_parameter_storage` to type39 parameters
+in either conditions or actions. The first four payload bytes are preserved
+as little-endian `runtime_raw_u32`. Pinned KlikBack's
+`compiled_event_to_editor_event` clears exactly those bytes in **actions**;
+executed synthetic and original probes establish that operation. It does not
+clear the condition word. The value is never treated as a source row offset,
+never dereferenced and never used to select a group.
+
+A complete next u16 at payload+4 becomes `key_raw_u16`; all bytes thereafter
+remain `suffix_hex`. Four/five-byte payloads have no complete key and retain
+the partial byte in the suffix. Shorter payloads are refused before output.
+No key, including zero/0xFFFF, is assigned sentinel semantics.
+
+The new annotation offers **byte-equality candidates**, not resolved activation
+or group identity: the key word is compared to the second raw prefix word of
+each known-shape type38 title on a group-opening row. That field's meaning was
+previously opaque and remains so. Matching candidates include scope, actual
+frame/block or application-global segment ID, row ID/offset, matching close
+row ID (possibly null), raw title bytes and the Latin-1 byte view. Only the
+current frame program and all application-global programs are compared for a
+frame parameter. A global parameter compares application-global programs.
+Sibling frame programs and other frames are never merged into its scope.
+
+Every matching candidate is retained, including duplicate words/titles,
+unclosed groups and simultaneous local/global matches. Status is
+`no_key_word`, `no_stored_word_match`, `stored_word_candidate` or
+`ambiguous_stored_word`. Unknown title shapes are not fabricated into matches.
+The chosen set of candidate scopes is a research search space, not evidence
+of runtime precedence, global execution or address resolution. In particular,
+a unique match must not be used by an engine as an authoritative target.
+
+Readable `GROUP_PARAMETER` lines JSON-escape names. Existing raw fields,
+group pairing and other reference annotations are unchanged. The research
+bundle uses the same annotations; its media and all other component bytes
+are unchanged. `coverage.group_parameter_stored_word_candidates` is true;
+`parameter_semantics`, opcode/global execution and behaviour remain false.
+
+All159 original type39 parameters (115 actions/44 conditions) have a unique
+stored-word match in this research search space. Independent direct source
+reads and pinned-reader group markers/title spans verify every key/candidate
+and lossless parameter byte span. Seventy-one actual original rows also run
+through the external converter. This corroborates the storage and equality
+relation in this one original, not activation/deactivation/condition polarity,
+runtime addresses, a universal CnC layout or a behaviour specification.

@@ -33,6 +33,8 @@
       with gaps/duplicate banks explicit and all playback semantics still unknown.
 - [x] Object-parameter local slot candidates in readable events, with opaque neighbour
       words retained and global/encoded references explicitly unresolved.
+- [x] Event-group parameter storage and explicit stored-word title candidates,
+      preserving runtime words/partial keys and ambiguous local/global matches.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 
