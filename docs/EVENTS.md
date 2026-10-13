@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 12 and `exporter` is `event-dump/12`.
+  fingerprints. `schema_version` is 14 and `exporter` is `event-dump/14`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -664,7 +664,8 @@ This annotation identifies the token's numeric operation, without determining
 the actual surrounding operand types, evaluating dynamic object/file calls,
 folding constants or producing an expression result. Strings adjacent to the
 operator retain their byte-literal annotations; their concatenation is not
-claimed. Other operators, unary markers and precedence remain undecoded.
+claimed. Schema14 also documents the minus token below; remaining operators and
+precedence remain undecoded.
 
 Only the exact supported code/extent is accepted. Short or extended addition
 tokens fail as input errors before JSON/text/research-bundle output or private
@@ -710,3 +711,64 @@ walks pinned KlikBack tokens and reads every operator code/extent directly
 from source-program spans. CI runs synthetic cases and explicitly skips the
 original fixture unless locally supplied; native Windows/Deck gameplay remains
 outside this research slice.
+
+## Numeric minus token (schema14)
+
+Exactly four-byte token `0x0400` has two independently proven numeric uses:
+`integer_operation` identifies `subtract`, with `operand_order: left_minus_right`;
+`integer_prefix_operation` identifies `negate` at operand entry. Both specify
+32 bits, `overflow: wrap_modulo_2_32`, `required_operand_tag: 0` and
+`other_operand_tags: unknown`. The binary evidence is
+`cnc_runtime_operator_table`; the prefix evidence is `cnc_runtime_dispatch`.
+Both annotations are present on every supported token, without selecting its
+actual execution context or evaluating any expression. An isolated sign, two
+adjacent signs, strings and unknown operands are preserved as token storage;
+these annotations do not certify their validity or their runtime results.
+In particular, `INT32_MIN` negates to the same bit pattern in the proven numeric
+path. String/pointer behavior remains unsupported.
+
+Unsupported short/extended minus tokens fail exit2 before JSON/text/bundle
+output or fault reporting. This follows the fixed four-byte consumption in the
+original operator and prefix paths. Unknown codes keep their existing storage
+rules. Every prior raw field, addition/literal/reference/group annotation and
+prefix/suffix remains unchanged. `coverage.expression_integer_minus` is true;
+`expression_evaluation`, `parameter_semantics` and `opcode_semantics` stay false.
+The existing readable EXPRESSION JSON includes both annotations. Earlier
+immutable research bundles must be moved aside before regenerating; media and
+other research components do not change.
+
+### Original instruction evidence and limits
+
+Original FF2xmas.exe SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`:
+evaluator0x42a42e selects pointer0x41b57c in table0x41b574 for0x0400.
+Handler0x42a529 swaps EAX (right operand) and ECX (left operand), then subtracts
+ECX from EAX, giving left-minus-right modulo2^32. Operand dispatcher0x42a474
+recognizes0x0400 at entry, consumes four bytes and negates EAX at0x42a4a9 after
+loading the operand. This is one prefix sign; arbitrary chains of unary signs
+and nonnumeric tags are not certified. The runtime's prefix stack adjustment
+uses16-bit SP, so the isolated oracle uses a stack away from a64KiB boundary.
+These executable-specific addresses are evidence, not exporter dependencies.
+No original instruction bytes, assets or exported metadata are committed.
+
+Independent Unicorn2.1.4 proof is saved privately in agent state
+`data/furries/expression-minus/runtime_oracle.py`. The actual binary handler
+and complete evaluator each run49 signed-boundary pairs and512 seeded random
+pairs. The actual dispatcher and evaluator each execute unary negation for
+seven boundaries and512 seeded values. Two additional evaluator streams per
+pair exercise `left - -right` and `-left - right`. All63 original minus tokens
+are independently inserted between numeric probe literals and passed through
+the evaluator. All3345 executions check wrapping results, numeric tags and
+balanced stacks; evaluator/dispatcher cases check token cursors. A deliberately
+reversed subtraction expectation fails on an asymmetric executed pair.
+This proves the two operation paths, not the surrounding original dynamic
+expressions, gameplay or native Windows/Deck acceptance; no dynamic functions
+are mocked as evidence.
+
+Eight new tests cover exact codes, opaque contexts and both annotations,
+unsupported extents, six expression parameter types/both roles/program scopes,
+readable output, lossless source reconstruction, late-invalid refusal before
+all outputs/reporting and immutable bundle repeats. The optional original-file
+fixture reads all63 operator words/extents directly from source-program spans
+and independently traverses pinned KlikBack tokens. CI skips that fixture when
+the player's local project is absent.

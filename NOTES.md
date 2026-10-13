@@ -1168,3 +1168,53 @@ match. CI snapshots/job log and runtime oracle are saved with local evidence
 in data/furries/expression-addition/. This delivery edit is Markdown only;
 tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec remains started/sol, no release or second slice.
+
+
+2026-10-13: Sol tick t_mv6xfimj1lweef, one bounded M0 minus-token slice.
+Clean main, fetched origin, no open PRs/issues/in-flight work at start; direct
+main follows repository convention. event-dump/14/schema14 annotates exact
+four-byte0x0400 with numeric binary subtract/left-minus-right and operand-entry
+prefix negate. Both specify32-bit/wrap-modulo2^32 and numeric tag0; nonnumeric
+semantics remain unknown. Both annotations are retained without choosing the
+actual context, validating expression grammar, folding constants or evaluating
+dynamic expressions. Unsupported minus extents exit2 before any JSON/text/
+bundle output or private report. Existing optional detached fault handler and
+atomic/symlink/immutable guards remain unchanged.
+
+Original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+evaluator0x42a42e selects table0x41b574/pointer0x41b57c ->0x42a529, whose
+EAX/ECX swap and subtraction establish left-minus-right. Dispatcher0x42a474
+consumes prefix0x0400 and negates the loaded operand at0x42a4a9. Independent
+Unicorn2.1.4 executes actual handler/evaluator on49 boundary+512 seeded pairs,
+dispatcher/evaluator on7 boundary+512 seeded unary values, two mixed prefix/
+binary streams per pair, and all63 original tokens between numeric probes.
+All3345 executions verify wrapping results/numeric tags/stack; evaluator and
+dispatcher also verify cursors. Reversed subtraction expectation fails on an
+executed asymmetric pair. Initial unary oracle used stack low-word0; original
+16-bit ADD SP,2 wrapped across64KiB, so valid-stack proof uses low-word0x1000.
+This is isolated original instruction execution, not original dynamic
+expressions, string/pointer behavior, arbitrary unary chains or gameplay.
+
+Validation: forced compileall and all173 local tests pass with original and
+pinned KlikBack6e178b9. Eight new cases cover both annotations/opaque contexts,
+exact codes/extents, six expression types/both roles/scopes, readable text,
+lossless source programs, immutable repeats and late-invalid refusal before
+all output/reporting. Original test directly checks all63 source words/extents
+and independently traverses external reader tokens. Recognition0x0400->0x0600
+control produces12 intended assertion failures/four errors in eight executed
+cases; restored byte-exact and compileall-f before positives. Actual agent
+./node_modules/.bin/tsc --noEmit passed before commit. Existing version assertions
+updated to14; addition original proof still checks all116 addition tokens.
+
+Prior fields/addition/literal/reference/group annotations and text match cf00c21
+after removing only new minus annotations/coverage/version/banner. Previous
+643-file immutable bundle refuses replacement without mutation and is preserved
+before regeneration;640 other files stay identical. JSON/text/bundle CLIs repeat
+identically; project SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+No original bytes/assets/exported metadata/private endpoint committed/published.
+Evidence: agent state data/furries/expression-minus/; delivery/CI follows below.
+Combined furries-exporter-spec remains started/sol: dynamic/global/opcode
+semantics, placement/arenas/spawns and observation-backed behaviour remain open.
+No second slice, schedule/continuation, release or hardware claim.

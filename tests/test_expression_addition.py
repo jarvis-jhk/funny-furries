@@ -32,7 +32,7 @@ class AdditionTests(unittest.TestCase):
                  token(0x400), token(0x600), token(0x800), token(0xA00),
                  token(0x0202, struct.pack('<HH', 7, 9)), token(0xFFFF), token(0xFEFF)]
         out = events.decode_expression(expression(items))
-        self.assertEqual([i for i, t in enumerate(out['tokens']) if 'integer_operation' in t], [1])
+        self.assertEqual([i for i, t in enumerate(out['tokens']) if t.get('integer_operation', {}).get('name') == 'add'], [1])
         self.assertEqual(out['tokens'][1]['integer_operation']['other_operand_tags'], 'unknown')
         self.assertNotIn('value', out)
         self.assertNotIn('result', out)
@@ -51,7 +51,7 @@ class AdditionTests(unittest.TestCase):
         for size in range(4):
             with self.subTest(size=size), self.assertRaises(project.InputError):
                 events.decode_expression(expression([struct.pack('<HH', 0x200, size)]))
-        for code in (0x400, 0x600, 0x800, 0xA00):
+        for code in (0x600, 0x800, 0xA00):
             out = events.decode_expression(expression([token(code, b'opaque')]))
             self.assertNotIn('integer_operation', out['tokens'][0])
 
@@ -148,7 +148,7 @@ class AdditionContainerTests(unittest.TestCase):
                                 observed.append(cursor - (q['offset'] + 4))
                                 count += 1
                             cursor += size
-                        annotated = [t for t in q['expression_storage']['tokens'] if 'integer_operation' in t]
+                        annotated = [t for t in q['expression_storage']['tokens'] if t.get('integer_operation', {}).get('name') == 'add']
                         self.assertEqual([t['payload_offset'] for t in annotated], observed)
                         self.assertTrue(all(t['integer_operation']['name'] == 'add' for t in annotated))
                         self.assertTrue(all(t['integer_operation']['other_operand_tags'] == 'unknown' for t in annotated))

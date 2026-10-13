@@ -43,6 +43,8 @@
       byte views and opaque tails; encoding and compound evaluation remain unknown.
 - [x] Runtime-proven numeric addition token annotations, with wrapping integer
       arithmetic documented and nonnumeric/dynamic expression results unresolved.
+- [x] Runtime-proven minus-token subtraction/prefix negation annotations, with
+      operand order and wrapping numeric arithmetic; actual contexts/results unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

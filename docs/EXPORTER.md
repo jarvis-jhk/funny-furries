@@ -48,7 +48,7 @@ The global-event exporter's two synthetic container tests also require the reade
 The event reference annotation's two synthetic container tests require it too.
 The combined exporter's four synthetic integration tests also require it.
 CI fetches the pinned external reader, runs the synthetic parser tests and
-skips only the thirteen original-file tests.
+skips only the twenty-two original-file tests.
 
 Output is always `export/<source-sha256>/project-index.json`, ignored by git.
 Never commit, publish or release it. The JSON contains object names and layout
