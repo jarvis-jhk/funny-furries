@@ -1,9 +1,10 @@
-# Frame layout structure v2
+# Frame layout structure v3
 
 This M0 research slice exports frame headers and object-placement **storage**
 as local JSON. It supplies the lossless placement tables needed for a later
-arena decoder. Version 2 adds first-word/local-object-slot equality probes.
-It does not yet establish runtime object references, coordinates,
+arena decoder. Version 3 adds runtime-proven creation coordinate inputs beside the existing
+first-word/local-object-slot equality probes. It does not yet establish runtime
+object references, final positions,
 collision geometry, player spawns, drawing order or playable arenas.
 
 Use the Python 3.10+ and externally supplied KlikBack reader from
@@ -25,7 +26,7 @@ endpoint, paths, exception text or original data enters fault reports.
 ## Contract
 
 - Source and external reader fingerprints match the project index.
-- `schema_version` is 2 and `exporter` is `frame-layout/2`. Existing raw fields,
+- `schema_version` is 3 and `exporter` is `frame-layout/3`. Existing raw fields,
   record/slot order, pointer aliases and header bytes are unchanged.
 - Every frame retains its zero-based storage ID, absolute segment-header
   offset, and exact pre-block header as `header_hex`. The reader establishes
@@ -43,8 +44,9 @@ endpoint, paths, exception text or original data enters fault reports.
   record; aliases are retained without inventing extra instances.
 - The supported dialect stores 32-byte records. Each exported record retains
   its storage ID, offset relative to the placement payload, `raw_hex`, and
-  `meaning: unknown`. No word is labelled as a resolved object ID or x/y coordinate.
-  Within `layout_document`, each record adds `object_slot_probe`, described below.
+  `meaning: unknown`. No word is labelled as a resolved object ID or final world position.
+  Within `layout_document`, each record adds `object_slot_probe` and
+  `coordinate_inputs`, described below.
   The standalone `decode_placements` function remains a context-free storage decoder.
 - The record area must be divisible by 32. Every live pointer must be aligned
   and in bounds, and every stored record must be referenced. No trailing or
@@ -110,7 +112,7 @@ No editor/runtime instructions were executed for this claim.
 `arena_geometry`, `spawns` and `behaviour` remain false. Raw record/header bytes
 and complete placement reconstruction remain lossless. Pointer aliases keep
 one stored record and one probe, rather than multiplying presumed instances.
-The research bundle automatically includes schema 2 and its component version;
+The research bundle automatically includes schema 3 and its component version;
 an existing different immutable bundle must be moved aside before regenerating.
 
 Synthetic tests cover differing frame scopes, actual block identities, missing,
@@ -122,3 +124,62 @@ each word directly from its source span and builds candidates independently
 with the pinned reader's `object_definitions`, without calling the annotation
 or project-index helpers. Every source span and all twelve placement blocks
 still reconstruct, and repeat documents/input bytes remain identical.
+
+## Creation coordinate inputs
+
+Schema 3 adds `coordinate_inputs` beside each record's unchanged raw bytes and
+object-slot probe. Its `x` and `y` entries retain `record_offset` (2 and 4),
+`raw_u16` and a reversible `signed_i16` view of the little-endian coordinate
+words. In particular a stored 0x8000 is retained as -32768; it is not a missing
+coordinate. Neighbouring fields remain opaque. The context-free
+`decode_placements` function still exports only storage.
+
+The annotation has `meaning: creation_coordinate_inputs`,
+`evidence: original_runtime_creation_coordinate_branch`,
+`use_record_when_override_raw_u16: 32768`, and `runtime_resolution: false`.
+The override marker applies to the creator's **argument**, independently for
+each axis, not to the stored record word. An explicit argument replaces that
+axis; a 0x8000 argument selects its record input. These are pre-initialization
+coordinate inputs, not final live-object positions, rendered bounds, image
+hotspots, player spawns or collision geometry. Neither pointer-slot order nor
+object-slot equality establishes which records actually create objects.
+
+Evidence is the local original FF2xmas executable (SHA-256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`):
+creator 0x420AC1's coordinate branch at 0x420C28..0x420C54 compares the X/Y
+arguments to 0x8000, reads record words at +2/+4 when needed, and copies them
+into local coordinate words and object words at +0x3E/+0x42. An initial creation
+caller at 0x40B73B supplies 0xFFFF8000 for both arguments before calling
+0x420AC1 at 0x40B763. The runtime file-load path reads 32-byte records and
+refreshes other fields; those instructions leave these two coordinate words
+alone. The protected source's twelve placement blocks match the decompiled
+source byte-for-byte. This evidence concerns the observed CnC executable and
+storage dialect; newer MMF compiled placement formats are not substituted.
+
+Independent local Unicorn 2.1.4 proof executes the unmodified coordinate branch
+and the unmodified initial caller (including its 0x406020 record-index lookup),
+stopping at the creator entry for the latter. Seven signed boundaries on both
+axes, all four stored/overridden combinations, 512 seeded record/override cases
+and all 7,968 original records produce 17,718 successful executions: 9,189
+coordinate paths and 8,529 caller paths. Checks cover coordinate bits, local
+copies, independent override selection, unchanged input/other object bytes,
+stack and register preservation, and actual caller arguments. A deliberately
+wrong positive-seven expectation fails after execution of stored negative-seven
+input. No instructions/imports/creator are patched or replaced with stubs.
+
+This is **partial instruction-path proof**, not whole original game execution:
+allocation, definition selection, initial record filtering, movement and object
+initializers, drawing and gameplay are not executed by this probe. The signed
+view is a two's-complement representation; the creator itself copies 16 bits.
+No actual initial-player/spawn position or post-initializer result is claimed.
+General `placement_semantics`, `arena_geometry`, `spawns` and `behaviour` remain
+false; only `placement_coordinate_inputs` coverage becomes true.
+
+Tests exercise signed/raw boundaries, asymmetric axes, opaque neighbours,
+record-word versus argument markers, aliases/reversed pointers/gaps, empty and
+repeated blocks, both frame header extents, existing object probes, signed JSON,
+immutable research-bundle repeats and a late short record before either output
+or fault reporting. The optional original fixture independently reads every
+coordinate word from each source span and preserves complete reconstruction,
+repeat equality and the original fingerprint. Original instructions, content,
+generated metadata and runtime proof outputs stay local and are not committed.

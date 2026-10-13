@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "frame-layout/2"
+VERSION = "frame-layout/3"
 UNUSED = 0xFFFFFFFF
 RECORD_BYTES = 32
 
@@ -62,16 +62,36 @@ def layout_document(reader, raw):
         lists = iter(inventory["frames"][frame_id]["object_lists"])
         annotate_object_slot_probes(placements, [(block_id, next(lists))
             for block_id, block in enumerate(blocks) if block.ident == 2])
+        annotate_coordinate_inputs(placements)
         frames.append({"id": frame_id, "offset": level.offset,
                        "header_bytes": start, "header_meaning": "unknown",
                        "header_hex": level.data[:start].hex(), "placements": placements})
-    return {"schema_version": 2, "exporter": VERSION,
+    return {"schema_version": 3, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "frames": frames,
             "coverage": {"frame_headers": True, "placement_storage": True,
                          "placement_object_slot_probes": True,
+                         "placement_coordinate_inputs": True,
                          "placement_semantics": False, "arena_geometry": False,
                          "spawns": False, "behaviour": False}}
+
+
+def annotate_coordinate_inputs(placements):
+    # The original creator copies these words only when its corresponding
+    # override is 0x8000. They are inputs, not proven final positions/spawns.
+    for block in placements:
+        for record in block["records"]:
+            raw = bytes.fromhex(record["raw_hex"])
+            axes = {}
+            for axis, offset in (("x", 2), ("y", 4)):
+                axes[axis] = {"record_offset": offset,
+                    "raw_u16": struct.unpack_from("<H", raw, offset)[0],
+                    "signed_i16": struct.unpack_from("<h", raw, offset)[0]}
+            record["coordinate_inputs"] = {**axes,
+                "meaning": "creation_coordinate_inputs",
+                "evidence": "original_runtime_creation_coordinate_branch",
+                "use_record_when_override_raw_u16": 0x8000,
+                "runtime_resolution": False}
 
 
 def annotate_object_slot_probes(placements, object_lists):

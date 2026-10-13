@@ -1721,3 +1721,55 @@ snapshots/job log in agent state data/furries/position-coordinates/. This delive
 edit changes Markdown only; tested source unchanged. No unfinished implementation,
 continuation/new schedule/release/second slice; combined exporter/spec remains
 started/sol, actual selection/arena geometry/spawn/observed behaviour still open.
+
+2026-10-13: Sol tick t_mv785f25g83hu, one bounded M0 placement creation
+coordinate-input slice. Clean main, fetched origin, no open PRs/issues or
+in-flight work at start; direct main follows repository convention. frame-layout/3
+schema3 adds coordinate_inputs beside unchanged raw records/object-slot probes:
+X at record2, Y at4, raw-u16 and reversible signed-i16 views. Each axis uses
+its record word only if the corresponding creator argument is0x8000; the marker
+is not a record sentinel. Every annotation runtime_resolution=false; record
+meaning remains unknown. No final live position/spawn/collision/arena semantics
+inferred. Context-free storage decoder unchanged. Existing detached optional
+private fault reporter unchanged; malformed input still exit2 before writes/
+reporting. No original instructions/assets/content/exported metadata/endpoint
+committed or published.
+
+Original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+creator0x420ac1 coordinate branch0x420c28..0x420c54 independently executed
+unmodified in Unicorn2.1.4, copying record2/4 or explicit override words to
+local/object coordinate words. Real initial caller0x40b73b..0x420ac1 executes
+its actual0x406020 lookup and supplies0xffff8000 for both coordinate arguments.
+Seven signed boundaries/both axes/four override paths/512 seeded records and
+all7968 original record byte spans:17718 executions pass (9189 coordinate paths,
+8529 caller paths). Result bits/local copies/caller arguments/untouched input
+and other object bytes/stack/register preservation checked; wrong positive7
+expectation fails after original negative7 execution. Protected original's12
+placement blocks match decompiled source bytes exactly. These are PARTIAL
+instruction paths in synthetic state, not full original allocation/filtering/
+definition selection/object or movement initialization/drawing/gameplay.
+The creator copies16 bits; signed view is two's-complement representation.
+Full runtime positions, player-spawn selection and arena collision still open.
+
+Forced compileall and all248 local tests pass with original/pinned KlikBack
+6e178b9 enabled. Eight new cases cover signed/raw/asymmetric boundaries, opaque
+neighbours, argument marker versus stored0x8000, aliases/reversed pointers/gaps,
+empty/repeated blocks/both frame headers, existing probes/signed JSON/immutable
+bundle repeats, independently walked original spans/lossless reconstruction and
+late short record before standalone/bundle output/reporting. X word-offset2->3
+control fails53 intended assertions (including49 boundary subtests) in8 executed
+cases; restored byte-exact and compileall-f before all248 positives. Existing
+component-version expectations updated to3. Actual agent
+./node_modules/.bin/tsc --noEmit passes before commit.
+
+Prior raw fields/object-slot probes/headers/slots match eb4a952 after stripping
+only new coordinate_inputs/coverage/version fields. Previous643-file immutable
+bundle refuses replacement without mutation and is preserved before regeneration;
+641 other files identical, only frame-layout.json/manifest.json change. Both
+standalone/bundle CLIs repeat identically/input unchanged:
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/placement-coordinates/; source delivery/CI
+follows within this tick. Combined exporter/spec stays started/sol: arena
+geometry/spawns/actual creation/selection/global/opcode/observed behaviour open.
+No second slice, new schedule/continuation, release or hardware claim.

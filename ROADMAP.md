@@ -61,6 +61,8 @@
       frame/block scopes and ambiguity; runtime references/coordinates stay unproven.
 - [x] Runtime-proven event position coordinate inputs, preserving signed/raw X/Y
       words and flags with actual object/global/spawn positions unresolved.
+- [x] Runtime-proven placement creation coordinate inputs, preserving signed/raw X/Y
+      words and independent override rules; final positions/arena geometry stay open.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 
