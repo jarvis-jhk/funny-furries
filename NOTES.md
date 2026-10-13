@@ -145,3 +145,47 @@ compileall and all26 cases (23 pass; only three local-original fixtures skipped)
 All26 passed locally with the original. CI snapshot/logs saved alongside local
 evidence in data/furries/audio-dump/. No in-flight work or CI continuation.
 This final delivery update changes NOTES only; tested source unchanged.
+
+2026-10-13: Sol tick t_mv6bmy5hanxg7, bounded M0 image-export v1 slice.
+Clean main/fetched origin, no open issues/PRs or in-flight continuation at start;
+direct main follows the existing convention. `tools/image_dump.py` and
+`docs/IMAGES.md` export local mode4 TGF truecolour banks as RGBA PNG, with ordered
+bank/segment/slot IDs, raw header/anchor values and record/PNG/RGBA fingerprints.
+All614 original images supported (10 raw/604 RLE); no graphics or generated
+metadata committed/published. Gaps/repeated/empty/missing banks remain distinct.
+Original image decoder implemented here; no external image code copied. Other
+modes/flags fail explicitly, runtime colour-key/animation semantics stay unknown.
+
+Strict record size, dimensions/pixel cap, monotonic row pointers, opacity/colour
+counts, bounded literal/repeat RLE, final terminator and exact byte consumption
+are checked before output. Six padded original raw records establish zero
+padding to align the whole decoded buffer to four bytes. Explicit opacity is
+preserved (opaque black stays opaque), BGR converted losslessly to RGB/alpha255;
+transparent pixels have zero RGBA. Anchor values remain raw u16 without guessing
+signed/runtime meaning. Complete 615-file images-v1 bundle installs via sibling
+staging/rename; failures clean staging, repeat runs verify all names/bytes and
+refuse modified/incomplete/extra content or symlinks. PNG compressed bytes may
+differ between zlib versions; RGBA hashes remain stable. Unexpected/write faults
+use the existing detached optional FF_FAULT_REPORT_URL reporter with version/
+platform/exception class; malformed input is not reported, no endpoint in source.
+
+Validation: compileall and all33 unittest cases pass with pinned external reader
+6e178b9470206f71871417dec852fbfa24cd01b9 and local original enabled. Every original
+PNG pixel/alpha matches external KlikBack parse_record/decode_rows; independent
+source slot-table reads verify record hashes and raw anchors. Synthetic known
+RGB/alpha plus literal/repeated/black pixels, malformed headers/pointers/runs,
+limits, padding/tails, late invalid entries, atomic write/rename failures, changed
+bundles, symlinks and fault classification exercised. Independent Pillow9.4.0
+loads all614 PNGs with matching dimensions/mode/RGBA hashes. Executed red/blue
+swap negative control fails both intended synthetic/original assertions; source
+restored byte-exact before positives. CLI twice verifies identical bundle;
+original SHA-256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0,
+input unchanged. Actual agent ./node_modules/.bin/tsc --noEmit passed. Evidence:
+agent state data/furries/image-dump/ (logs, oracle counts, fingerprints); original
+content remains ignored/private.
+
+Combined furries-exporter-spec stays started/sol. Global event containers/opcode
+and parameter semantics, object-to-image animation mapping, arena JSON and an
+observation-backed behaviour spec remain. No engine/release/Windows/Deck/hardware
+claim, new schedule or second slice. Source delivery/CI result will be recorded
+below; no separate CI continuation is scheduled by this tick.

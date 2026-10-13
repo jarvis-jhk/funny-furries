@@ -5,7 +5,8 @@ The first M0 slice inventories an unprotected CnC project. A separate
 raw parameters in JSON/readable text. These are research tools, not yet the
 asset/arena exporter or a decoded behaviour specification.
 The [audio exporter](AUDIO.md) adds original PCM WAV/MIDI files in an ignored,
-immutable bundle; images and arenas remain unimplemented.
+immutable bundle. The [image exporter](IMAGES.md) adds mode4 RGBA PNG files
+with bank IDs, explicit opacity and raw anchors. Arenas remain unimplemented.
 
 Requirements: Python 3.10+, a separate local checkout of GPL-3.0-or-later
 KlikBack, and the player's local original/decompiled project. No third-party
@@ -25,8 +26,9 @@ set `FF_TEST_PROJECT` to the local decompiled FF2 Xmas project to verify the
 original inventory. Without the reader, the index's four parser tests and the
 event exporter's two container tests explicitly skip;
 portable output/fault tests still run. The audio exporter's two container tests
-also require the reader. CI fetches the pinned external reader,
-runs the synthetic parser tests and skips only the three original-file tests.
+also require the reader, as do the image exporter's two container tests.
+CI fetches the pinned external reader, runs the synthetic parser tests and
+skips only the four original-file tests.
 
 Output is always `export/<source-sha256>/project-index.json`, ignored by git.
 Never commit, publish or release it. The JSON contains object names and layout
@@ -70,6 +72,6 @@ repo; tests use mocks and never send a real report. Game runtime fault delivery
 via ntfy remains part of M2.
 
 Remaining M0 work: decoded opcode/parameter meanings and global events;
-decoded image files with original bank IDs (PCM/MIDI audio is now supported);
+object-to-image animation mapping (mode4 PNG and PCM/MIDI audio now supported);
 arena geometry/spawns JSON; a behaviour spec backed by those exports and actual
 original observations. These need their own bounded slices.
