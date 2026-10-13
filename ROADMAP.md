@@ -59,6 +59,8 @@
       stops, nested prefix signs and ordered faults; dynamic/function forms unresolved.
 - [x] Placement first-word/local-object-slot equality probes, preserving actual
       frame/block scopes and ambiguity; runtime references/coordinates stay unproven.
+- [x] Runtime-proven event position coordinate inputs, preserving signed/raw X/Y
+      words and flags with actual object/global/spawn positions unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

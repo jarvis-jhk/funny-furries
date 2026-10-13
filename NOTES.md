@@ -1662,3 +1662,50 @@ job log in agent state data/furries/placement-object-probes/. This delivery edit
 changes Markdown only; tested source unchanged. No unfinished implementation,
 continuation/new schedule/release/second slice; combined exporter/spec remains
 started/sol, placement/arena/spawn/observed behaviour semantics still open.
+
+2026-10-13: Sol tick t_mv77sinteaz21, one bounded M0 event position
+coordinate-input slice. Clean main, fetched origin, no open PRs/issues or
+in-flight work at start; direct main follows repo convention. event-dump/21
+schema21 adds position_coordinate_storage beside unchanged position references:
+flags u16 at payload2, X/Y unsigned bits and signed16 views at4/6, source offsets
+and explicit unresolved runtime positions. Only established source FFFE/FFFF
+sentinels get absolute_xy; other encodings/locals/globals remain context_dependent.
+All original1263 remain context dependent; no actual spawn/global/selected-object
+result inferred. Type21 synthetic storage evidence only; no complete flag,
+noncartesian/hotspot/direction/clipping/opcode/gameplay semantics claimed.
+Existing optional detached private exporter fault handler unchanged; malformed
+supported shapes exit2 before every output or fault report. No original code,
+assets/exported metadata/private endpoint committed/published.
+
+Unmodified original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+position helper0x42a2a6/direct word reads0x42a2d8 and cartesian additions0x42a393
+independently executed with Unicorn2.1.4, including authentic cached selector
+0x426c0f/0x426e2a (no patched instructions/imports/selector stubs). Seven signed
+boundaries/both axes/two sentinels/six flags/three selected origins/512 seeded
+probes and every original parameter's source coordinate words in TWO SYNTHETIC
+contexts:4286 executions pass (2364 absolute,1922 relative cartesian).
+Coordinate bits/DX/carry/return/stack/restored ESI+EDI/input unchanged checked;
+wrong positive7 expectation fails on actual negative7 bits. Original references
+and flags are deliberately changed for context probes, so these are arithmetic
+capabilities, not actual original event/selection/position results.
+Independent direct source-span reads and pinned remapper preserve all1263 words:
+1150 type9,110 type18,3 type16; flags10:570/2:30/6:80/8:583. Original helper's
+image-dependent hotspot/other modes and source-slot→runtime remapping remain open.
+
+Eight new cases and all240 local tests pass with original/pinned KlikBack6e178b9.
+Signed/raw boundaries and asymmetric axes, opaque flags/reference encodings,
+all four types/both roles/scopes, original span/remapper agreement, readable and
+lossless programs, immutable repeats and late short parameters before JSON/text/
+bundle/reporting covered. X signed-offset4→5 control fails4 intended assertions
+in8 executed cases; source restored byte-exact and compileall-f before final
+all240 positives. Actual agent ./node_modules/.bin/tsc --noEmit passes before
+commit. Prior JSON fields/references/evaluation/groups and text match202be03
+when removing only coordinate additions/version/coverage. Previous643-file bundle
+refuses replacement without mutation and is preserved before regeneration;
+640 other files identical. JSON/text/bundle repeats identical/input unchanged:
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/position-coordinates/; source delivery/CI
+follows within this tick. Combined furries-exporter-spec stays started/sol:
+placement/arena geometry/spawns/global/opcode/actual selection/observed behaviour
+remain open. No second slice, new schedule/continuation, release or hardware claim.

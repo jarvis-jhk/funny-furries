@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/20"
+VERSION = "event-dump/21"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 
@@ -160,7 +160,7 @@ def decode_expression(payload):
 
 
 def decode_position_references(payload, kind):
-    """Expose proven reference words; all position/flag fields stay opaque."""
+    """Expose reference words; coordinate inputs have a separate annotation."""
     if len(payload) + 4 < POSITION_PARAMETER_BYTES[kind]:
         raise project.InputError("object-position parameter is shorter than its supported layout")
     references = []
@@ -175,6 +175,25 @@ def decode_position_references(payload, kind):
                            "status": "absolute_position_sentinel" if absolute else "frame_context_unresolved",
                            "candidates": []})
     return {"references": references}
+
+
+def decode_position_coordinates(payload, kind):
+    """Retain helper coordinate inputs, without selecting runtime objects."""
+    if len(payload) + 4 < POSITION_PARAMETER_BYTES[kind]:
+        raise project.InputError("object-position parameter is shorter than its supported layout")
+    reference, flags = word(payload, 0), word(payload, 2)
+    # The negative-reference helper branch loads these words directly. Positive
+    # references need selection, and flag bit 0 bypasses the cartesian words.
+    # Source slot encodings do not prove which runtime branch will be reached.
+    usage = ("absolute_xy" if reference in (0xFFFE, 0xFFFF) else
+             "context_dependent")
+    return {"flags_payload_offset": 2, "flags_raw_u16": flags,
+            "x": {"payload_offset": 4, "raw_u16": word(payload, 4),
+                  "signed_i16": word(payload, 4, "<h")},
+            "y": {"payload_offset": 6, "raw_u16": word(payload, 6),
+                  "signed_i16": word(payload, 6, "<h")},
+            "word_usage": usage, "runtime_resolution": False,
+            "evidence": "cnc_position_helper_coordinate_inputs"}
 
 
 def decode_object_parameter(payload):
@@ -349,6 +368,8 @@ def decode_record(data, role, offset, index):
             parameters[-1]["expression_storage"] = decode_expression(data[cursor + 4:cursor + size])
         if code in POSITION_PARAMETER_BYTES:
             parameters[-1]["position_reference_storage"] = decode_position_references(
+                data[cursor + 4:cursor + size], code)
+            parameters[-1]["position_coordinate_storage"] = decode_position_coordinates(
                 data[cursor + 4:cursor + size], code)
         if code in (6, 7):
             parameters[-1]["audio_reference_storage"] = decode_audio_reference(data[cursor + 4:cursor + size], code)
@@ -553,7 +574,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 20, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 21, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -572,6 +593,8 @@ def event_document(reader, raw):
                          "recursive_integer_constants": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
+                         "position_coordinate_storage": True,
+                         "position_resolution": False,
                          "audio_bank_reference_candidates": True,
                          "object_parameter_reference_candidates": True,
                          "group_parameter_stored_word_candidates": True,
@@ -626,6 +649,9 @@ def readable_program(program):
                 if "position_reference_storage" in parameter:
                     lines.append("          POSITION_REFERENCES " + json.dumps(
                         parameter["position_reference_storage"], ensure_ascii=True, sort_keys=True))
+                if "position_coordinate_storage" in parameter:
+                    lines.append("          POSITION_COORDINATES " + json.dumps(
+                        parameter["position_coordinate_storage"], ensure_ascii=True, sort_keys=True))
                 if "audio_reference_storage" in parameter:
                     lines.append("          AUDIO_REFERENCE " + json.dumps(
                         parameter["audio_reference_storage"], ensure_ascii=True, sort_keys=True))

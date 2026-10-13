@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 20 and `exporter` is `event-dump/20`.
+  fingerprints. `schema_version` is 21 and `exporter` is `event-dump/21`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -357,8 +357,9 @@ and compare local candidates with the external object definitions. All 1,263
 original position parameters (1,150 type 9, three type 16, 110 type 18) and
 2,523 reference words are retained; type 21 is synthetic-only evidence.
 
-The remaining parameter bytes, including coordinates, flags, cached words,
-shoot speed, relative-position selection and extension tails, remain opaque.
+In schema6 the remaining parameter bytes stayed opaque. Schema21 separately
+exposes coordinate input words and raw flags as described below; cached words,
+shoot speed, relative-position selection and extension tails remain opaque.
 These annotations do not establish action/opcode meanings, runtime execution,
 spawn positions or a complete behaviour specification.
 
@@ -1141,3 +1142,68 @@ and text remain unchanged apart from version/coverage and the coverage sentence.
 Existing immutable bundles must
 be retained separately before regenerating the changed events/manifest files;
 all other 640 component files stay byte-identical. Media schema/bytes do not change.
+
+## Position coordinate inputs (schema 21)
+
+`event-dump/21` adds `position_coordinate_storage` to the four supported position
+parameter layouts (types 9, 16, 18 and 21), alongside their unchanged reference
+annotations. It retains the little-endian flags word at payload+2 and the X/Y
+words at payload+4/+6, each with its offset, unsigned bits and signed 16-bit
+view. Payload offsets exclude the four-byte size/type header. Flags are raw:
+no complete flag dictionary, direction, hotspot, image handle or selected object
+is decoded. All original parameter bytes, opaque tails and reference candidates
+remain unchanged. Readable text adds a separate `POSITION_COORDINATES` line.
+
+`word_usage` is `absolute_xy` only for the two externally established source
+sentinels 0xFFFE/0xFFFF; every other reference is `context_dependent`. No source
+slot encoding is assumed to be a runtime address. Every annotation retains
+`runtime_resolution: false`, with evidence `cnc_position_helper_coordinate_inputs`.
+The exporter emits coordinate **inputs**, not a resolved world position or
+an initial/player spawn. `coverage.position_coordinate_storage` is true;
+`position_resolution`, general behaviour and arena geometry remain false.
+
+The original FF2xmas.exe helper `0x42a2a6` reads words+4/+6 into AX/BX on its
+negative-reference path (`0x42a2d8`), even when flags would alter a relative
+position. With helper mode BX=0, it returns those bits unchanged, DX=0 and
+carry set. In its positive-reference path it calls the original selector
+`0x426c0f`; after successful selection, the cartesian/no-hotspot path adds the
+same words at `0x42a393` to object position words+0x3E/+0x42, wrapping at 16 bits.
+Flag bit 0 bypasses these additions; flag bit 1 introduces image-dependent
+hotspot work. Their complete meanings, noncartesian path, selection remapping,
+other helper modes/clipping, direction/RNG and containing event opcodes are
+outside this slice. The signed view matches the helper's signed bounds
+comparisons, but the exporter does not run those comparisons.
+
+Independent local Unicorn2.1.4 executes the unmodified helper and its real
+cached-state selector against the original binary SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`.
+No instruction, import or selector is replaced. Seven signed boundaries on both
+axes, both absolute sentinels with six flag words, three selected origins and
+512 seeded inputs exercise direct return and wrapped relative addition.
+All 4,286 executions pass with coordinate bits, DX, carry, balanced stack,
+return address, restored ESI/EDI and unchanged input bytes checked.
+A deliberate positive-seven expectation fails on actual returned negative-seven
+bits. The state is synthetic: cached selection establishes arithmetic capability,
+not the game's actual selection/global mapping or event execution.
+
+All 1,263 original position parameters supply their actual coordinate words to
+two **synthetic contexts** in that proof: forced absolute sentinel and forced
+cartesian/no-hotspot cached selection. The original reference/flags are changed
+for those probes; no actual original position result is claimed. Separately,
+direct reads from original frame/global program spans verify every exported
+word and signed value: 1,150 type9, 110 type18 and three type16 parameters.
+The original flag words are 10 (570), 2 (30), 6 (80), and 8 (583); every original
+reference remains context dependent. Type21 has synthetic storage tests only.
+Pinned KlikBack's position remapper independently preserves the flags/X/Y bytes
+while editing reference/cache fields. This is corroboration of storage offsets,
+not a full runtime compilation or opcode witness.
+
+Eight tests cover signed/unsigned boundaries, both axes, all four shapes, opaque
+flags/encodings, frame/global and condition/action scopes, lossless programs,
+readable values, unchanged references, external remapper agreement and immutable
+bundle repeats. A late short supported parameter (even with complete coordinate
+words) exits2 before JSON/text/bundle writes or reporting. Ordinary bad inputs
+and unknown position results never invoke the existing optional private fault
+reporter. CI runs synthetic tests with the pinned external reader and skips the
+original-span fixture unless `FF_TEST_PROJECT` is supplied. General placement,
+arena geometry/spawns and observed gameplay remain separate M0 work.
