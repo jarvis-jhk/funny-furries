@@ -809,3 +809,14 @@ Combined furries-exporter-spec remains started/sol: opcode/parameter/global
 evaluation, placement coordinates/arena geometry/spawns and observation-backed
 behaviour still open. No playable engine/release/Windows/Deck/hardware claim
 or second slice.
+
+Delivery: tested source6e0c7162c3a5a01b6bddb80bbe9983d14a214f07 pushed main;
+CI38423753004 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38423753004 . Downloaded
+job115387584333 log verifies actual source/reader checkout, Python3.10.22,
+compileall and120 cases (105 pass/15 original-file fixtures explicitly skipped).
+All120 passed locally with original enabled; saved source/docs/test hashes
+still match. CI snapshot/job log and verification accompany
+ data/furries/event-audio/. This delivery edit is Markdown only; tested source
+unchanged. No unfinished implementation/schedule/CI continuation; combined
+exporter/spec remains started/sol, no release or second slice.
