@@ -858,3 +858,14 @@ Source delivery/CI result follows within this turn; no continuation or schedule.
 Combined furries-exporter-spec stays started/sol: opcode/global/parameter
 semantics, placement coordinates/arenas/spawns and observed behaviour remain.
 No playable engine, release, Windows/Deck/hardware claim or second slice.
+
+Delivery: tested source bd404e4fcd397940bffcdc626a52634742bb0209 pushed main;
+CI38424855740 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38424855740 . Downloaded
+job115391440851 log verifies actual source/reader checkout, Python3.10.22,
+compileall and128 cases (112 pass/sixteen original-file fixtures skipped).
+All128 passed locally with original enabled; saved source/docs/test hashes
+still match. CI snapshot/job log and verification saved with local evidence in
+ data/furries/event-object-parameters/. This delivery edit is Markdown only;
+tested source unchanged. No unfinished implementation/schedule/continuation;
+combined exporter/spec remains started/sol, no release or second slice.
