@@ -1339,3 +1339,14 @@ Evidence: agent state data/furries/expression-division/; source delivery/CI foll
 within this turn. Combined furries-exporter-spec stays started/sol: actual
 expression/global/opcode/placement/arenas/spawns/behaviour remain open.
 No second slice, schedule/continuation, release or hardware claim.
+
+Delivery: tested sourced824a3a6b796d1aa25296c46d69b7267e47536cf pushed main;
+CI38465183725 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38465183725 . Downloaded
+job115529988945 log verifies actual source and reader checkout outputs,
+Python3.10, compileall and189 tests (165 pass/24 original fixtures skipped).
+All189 pass locally with original enabled; saved source/docs/test hashes match.
+CI snapshots/job log and runtime oracle saved in agent state
+ data/furries/expression-division/. This delivery update is Markdown only;
+tested source unchanged. No unfinished implementation/schedule/continuation;
+combined exporter/spec stays started/sol, no release or second slice.
