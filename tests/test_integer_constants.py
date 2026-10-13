@@ -131,7 +131,9 @@ class IntegerConstantContainerTests(unittest.TestCase):
                 self.assertEqual(files['events.txt'], events.readable(doc).encode())
                 self.assertIn(('"status": "' + status + '"').encode(), files['events.txt'])
                 report.assert_not_called()
-                with tempfile.TemporaryDirectory() as scratch:
+                scratch_root = project.REPO / 'build'
+                scratch_root.mkdir(exist_ok=True)
+                with tempfile.TemporaryDirectory(dir=scratch_root) as scratch:
                     target = export_project.save_bundle(manifest, files, Path(scratch))
                     first = {p.name: p.read_bytes() for p in target.iterdir()}
                     export_project.save_bundle(*export_project.research_bundle(self.reader, raw), Path(scratch))

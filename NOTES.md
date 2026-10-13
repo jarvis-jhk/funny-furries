@@ -1523,3 +1523,9 @@ or published. Evidence: agent state data/furries/expression-constants/;
 source delivery/CI follows within this tick. Combined furries-exporter-spec stays
 started/sol: dynamic/global/opcode/placement/arenas/spawns/observed behaviour open.
 No second slice, new schedule/continuation, release or hardware claim.
+
+Fixture follow-up: the new immutable-repeat test now writes its synthetic bundle
+under this checkout's ignored build/ rather than shared /tmp. All10 affected
+cases pass with the original enabled and forced compileall; actual agent tsc
+passes again. Evaluator/exporter/docs and all other tested files are unchanged
+from13a22cf; final source delivery/CI below covers this fixture revision too.
