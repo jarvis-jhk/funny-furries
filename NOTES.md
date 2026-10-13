@@ -1218,3 +1218,14 @@ Evidence: agent state data/furries/expression-minus/; delivery/CI follows below.
 Combined furries-exporter-spec remains started/sol: dynamic/global/opcode
 semantics, placement/arenas/spawns and observation-backed behaviour remain open.
 No second slice, schedule/continuation, release or hardware claim.
+
+Delivery: tested source735188fc5e2f48267ad4c75b6090cf1f75c44535 pushed main;
+CI38435915130 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38435915130 . Downloaded
+job115429694825 log verifies actual source/reader checkout output, Python3.10,
+compileall and173 cases (151 pass/22 original-file fixtures explicitly skipped).
+All173 passed locally with original enabled; saved source/docs/test hashes match.
+CI snapshots/job log and runtime oracle saved with evidence in agent state
+ data/furries/expression-minus/. This delivery update is Markdown only; tested
+source unchanged. No unfinished implementation/schedule/continuation; combined
+exporter/spec remains started/sol, no release or second slice.
