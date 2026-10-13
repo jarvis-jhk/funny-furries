@@ -471,3 +471,48 @@ All72 passed locally with original enabled; saved source/docs/test hashes still
 match. Verification/CI snapshots/job log accompany data/furries/global-events/.
 This delivery update is Markdown only; tested source unchanged. No unfinished
 implementation or CI continuation; combined exporter/spec stays started/sol.
+
+2026-10-13: Sol tick t_mv6kkmohpwx3u, one bounded M0 frame-event local
+reference annotation slice. Clean main/fetched origin, no open PRs/issues or
+in-flight work at start; direct main follows the repository convention.
+Event-dump/3/schema3 retains all existing event bytes/fields and adds candidate
+object names/types/flags/actual object-list block IDs to frame records. Positive
+types with ordinary references below0x4000 match slots only in that frame;
+multiple lists, missing/deleted/type-mismatched slots remain explicit. Zero/
+negative types and encoded references stay unresolved; global programs are not
+assigned a guessed frame. Local global-flagged/reference-only headers remain
+storage candidates, not resolved runtime artwork or behaviour.
+
+Pinned KlikBack columns_from_events/referenced_objects establish the ordinary
+reference-to-local-slot mapping and separate encoded references. Independent
+source-word reads/external object definitions/editor columns verify all7573
+original frame records:4613 local matches,2958 non-object types,2 encoded refs.
+Unknown opcode/parameter meanings, global/qualifier/shortcut resolution,
+parameter-embedded references and execution order remain unchanged. Readable
+REFERENCE lines JSON-escape original names, preserving quotes/control characters
+without creating false event lines. docs/EVENTS.md describes schema migration.
+
+Validation: compileall and all80 local unittest cases pass with pinned reader
+6e178b9470206f71871417dec852fbfa24cd01b9 and original enabled. Eight new cases
+cover local flags/names/block identities, extension types/boundary handles,
+non-object/encoded refs, missing/deleted/mismatched/ambiguous slots, separate
+frame scopes/repeated lists, readable escaping, late-invalid input before write
+or reporting, and all original candidates/lossless programs. Existing atomic
+write/symlink/fault-classification checks pass; detached optional private
+FF_FAULT_REPORT_URL reporting remains unchanged with no endpoint in source.
+Executed off-by-one slot negative control fails nine intended assertions in
+eight executed cases; source restored byte-exact before all80 positives.
+
+Previous-source comparison proves all existing frame/global JSON fields/order/
+raw bytes unchanged after removing only new annotations/coverage/version; text
+matches after removing new REFERENCE lines and normalizing version. Both CLI
+formats run twice with identical outputs; original unchanged, SHA-256
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Actual agent ./node_modules/.bin/tsc --noEmit passed. Evidence:
+agent state data/furries/event-references/; generated original metadata ignored/
+private. Source delivery/CI observation follows below within this turn.
+
+Combined exporter/spec remains started/sol: event/parameter/global/placement
+semantics, extension data, arena geometry/spawns and observation-backed behaviour
+remain open. No playable engine, release, Windows/Deck/hardware claim, new
+schedule, continuation or second slice.

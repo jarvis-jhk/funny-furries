@@ -2,7 +2,7 @@
 
 The first M0 slice inventories an unprotected CnC project. A separate
 [event structure exporter](EVENTS.md) now preserves ordered frame records and
-raw parameters in JSON/readable text, including structured global programs.
+raw parameters in JSON/readable text, including structured global programs and local frame object-slot candidates.
 These are research tools, not yet the asset/arena exporter or a decoded behaviour
 specification.
 The [audio exporter](AUDIO.md) adds original PCM WAV/MIDI files in an ignored,
@@ -40,8 +40,9 @@ The active animation exporter's two container tests also require the reader.
 The backdrop exporter's two synthetic container tests also require the reader.
 The display exporter's two synthetic container tests also require the reader.
 The global-event exporter's two synthetic container tests also require the reader.
+The event reference annotation's two synthetic container tests require it too.
 CI fetches the pinned external reader, runs the synthetic parser tests and
-skips only the nine original-file tests.
+skips only the ten original-file tests.
 
 Output is always `export/<source-sha256>/project-index.json`, ignored by git.
 Never commit, publish or release it. The JSON contains object names and layout

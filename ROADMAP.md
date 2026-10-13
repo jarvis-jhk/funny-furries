@@ -19,6 +19,8 @@
       modes/attributes retained; numeric rendering and player ownership remain unknown.
 - [x] Ordered global-event programs with preserved opaque header/editor bytes,
       source extents, lossless reconstruction and readable text; semantics stay unknown.
+- [x] Frame-event local object-slot candidates with names/types/flags, unresolved
+      encodings and ambiguous lists explicit; global/runtime semantics remain open.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

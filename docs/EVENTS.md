@@ -1,9 +1,11 @@
-# Event structure export v2
+# Event structure export v3
 
 This bounded M0 slice exports the **structure** of frame and global event programs in
 unprotected CnC projects. It does not decode opcode or parameter meanings and
 cannot yet specify movement, combat, weapon trajectories or event execution.
-All meanings are explicitly `unknown`, including familiar-looking opcodes.
+All opcode/parameter meanings are explicitly `unknown`, including familiar-looking
+opcodes. Frame records now carry evidence-based local object-slot candidates;
+this aids reading the events without inventing runtime behaviour.
 
 Use the same Python 3.10+, externally supplied pinned KlikBack reader and local
 original as the [project index](EXPORTER.md):
@@ -16,7 +18,7 @@ python3 tools/event_dump.py orig/game.cca --klikback-src /path/to/KlikBack/src -
 Each invocation writes one file: `export/<source-sha256>/events.json`, or
 `events.txt` with `--text`. Both contain original event data. Never commit,
 publish or release them. The text labels rows, conditions, actions, numeric
-opcodes/references and typed raw parameters in storage order; it does not turn
+opcodes/references, local object-slot candidates and typed raw parameters in storage order; it does not turn
 unknown codes into guessed English behaviours. The JSON supports subsequent
 semantic decoders without reparsing the original bytes.
 
@@ -33,10 +35,13 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 2 and `exporter` is `event-dump/2`.
-  Version 2 retains all frame fields and the global raw payload fields from v1,
-  adds structured global programs, and refuses unsupported global containers
-  instead of silently exporting them as opaque. Consumers must check the version.
+  fingerprints. `schema_version` is 3 and `exporter` is `event-dump/3`.
+  Version 3 adds `object_reference_annotation` to frame records and two coverage
+  flags. Existing raw fields, order, offsets, parameters and global programs
+  are unchanged. Version 2 added structured global programs and refused
+  unsupported global containers; that validation remains. Consumers must check
+  the version. Bare `decode_program`/`decode_rows` remain structural decoders
+  without annotations: only `event_document` has the frame object-list context.
 - `frames` preserve every zero-based frame slot. A missing event block is an
   empty `programs` list, distinct from a present program with no rows.
 - Each program's `block_id` is its position among **all** frame blocks,
@@ -53,8 +58,8 @@ class; no path, event data or exception text leaves the process.
   end with exactly one zero size word, with no trailing bytes.
 - Records preserve a 14-byte condition header or 12-byte action header, signed
   one-byte object type/opcode, signed two-byte raw object reference, and ordered
-  `parameters`. No local/global/qualifier/system interpretation of references
-  is imposed. The parameter count is the stored byte at record offset 10;
+  `parameters`. The signed reference and raw header remain untouched; annotation
+  is a separate field described below. The parameter count is the stored byte at record offset 10;
   remaining header fields are retained without interpreting them.
 - Parameters retain their unsigned two-byte type, stored size including the
   four-byte size/type prefix, and `payload_hex`. Expressions, strings, asset
@@ -130,3 +135,47 @@ handling tests still run. Unknown global dialects now fail validation with exit 
 Next slices: map opcode/parameter semantics with independent evidence; resolve
 object/global references and extension data; export arena geometry; build a
 behaviour spec from these exports and actual original observations. M0 remains open.
+
+## Local frame reference candidates
+
+For a positive object type and an unsigned reference below 0x4000, the
+annotation looks up that slot in every object-definition list of the **same
+frame**. Each candidate retains the actual frame `block_id`, original object
+`id`, name, numeric/type name, global flag and deleted flag. IDs are never
+compacted. Global-flagged local headers are still local storage evidence; a
+match does not establish which runtime payload backs them. Reference-only
+slots can match even when they have no local artwork payload.
+
+`reference_raw_u16` is the unchanged reference word interpreted unsigned.
+`status` distinguishes:
+
+- `local_slot_match`: exactly one candidate, live and of the record's type.
+- `missing_local_slot`: no candidate in this frame.
+- `deleted_local_slot`: exactly one candidate, explicitly deleted.
+- `type_mismatch`: exactly one live candidate with a different stored type.
+- `ambiguous_local_slot`: more than one candidate; all are retained in block
+  order, even if only one has the matching type. No list is selected silently.
+- `non_object_type`: zero/negative record type; no object candidates guessed.
+- `encoded_reference_unresolved`: positive type with reference word >=0x4000;
+  no global/shortcut/qualifier target guessed, including the signed negatives.
+
+Unresolved references are evidence, not malformed input. Global event programs
+have no selected frame context and receive no annotations. This slice does
+not resolve global definitions, parameter-embedded references, extension type
+IDs to module names, qualifiers, event selection or execution order.
+`coverage.frame_local_reference_candidates` is true;
+`coverage.global_reference_resolution` remains false. Readable text adds one
+REFERENCE line per frame record, with JSON-escaped candidate names so newlines,
+quotes and control characters in the original cannot create fake event lines.
+
+Independent mapping evidence is pinned KlikBack
+`tgf/block3.py::columns_from_events`, which uses the reference word at record
++4 to index local definitions and handles high-bit/shortcut references separately.
+The annotation deliberately stops before those encodings. The local original's
+7,573 frame records contain 4,613 exact local matches, 2,958 non-object types
+and two unresolved encoded references. Direct event-source-word reads, external
+object definitions and editor-column reconstruction verify every candidate.
+Synthetic fixtures establish deleted/missing/type-mismatched/ambiguous cases,
+separate frame scopes, repeated lists and safely escaped names; these statuses
+are not all present in the original. No runtime observation or behaviour proof
+is implied by editor/storage evidence.

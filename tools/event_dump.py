@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "event-dump/2"
+VERSION = "event-dump/3"
 
 
 def word(data, offset, form="<H"):
@@ -119,6 +119,40 @@ def decode_global_program(data):
                            "raw_hex": data[header_size:start].hex()}]}
 
 
+def reference_annotation(record, object_lists):
+    """Match storage slots only; encoded references need separate evidence."""
+    reference = record["object_reference"]
+    kind = record["object_type"]
+    unsigned = reference & 0xFFFF
+    result = {"reference_raw_u16": unsigned, "status": "non_object_type",
+              "candidates": []}
+    # System records also carry a word at +4; treating that as an object slot
+    # would attach unrelated object names to keyboard/timer/etc. operations.
+    if kind <= 0:
+        return result
+    if unsigned >= 0x4000:
+        result["status"] = "encoded_reference_unresolved"
+        return result
+    for block_id, objects in object_lists:
+        for obj in objects:
+            if obj["id"] == reference:
+                result["candidates"].append({"block_id": block_id,
+                    **{key: obj[key] for key in
+                       ("id", "name", "type", "type_name", "global", "deleted")}})
+    candidates = result["candidates"]
+    if not candidates:
+        result["status"] = "missing_local_slot"
+    elif len(candidates) > 1:
+        result["status"] = "ambiguous_local_slot"
+    elif candidates[0]["deleted"]:
+        result["status"] = "deleted_local_slot"
+    elif candidates[0]["type"] != kind:
+        result["status"] = "type_mismatch"
+    else:
+        result["status"] = "local_slot_match"
+    return result
+
+
 def event_document(reader, raw):
     # Reuse strict container, object-table and bank validation before any output.
     inventory = project.inventory(reader, raw)
@@ -126,15 +160,24 @@ def event_document(reader, raw):
     frames = []
     for frame, level in enumerate(game.levels()):
         programs = []
+        frame_index = inventory["frames"][frame]
+        list_ids = [i for i, block in enumerate(frame_index["blocks"]) if block["id"] == 2]
+        object_lists = list(zip(list_ids, frame_index["object_lists"]))
         for block_id, block in enumerate(reader.level_blocks(level.data)[1]):
             if block.ident == 4:
+                program = decode_program(block.data)
+                for row in program["rows"]:
+                    for record in row["records"]:
+                        record["object_reference_annotation"] = reference_annotation(record, object_lists)
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
-                                 "bytes": len(block.data), **decode_program(block.data)})
+                                 "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return {"schema_version": 2, "exporter": VERSION,
+    return {"schema_version": 3, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
-                         "parameter_semantics": False, "global_event_structure": True},
+                         "parameter_semantics": False, "global_event_structure": True,
+                         "frame_local_reference_candidates": True,
+                         "global_reference_resolution": False},
             "frames": frames,
             "global_events": [{"segment_id": slot, "offset": segment.offset,
                                "bytes": len(segment.data), "meaning": "unknown",
@@ -156,6 +199,11 @@ def readable_program(program):
                          f"type={record['object_type']} opcode={record['opcode']} "
                          f"reference={record['object_reference']} meaning=UNKNOWN "
                          f"header={record['header_hex']}")
+            if "object_reference_annotation" in record:
+                annotation = record["object_reference_annotation"]
+                # JSON quoting keeps arbitrary original names on one text line.
+                names = json.dumps(annotation["candidates"], ensure_ascii=True, sort_keys=True)
+                lines.append(f"        REFERENCE status={annotation['status']} candidates={names}")
             for parameter in record["parameters"]:
                 lines.append(f"        PARAM {parameter['id']} offset={parameter['offset']} "
                              f"bytes={parameter['bytes']} type={parameter['type']} "
