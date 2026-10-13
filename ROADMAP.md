@@ -13,6 +13,8 @@
       gaps, pointer order and unknown fields; arena semantics remain undecoded.
 - [x] Active animation/direction storage and ordered image-bank handles, with
       opaque timing/selection fields, original bytes and unresolved references retained.
+- [x] Ordinary/quick-backdrop header artwork: image handles, editor fill colors
+      and orientation, raw headers; global resolution and arena semantics remain open.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

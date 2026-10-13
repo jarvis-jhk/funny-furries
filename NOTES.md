@@ -304,3 +304,49 @@ match; verification.json and CI snapshots/log accompany local evidence in
 data/furries/animation-dump/. This delivery update is Markdown only; tested
 source unchanged. No in-flight work or CI continuation remains. Combined
 exporter/spec stays started/sol; no release or second slice.
+
+2026-10-13: Sol tick t_mv6ji17nf2fh1, one bounded M0 backdrop-header artwork
+slice. Clean main/fetched origin, no open PRs/issues or in-flight work at start;
+direct main follows the repo convention. tools/backdrop_dump.py and
+ docs/BACKDROPS.md export ignored backdrops.json with ordinary/quick-backdrop
+image handles, editor fill colors/orientation and complete raw68-byte headers.
+All definition slots, global/local headers, deleted/other types, bank gaps and
+repeated/empty/missing lists/banks remain distinct. Used image handles retain
+all matching bank segment IDs; solid/gradient image words stay raw and unused.
+No runtime bank or global/local definition is guessed: local global-flagged
+headers can carry different artwork words than global definitions.
+
+Pinned KlikBack source_handle/quick_backdrop_icon supply independent editor-art
+evidence for image u16 at54, quick fill byte32, COLORREF words24/28 and gradient
+orientation bit0x10. Our decoder is independently implemented. Colors preserve
+all raw32 bits, RGB excludes the high byte without interpreting it as alpha.
+Unknown quick fill values/flags, malformed headers and unoccupied used image
+handles fail before output; unused words do not require bank membership.
+Atomic replacement/failure cleanup/symlink refusal and detached optional private
+FF_FAULT_REPORT_URL handling follow existing exporters. Fault payload has only
+version/platform/exception class; no endpoint or original content committed.
+
+Validation: compileall and all56 local unittest cases pass with pinned reader
+6e178b9470206f71871417dec852fbfa24cd01b9 and local original enabled. Seven new
+cases cover known images/mosaics/solid/both gradient axes, raw high COLORREF
+bytes, unused unoccupied words, all definition slots, repeated/empty banks,
+missing/empty lists, local data blocks, bad sizes/types/fills/used handles,
+late invalid objects before write, atomic failures, symlinks and fault handling.
+All410 original headers match source byte-for-byte:352 ordinary images,
+30 mosaics,28 vertical gradients,382 used image references. External icon
+source_handle agrees on every stored image word; all58 quick color pairs match
+separate source-byte reads and external gradient icon endpoints agree. Solid/
+horizontal fills have synthetic evidence only, not an original runtime claim.
+Executed swapped-COLORREF red/blue control fails five intended assertions
+(four synthetic fill subcases and original source/oracle verification); restored
+source byte-exact before all56 positives. Both CLI runs produce identical JSON;
+original unchanged, SHA-256
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Actual agent ./node_modules/.bin/tsc --noEmit passed. Evidence:
+agent state data/furries/backdrop-dump/. Source delivery/CI observations follow.
+
+Combined furries-exporter-spec stays started/sol. Display/text/extension artwork,
+global reference resolution, event/placement semantics, arena geometry/spawns
+and observation-backed behaviour remain open. Editor-art fields do not establish
+runtime rendering, dimensions, collision or a playable engine. No release,
+Windows/Deck/hardware claim, new schedule, continuation or second slice.
