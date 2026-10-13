@@ -13,7 +13,8 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "event-dump/4"
+VERSION = "event-dump/5"
+EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 
 
 def word(data, offset, form="<H"):
@@ -21,6 +22,37 @@ def word(data, offset, form="<H"):
     if offset + size > len(data):
         raise project.InputError("truncated event field")
     return struct.unpack_from(form, data, offset)[0]
+
+
+def decode_expression(payload):
+    """Expose stored tokens, without evaluating or guessing operator meanings."""
+    prefix = word(payload, 0)
+    cursor = 2
+    tokens = []
+    while True:
+        code = word(payload, cursor)
+        if code == 0:
+            # The external reader stops here. Keep the rest opaque, including
+            # observed padding, instead of interpreting it as more tokens.
+            return {"prefix_raw_u16": prefix, "tokens": tokens,
+                    "terminator_payload_offset": cursor,
+                    "suffix_hex": payload[cursor + 2:].hex()}
+        size = word(payload, cursor + 2)
+        if size < 4 or cursor + size > len(payload):
+            raise project.InputError("expression token length exceeds its parameter")
+        kind = code & 0xFF
+        target = None
+        if 0 < kind < 0x80:
+            if size < 8:
+                raise project.InputError("object expression token is shorter than its header")
+            target = {"reference_raw_u16": word(payload, cursor + 4),
+                      "expected_type": kind if code >= 0x3000 else None,
+                      "status": "frame_context_unresolved", "candidates": []}
+        tokens.append({"id": len(tokens), "payload_offset": cursor,
+                       "bytes": size, "code_raw_u16": code,
+                       "meaning": "unknown", "raw_hex": payload[cursor:cursor + size].hex(),
+                       "object_reference_annotation": target})
+        cursor += size
 
 
 def decode_record(data, role, offset, index):
@@ -37,6 +69,8 @@ def decode_record(data, role, offset, index):
         parameters.append({"id": number, "offset": offset + cursor, "bytes": size,
                            "type": code, "meaning": "unknown",
                            "payload_hex": data[cursor + 4:cursor + size].hex()})
+        if code in EXPRESSION_TYPES:
+            parameters[-1]["expression_storage"] = decode_expression(data[cursor + 4:cursor + size])
         cursor += size
     if cursor != len(data):
         raise project.InputError("event parameter count leaves trailing record bytes")
@@ -173,7 +207,9 @@ def reference_annotation(record, object_lists):
               "candidates": []}
     # System records also carry a word at +4; treating that as an object slot
     # would attach unrelated object names to keyboard/timer/etc. operations.
-    if kind <= 0:
+    # Common object-expression tokens supply no proven expected type (None).
+    # Their unique live slot is a candidate, without inventing a type match.
+    if kind is not None and kind <= 0:
         return result
     if unsigned >= 0x4000:
         result["status"] = "encoded_reference_unresolved"
@@ -191,10 +227,10 @@ def reference_annotation(record, object_lists):
         result["status"] = "ambiguous_local_slot"
     elif candidates[0]["deleted"]:
         result["status"] = "deleted_local_slot"
-    elif candidates[0]["type"] != kind:
+    elif kind is not None and candidates[0]["type"] != kind:
         result["status"] = "type_mismatch"
     else:
-        result["status"] = "local_slot_match"
+        result["status"] = "local_slot_candidate" if kind is None else "local_slot_match"
     return result
 
 
@@ -214,15 +250,23 @@ def event_document(reader, raw):
                 for row in program["rows"]:
                     for record in row["records"]:
                         record["object_reference_annotation"] = reference_annotation(record, object_lists)
+                        for parameter in record["parameters"]:
+                            for token in parameter.get("expression_storage", {}).get("tokens", []):
+                                target = token["object_reference_annotation"]
+                                if target is not None:
+                                    target.update(reference_annotation({
+                                        "object_type": target["expected_type"],
+                                        "object_reference": target["reference_raw_u16"]}, object_lists))
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return {"schema_version": 4, "exporter": VERSION,
+    return {"schema_version": 5, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
                          "frame_local_reference_candidates": True,
                          "editor_group_structure": True,
+                         "expression_token_storage": True,
                          "global_reference_resolution": False},
             "frames": frames,
             "global_events": [{"segment_id": slot, "offset": segment.offset,
@@ -256,6 +300,9 @@ def readable_program(program):
                 lines.append(f"        PARAM {parameter['id']} offset={parameter['offset']} "
                              f"bytes={parameter['bytes']} type={parameter['type']} "
                              f"meaning=UNKNOWN payload={parameter['payload_hex']}")
+                if "expression_storage" in parameter:
+                    lines.append("          EXPRESSION " + json.dumps(
+                        parameter["expression_storage"], ensure_ascii=True, sort_keys=True))
     lines.append("    TERMINATOR 0000")
     lines.append("    GROUP_STRUCTURE " + json.dumps(program["event_groups"], sort_keys=True))
     for auxiliary in program["auxiliary"]:

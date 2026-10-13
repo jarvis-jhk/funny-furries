@@ -21,7 +21,7 @@ and its own `manifest.json`. Media filenames and bank/segment/slot identities
 are unchanged. File names in the audio/image manifests resolve inside this
 same directory; their former `manifest.json` names become distinct component
 manifest names. Component schemas and versions are recorded from the current standalone tools;
-event schema4 includes editor group structure. Older snapshots must be moved
+event schema5 includes editor group structure and expression token/reference storage. Older snapshots must be moved
 aside explicitly before exporting changed component bytes.
 
 The top-level schema1 manifest records source/reader fingerprints, component

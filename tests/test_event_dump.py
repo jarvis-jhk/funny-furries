@@ -31,7 +31,7 @@ def row(conditions, actions, positive=False):
 
 
 def sample_program():
-    condition = record("condition", 2, -17, -32768, [(999, b"own-test-data"), (22, b"\0\xff")])
+    condition = record("condition", 2, -17, -32768, [(999, b"own-test-data"), (22, b"\0\xff\0\0")])
     action = record("action", -3, 7, 4, [])
     return row([condition], [action]) + row([], [action], positive=True) + bytes(2)
 

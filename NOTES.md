@@ -640,3 +640,54 @@ All96 passed locally with original enabled; source/docs/test hashes still match.
 Verification/CI snapshots/job log accompany data/furries/event-groups/. This
 final delivery edit is Markdown only; tested source unchanged. No unfinished
 implementation or CI continuation; exporter/spec remains started/sol.
+
+2026-10-13: Sol tick t_mv6mcxqyvdqtz, one bounded M0 expression-token storage
+slice. Clean main, fetched origin, no open PRs/issues or in-flight work at start;
+direct main follows the repository convention. event_dump/5/schema5 adds ordered
+expression tokens and embedded object-slot candidates in JSON/readable text.
+The six parameter types 15/22/23/45/52/53 and token traversal are supported by
+pinned KlikBack common/reconstruct_event_test and event_object_registry helpers.
+Only token storage/reference words are interpreted: prefix, suffix, operators,
+literals, comparison/evaluation/global/runtime meanings remain opaque.
+
+All 3868 original expressions (2461 type22/1400 type23/seven type45), 4485
+tokens/22 codes and288 embedded object words reconstruct exactly and agree
+with separate source reads/external reference traversal. All98 frame references
+match external local definitions (17 expected-type matches/81 untyped candidates);
+190 global references stay frame_context_unresolved. Missing/deleted/mismatched/
+ambiguous/encoded references are explicit, with all block identities retained.
+Raw token spans, u16 prefix, first zero terminator and arbitrary suffix bytes
+are preserved. No arithmetic or gameplay semantics, frame for globals or
+universal editor-dialect claim is invented. Supported expression shapes now
+validate strictly before any JSON/text/bundle output; unsupported lengths,
+truncated object tokens/missing terminators fail exit2 without fault reporting.
+The old synthetic two-byte type22 placeholder now has a valid empty terminator.
+Existing detached optional private FF_FAULT_REPORT_URL handling stays unchanged;
+no secret endpoint, original data/assets or generated metadata committed/published.
+
+Validation: force compileall and all104 local unittest cases pass with pinned
+reader6e178b9470206f71871417dec852fbfa24cd01b9 and original enabled. Eight new
+cases cover all six types/condition+action/frame+global programs, token order/
+unknown codes/empty expressions/opaque tails, reference status/type boundaries,
+separate frame scopes/repeated lists, escaping, late-invalid input before any
+save/report and original source/ext-helper/candidate identity/lossless proof.
+Executed reference-offset+1 control fails three intended assertions in eight
+executed cases; source restored byte-exact and compileall -f forced before all104
+final positives. Existing atomic write/symlink/fault-classification checks pass.
+Actual agent ./node_modules/.bin/tsc --noEmit passed before commit.
+
+Previous-source comparison proves all existing raw JSON fields, object reference
+and group annotations unchanged after removing only expression additions/version;
+old readable text is identical after removing EXPRESSION lines/version. Old
+immutable research-v1 bundle refused changed bytes without mutation, preserved
+privately before regenerated643-file bundle installation/repeat. Only events.json,
+events.txt and manifest.json change; all640 other files remain byte-identical.
+Standalone JSON/text and bundle CLIs run twice with identical files. Original
+unchanged SHA25698c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/event-expressions/; source delivery/CI follows
+within this turn. No schedule or CI continuation created.
+
+Combined furries-exporter-spec stays started/sol: opcode/parameter evaluation,
+global execution, placement fields/arena geometry/spawns and observation-backed
+behaviour remain open. No playable engine, release, Windows/Deck/hardware claim
+or second slice.

@@ -25,6 +25,8 @@
       source/reader agreement, version/hash manifest and immutable repeat checks.
 - [x] Editor event-group markers, per-program nesting/pairs and stored titles,
       retaining unknown title shapes/unbalanced programs and opaque activation words.
+- [x] Ordered expression-token storage and embedded frame-local object candidates,
+      preserving opaque prefixes/suffixes and unknown operator/evaluation semantics.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

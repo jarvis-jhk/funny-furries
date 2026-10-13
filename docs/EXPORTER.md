@@ -2,7 +2,7 @@
 
 The first M0 slice inventories an unprotected CnC project. A separate
 [event structure exporter](EVENTS.md) now preserves ordered frame records and
-raw parameters in JSON/readable text, including structured global programs and local frame object-slot candidates.
+raw parameters in JSON/readable text, including structured global programs, local frame object-slot candidates and ordered expression tokens/embedded references.
 These are research tools, not yet an arena exporter or a decoded behaviour
 specification. The [combined research exporter](PROJECT-BUNDLE.md) runs every
 supported component with one command and installs one complete immutable bundle:
@@ -48,7 +48,7 @@ The global-event exporter's two synthetic container tests also require the reade
 The event reference annotation's two synthetic container tests require it too.
 The combined exporter's four synthetic integration tests also require it.
 CI fetches the pinned external reader, runs the synthetic parser tests and
-skips only the eleven original-file tests.
+skips only the thirteen original-file tests.
 
 Output is always `export/<source-sha256>/project-index.json`, ignored by git.
 Never commit, publish or release it. The JSON contains object names and layout

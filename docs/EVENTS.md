@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 4 and `exporter` is `event-dump/4`.
+  fingerprints. `schema_version` is 5 and `exporter` is `event-dump/5`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -168,7 +168,7 @@ slots can match even when they have no local artwork payload.
 
 Unresolved references are evidence, not malformed input. Global event programs
 have no selected frame context and receive no object-reference annotations. This slice does
-not resolve global definitions, parameter-embedded references, extension type
+not resolve global definitions, non-expression parameter references, extension type
 IDs to module names, qualifiers, event selection or execution order.
 `coverage.frame_local_reference_candidates` is true;
 `coverage.global_reference_resolution` remains false. Readable text adds one
@@ -238,3 +238,70 @@ physics, controller ownership or gameplay semantics. Raw record/parameter
 `meaning` remains unknown. Existing research-v1 bundles contain the prior
 component version: move them aside explicitly before a new combined export;
 immutable repeat checks deliberately refuse to replace their old bytes.
+
+## Expression token storage (schema 5)
+
+Parameters of types 15, 22, 23, 45, 52 and 53 now add `expression_storage`.
+All existing raw fields, row/group/reference annotations and ordering remain;
+parameter and token `meaning` stays unknown. No arithmetic, literal, function,
+comparison, selection or runtime evaluation semantics are inferred. Other
+parameter types remain opaque. The six-type set and token traversal have
+independent evidence in pinned KlikBack
+`common/reconstruct_event_test.py::EXPRESSION_PARAMETER_TYPES` and
+`common/event_object_registry.py::expression_object_slots`. This is our own
+implementation, checked against the original editor parameters; importing an
+external compiled-format helper does not establish every editor dialect.
+
+The payload (excluding its four-byte size/type header) starts with an opaque
+little-endian u16 `prefix_raw_u16`. Tokens begin at payload offset 2. Each
+nonzero token has a u16 `code_raw_u16`, u16 byte length, and unchanged `raw_hex`.
+The exported ordered tokens retain zero-based storage `id`, `payload_offset`,
+`bytes` and nullable `object_reference_annotation`. The first zero code is a
+two-byte terminator, recorded at `terminator_payload_offset`; `suffix_hex`
+preserves every subsequent byte without interpreting it, including nonzero
+synthetic tails. Prefix + raw tokens + zero terminator + suffix reconstructs
+exactly the original parameter payload. Empty expressions are distinct from
+absent parameters. Offsets are relative to this parameter's payload, unlike
+the existing parameter offset relative to the event program.
+
+For a token whose code's low byte is in 1..127, the external reference helper
+establishes a u16 object word at token+4 and a minimum eight-byte token. The
+remaining token words stay opaque. `expected_type` is that low byte only for
+codes >=0x3000; lower codes have no established expected object type and use
+null. Each such token keeps its unsigned reference word. A frame expression
+uses the same frame's local object lists and preserves every candidate and
+block identity. Matching a unique live slot without an expected type yields
+`local_slot_candidate`, rather than claiming a type match. With an expected
+type, the existing match/mismatch rules apply. Missing, deleted, ambiguous or
+encoded (>=0x4000) references remain explicit and unresolved. No list is chosen
+silently, including when one of several candidates has the expected type.
+Global expressions and standalone program decoding have no selected frame;
+their object tokens keep `frame_context_unresolved` and empty candidates.
+Non-object tokens have a null annotation, without assigning a guessed name.
+
+Recognized expression parameters must contain a complete prefix, token headers,
+in-bounds lengths of at least four bytes, complete object-token headers when
+applicable, and a terminator. Violations now refuse the whole JSON/text/bundle
+with exit 2 before writing or reporting, rather than treating those payloads
+as undifferentiated bytes. Unknown token codes with valid storage remain raw.
+Schema 4 consumers must accept the new annotations/version, and previous
+immutable research bundles need explicit move-aside before regenerating.
+The earlier synthetic two-byte type-22 placeholder was updated to include an
+empty expression terminator; its previous shape is now a malformed-input case.
+
+Readable text adds one JSON-escaped EXPRESSION line per recognized parameter,
+so original names/control characters cannot create false event lines.
+`coverage.expression_token_storage` is true; `parameter_semantics`,
+`opcode_semantics` and global reference resolution remain false.
+
+All 3,868 original expressions (2,461 type22, 1,400 type23, seven type45) contain
+4,485 tokens across 22 distinct codes. All source byte spans, parameter
+reconstruction and embedded reference words match independent reads and the
+external helper. The 288 embedded object words include 98 frame-local
+candidates (17 expected-type matches, 81 without expected types) and 190
+unresolved global references. Every local candidate's ID/name/type/flags/block
+identity agrees with external object definitions in its actual frame. Suffixes
+are empty for 3,686 expressions, eight zero bytes for 173 and four zeros for
+nine. Types15/52/53 and malformed, empty, unknown-code, repeated-list,
+type-mismatch, encoded-reference and nonzero-tail shapes have synthetic proof,
+not original/runtime observation. Geometry, spawns and behaviour remain open.
