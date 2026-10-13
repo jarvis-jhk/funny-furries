@@ -1,0 +1,25 @@
+name: Exporter tests
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Get the tested external reader
+        uses: actions/checkout@v4
+        with:
+          repository: just-addwater/KlikBack
+          ref: 6e178b9470206f71871417dec852fbfa24cd01b9
+          path: build/klikback
+          persist-credentials: false
+      - name: Compile exporter and tests
+        run: python3 -m compileall -q tools tests
+      - name: Test synthetic projects and fault handling
+        env:
+          FF_KLIKBACK_SRC: build/klikback/src
+        run: python3 -m unittest discover -s tests -v

@@ -1,3 +1,6 @@
 orig/
 build/
 *.cca
+*.gam
+export/
+__pycache__/

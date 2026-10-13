@@ -1,6 +1,8 @@
 # Roadmap
 
 ## M0 — Exporter
+- [x] Deterministic project index: frame/object slots, segment/bank inventory,
+      source/reader fingerprints, strict input checks and synthetic/original tests.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 
