@@ -66,7 +66,7 @@ class IntegerConstantTests(unittest.TestCase):
         self.assertEqual(result([number(-2147483648), token(0x800), number(-1), token(0x800), number(-1)])['operator_token_id'], 1)
 
     def test_full_stream_refusal_precedes_arithmetic_and_preserves_unknowns(self):
-        unsupported = [token(0x3FF, b'x\0'), token(0xFFFF), token(0xFEFF), token(0xFDFF),
+        unsupported = [token(0x3FF, b'x\0'),
                        token(0x0C00), token(0x0A02, struct.pack('<HH', 7, 9))]
         for tail in unsupported:
             items = [number(-2147483648), token(0x800), number(-1), token(0x200), tail]
@@ -122,7 +122,7 @@ class IntegerConstantContainerTests(unittest.TestCase):
 
     def test_unknown_and_trap_are_research_output_without_fault_reporting(self):
         for items, status in [([number(-2147483648), token(0x800), number(-1)], 'cpu_exception'),
-                              ([number(1), token(0x200), token(0xFFFF)], 'unsupported_tokens')]:
+                              ([number(1), token(0x200), token(0xFFFF)], 'unsupported_shape')]:
             raw, _ = expression_project(expression(items))
             with patch.object(project, 'report_fault') as report:
                 doc = events.event_document(self.reader, raw)

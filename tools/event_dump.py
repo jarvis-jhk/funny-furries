@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/19"
+VERSION = "event-dump/20"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 
@@ -553,7 +553,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 19, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 20, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -569,6 +569,7 @@ def event_document(reader, raw):
                          "expression_integer_remainder": True,
                          "expression_control_tokens": True,
                          "constant_integer_expressions": True,
+                         "recursive_integer_constants": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "audio_bank_reference_candidates": True,
@@ -638,7 +639,7 @@ def readable_program(program):
 
 def readable(document):
     lines = [f"Funny Furries {VERSION}", f"Source SHA-256: {document['source']['sha256']}",
-             "Opcode/parameter execution UNKNOWN; integer/string literals, numeric addition/minus/multiplication/division/remainder and expression control tokens decoded; closed ungrouped integer constants evaluated.",
+             "Opcode/parameter execution UNKNOWN; integer/string literals, numeric addition/minus/multiplication/division/remainder and expression control tokens decoded; closed ungrouped/recursive integer constants evaluated.",
              "Row/record/parameter offsets are relative to the event program."]
     for table in document.get("level_number_storage", []):
         lines.append("LEVEL_NUMBER_STORAGE " + json.dumps(table, ensure_ascii=True, sort_keys=True))

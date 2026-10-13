@@ -54,7 +54,9 @@
 - [x] Runtime-proven recursive operand and evaluator-stop token annotations,
       retaining unknown delimiter roles/pairing and unevaluated dynamic expressions.
 - [x] Runtime-proven closed ungrouped integer expression results, preserving raw-code
-      priority, wrapping intermediates and CPU faults; dynamic/grouped forms unresolved.
+      priority, wrapping intermediates and CPU faults; dynamic forms unresolved.
+- [x] Runtime-proven closed recursive integer operand results, with both evaluator
+      stops, nested prefix signs and ordered faults; dynamic/function forms unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

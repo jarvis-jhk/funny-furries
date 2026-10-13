@@ -1544,3 +1544,56 @@ compatibility and independent runtime proof saved in agent state
  data/furries/expression-constants/. This delivery edit changes Markdown only;
 tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec remains started/sol, no release or second slice.
+
+2026-10-13: Sol tick t_mv772t0oank5s, one bounded M0 closed recursive
+integer-expression slice. Clean main, fetched origin, no open PRs/issues or
+in-flight work at start; direct main follows repository convention. event-dump/20
+schema20 extends constant_integer_evaluation to closed FFFF recursive operands
+with either FEFF/FDFF stop, nested/mixed stops and single prefix signs applied
+on return. Iterative complete-stream validation precedes arithmetic; no Python
+recursion limit, implicit zero-stop closure, dynamic/string/function evaluation
+or general delimiter grammar guessed. Unsupported shapes/results and CPU faults
+remain research output; malformed extents exit2 before all writes/reports.
+Existing detached optional private exporter fault handler unchanged. No original
+instructions/content/assets/exported metadata/private endpoint committed/published.
+
+Original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+evaluator0x42a42e/dispatcher0x42a474/recursive handler0x42a4ac independently
+executed unmodified with Unicorn2.1.4. Both stops, depths1..64, all25 ordered
+operator pairs/signs/boundaries/zero, competing faults and1024 seeded nested
+streams:7754 runs pass (7604 normal result/numeric tag/cursor/balanced-stack
+checks;150 vector0 faults with IDIV address/operands/EXACT pending token ID and
+retained return address). Instruction hooks observe operator pushes/entries
+without altering execution. Reductions happen before reading a subsequent
+operand when raw-code priority requires it: pre-evaluating all child groups
+would misidentify an earlier outer fault. Grouped(7+3)*5 returns50; a deliberate
+ungrouped22 runtime expectation fails after actual original instruction execution.
+All3490 eligible original byte streams still SINGLE LITERALS;378 remain unknown.
+All4 recursive/105FEFF/17FDFF original words independently traversed in streams
+containing unknown dynamic/function tokens. No new original compound result,
+OS recovery/nonnumeric/gameplay/hardware claim.
+
+Forced compileall and all224 local tests pass with original/pinned KlikBack6e178b9.
+Nine new cases cover stop/priority/prefix/numeric boundaries, competing fault
+identity, complete-stream refusal,4096 iterative nested operands/opaque tails,
+all six expression types/both roles/scopes, readable/lossless output, immutable
+bundle repeats, late malformed controls before JSON/text/bundle/reporting and
+independent original traversal. Omitting recursive return prefix negation causes
+three intended failures in nine executed cases; restored byte-exact/compileall-f
+before all224 final positives. Coverage-banner follow-up changes only one output
+sentence; nine affected cases pass again. Actual agent tsc passes before commit.
+Previous versions updated to20; old control-only unsupported tests now assert
+unsupported_shape rather than unsupported_tokens, with full shape cases added.
+
+Prior fields/raw tokens/annotations match31e9fb3 except evaluation token_ids in
+103 unsupported original streams now omit the newly supported control words;
+remaining unknown tokens prevent results. All previous statuses/values unchanged;
+text only changes those IDs/version/coverage sentence. Previous643-file immutable
+bundle refuses replacement without mutation and is preserved before regeneration;
+640 other files identical. JSON/text/bundle CLIs repeat identically/input unchanged:
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/expression-recursive/; source delivery/CI follows
+within this turn. Combined exporter/spec stays started/sol: placement/arenas/
+spawns/dynamic/global/opcode/observed behaviour remain open. No second slice,
+schedule/continuation or release.

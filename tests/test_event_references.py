@@ -116,7 +116,7 @@ class ReferenceContainerTests(unittest.TestCase):
     def test_frame_scope_missing_and_repeated_lists_and_lossless_program(self):
         raw, program = synthetic_references()
         document = events.event_document(self.reader, raw)
-        self.assertEqual(document['schema_version'], 19)
+        self.assertEqual(document['schema_version'], 20)
         targets = []
         for frame in document['frames']:
             block = frame['programs'][0]

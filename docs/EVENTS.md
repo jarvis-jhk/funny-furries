@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 19 and `exporter` is `event-dump/19`.
+  fingerprints. `schema_version` is 20 and `exporter` is `event-dump/20`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -1010,6 +1010,9 @@ user-supplied original fixtures; no original content is committed or published.
 
 ## Closed ungrouped integer constants (schema 19)
 
+This describes the initial schema19 subset; schema20 extends it to the closed
+recursive operand shapes documented below.
+
 Every `expression_storage` adds `constant_integer_evaluation`. This is a
 conservative evaluation of the complete stored token stream, starting after
 its opaque prefix and ending at its first zero code. It evaluates only one or
@@ -1078,3 +1081,63 @@ lossless reconstruction, immutable bundle repeats and malformed late inputs
 before JSON/text/bundle writes or reporting. Original-only tests independently
 classify complete source streams and check every eligible value/raw word and
 unresolved remainder. CI skips that private fixture without `FF_TEST_PROJECT`.
+
+## Closed recursive integer constants (schema 20)
+
+`event-dump/20` extends `constant_integer_evaluation` to a bounded recursive
+numeric subset. At an operand position, an exact four-byte `0xFFFF` enters an
+inner evaluator. After a complete inner numeric expression, either exact
+four-byte stop (`0xFEFF` or `0xFDFF`) returns its value; the outer dispatcher
+consumes the stop. One optional prefix minus applies **after** the inner return.
+The same five numeric operators and raw-code priorities apply in every invocation.
+For example, `FFFF 7 + 3 FEFF * 5` returns 50, and a prefix minus before FFFF
+makes the result -50. Mixed stop words and further nesting are supported.
+These are proven execution shapes, not a general delimiter-pairing or function
+argument grammar. Stops outside recursive operands, empty or unclosed inner
+expressions, adjacent operands, repeated prefix signs and trailing operators
+produce `unsupported_shape`. A zero storage terminator is never treated as an
+implicit inner stop: the original dispatcher would read its following extent,
+whose safety and meaning are unproven. Dynamic, string and function tokens still
+refuse the whole stream as `unsupported_tokens`; no supported prefix is evaluated.
+
+The exporter first validates the **whole** stream and builds an iterative
+execution plan, then executes arithmetic. This handles deep input without
+Python recursion. The plan reduces a pending outer operator before reading the
+next operand when its priority requires it, matching the original evaluator.
+It does not eagerly evaluate all inner expressions first. With competing divide
+errors, this determines which `operator_token_id` faults. Normal results,
+32-bit wrap, signed rounding, zero-divisor behavior and explicit CPU exceptions
+retain their previous schema. `coverage.recursive_integer_constants` is true;
+general expression/parameter/opcode/behaviour evaluation remains false.
+All raw bytes, token IDs, annotations, references and opaque prefix/suffix stay
+preserved; readable text uses the existing whole-expression result field.
+Recorded runtime exceptions and unsupported research forms never invoke the
+optional private exporter fault reporter. Malformed token extents still exit2
+before JSON, text, bundle writes or reporting.
+
+Independent local Unicorn2.1.4 execution uses the same unmodified original
+FF2xmas.exe (SHA256 recorded above), evaluator `0x42a42e`, dispatcher `0x42a474`,
+recursive handler `0x42a4ac` and numeric operator handlers. Both stops, prefix
+signs, nesting depths 1 through 64, all 25 ordered operator pairs with asymmetric,
+signed, zero and overflow probes, competing inner/outer faults and 1,024 seeded
+nested streams are exercised. All 7,754 executions pass: 7,604 normal results
+with numeric tag, exact return cursor and balanced stack checked, plus 150 divide
+errors with vector, IDIV instruction, fault operands, exact pending token ID
+and retained return address checked. Of these, 3,490 runs use eligible original expression bytes unchanged;
+all are still single literals. The original's four recursive markers and 122
+stop words occur only in streams containing unsupported dynamic/function tokens,
+which remain unresolved. No new original compound result, OS exception recovery,
+nonnumeric behavior, function grammar or gameplay execution is claimed.
+
+Nine new tests cover both stops/mixed nesting, prefix and numeric boundaries,
+priority and fault order, complete-stream refusal, 4,096 iterative nested
+operands, opaque tails, all six expression parameter types/both roles/scopes,
+readable/lossless output, immutable bundle repeats, late malformed controls
+before every output/report and independent original control-word traversal.
+Original statuses remain 3,490 values / 378 unsupported streams. In 103 of the
+unsupported streams, `token_ids` now excludes the newly supported control words;
+the remaining unknown tokens still prevent evaluation. All other fields/results
+and text remain unchanged apart from version/coverage and the coverage sentence.
+Existing immutable bundles must
+be retained separately before regenerating the changed events/manifest files;
+all other 640 component files stay byte-identical. Media schema/bytes do not change.
