@@ -461,3 +461,13 @@ Combined exporter/spec stays started/sol: global execution/opcode/parameter and
 object/placement semantics, extension data, arena geometry/spawns and observed
 behaviour remain open. No playable engine, release, Windows/Deck/hardware claim,
 new schedule, continuation or second slice.
+
+Delivery: tested source a4241729052b1d36d5e1cc9ca72827cf42fe6781 pushed main;
+CI38386873916 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38386873916 . Downloaded
+job115260724596 log verifies actual source/reader checkout SHA, Python3.10.22,
+compileall and72 cases (63 pass/nine original fixtures explicitly skipped).
+All72 passed locally with original enabled; saved source/docs/test hashes still
+match. Verification/CI snapshots/job log accompany data/furries/global-events/.
+This delivery update is Markdown only; tested source unchanged. No unfinished
+implementation or CI continuation; combined exporter/spec stays started/sol.
