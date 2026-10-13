@@ -591,7 +591,7 @@ text. Global/frame stacks remain separate; unmatched/unclosed markers and
 unknown title shapes remain explicit without repairing or discarding bytes.
 
 Pinned KlikBack common/reconstruct_event_test.py::group_marker establishes
-first-condition type-1/opcode-10/-11 marker bytes; common/global_event_reconstruct.py
+first-condition type -1/opcode -10/-11 marker bytes; common/global_event_reconstruct.py
 ::group_records independently verifies type38 title offset/80-byte extent.
 The implementation is ours. Supported parameter is88 bytes: two opaque raw u16
 words then80 title bytes. Prefix meanings/flags/activation/identity stay unknown;
@@ -630,3 +630,13 @@ Combined exporter/spec remains started/sol: activation/gameplay opcode/parameter
 global execution and placement semantics, arenas/spawns and observed behaviour
 remain open. No engine/release/Windows/Deck/hardware claim/new schedule/CI
 continuation/second slice.
+
+Delivery: tested source3b32c740708f3d2ba2b99a2b022465eb3d4da57f pushed main;
+CI38391728150 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38391728150 . Downloaded
+job115276903127 log verifies actual source/reader checkout, Python3.10.22,
+compileall and all96 cases (84 pass/twelve local-original fixtures skipped).
+All96 passed locally with original enabled; source/docs/test hashes still match.
+Verification/CI snapshots/job log accompany data/furries/event-groups/. This
+final delivery edit is Markdown only; tested source unchanged. No unfinished
+implementation or CI continuation; exporter/spec remains started/sol.
