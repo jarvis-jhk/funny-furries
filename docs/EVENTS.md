@@ -1,11 +1,12 @@
-# Event structure export v3
+# Event structure export v4
 
 This bounded M0 slice exports the **structure** of frame and global event programs in
-unprotected CnC projects. It does not decode opcode or parameter meanings and
+unprotected CnC projects. It does not decode gameplay opcode or parameter meanings and
 cannot yet specify movement, combat, weapon trajectories or event execution.
 All opcode/parameter meanings are explicitly `unknown`, including familiar-looking
 opcodes. Frame records now carry evidence-based local object-slot candidates;
-this aids reading the events without inventing runtime behaviour.
+this aids reading the events without inventing runtime behaviour. Editor group
+boundaries and stored titles are annotated separately in v4.
 
 Use the same Python 3.10+, externally supplied pinned KlikBack reader and local
 original as the [project index](EXPORTER.md):
@@ -35,13 +36,16 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 3 and `exporter` is `event-dump/3`.
-  Version 3 adds `object_reference_annotation` to frame records and two coverage
+  fingerprints. `schema_version` is 4 and `exporter` is `event-dump/4`.
+  Version 4 adds row `event_group_annotation`, program `event_groups` and
+  `coverage.editor_group_structure` in frame and global programs. All prior
+  raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
   flags. Existing raw fields, order, offsets, parameters and global programs
   are unchanged. Version 2 added structured global programs and refused
   unsupported global containers; that validation remains. Consumers must check
   the version. Bare `decode_program`/`decode_rows` remain structural decoders
-  without annotations: only `event_document` has the frame object-list context.
+  with group annotations; only `event_document` has frame object-list context
+  for reference annotations.
 - `frames` preserve every zero-based frame slot. A missing event block is an
   empty `programs` list, distinct from a present program with no rows.
 - Each program's `block_id` is its position among **all** frame blocks,
@@ -63,7 +67,8 @@ class; no path, event data or exception text leaves the process.
   remaining header fields are retained without interpreting them.
 - Parameters retain their unsigned two-byte type, stored size including the
   four-byte size/type prefix, and `payload_hex`. Expressions, strings, asset
-  references and positions are still opaque. Unknown types are preserved,
+  references and positions are still opaque; the separate group annotation
+  interprets only the supported title field. Unknown types are preserved,
   never discarded. Declared counts must consume each record and row exactly.
 - Row, record and parameter `offset` values are relative to the **program**;
   `bytes` always includes the corresponding header. Their IDs are zero-based
@@ -95,6 +100,8 @@ class; no path, event data or exception text leaves the process.
 - `coverage.frame_event_structure` and `global_event_structure` are true;
   `opcode_semantics` and `parameter_semantics` remain false. Global record
   object references remain signed raw numbers, without runtime resolution.
+  Editor group structure is a limited exception to otherwise unknown meanings;
+  it establishes no runtime activation, selection or ordering rules.
 
 ## Evidence and remaining work
 
@@ -111,8 +118,8 @@ frame event block byte-for-byte; and checks
 unchanged input and repeat output. Synthetic tests cover ordering, unknown
 codes, signed references, empty/absent programs, bad sizes/counts/terminators,
 truncation, atomic output failures, symlinks and fault classification. CI uses
-the pinned external reader without original data and explicitly skips the nine
-original-file tests across all exporters.
+the pinned external reader without original data and explicitly skips the original-file
+tests across all exporters.
 
 Global header-field interpretation is observation-backed against the single
 63,602-byte original global segment, not an independent universal format spec.
@@ -160,7 +167,7 @@ slots can match even when they have no local artwork payload.
   no global/shortcut/qualifier target guessed, including the signed negatives.
 
 Unresolved references are evidence, not malformed input. Global event programs
-have no selected frame context and receive no annotations. This slice does
+have no selected frame context and receive no object-reference annotations. This slice does
 not resolve global definitions, parameter-embedded references, extension type
 IDs to module names, qualifiers, event selection or execution order.
 `coverage.frame_local_reference_candidates` is true;
@@ -179,3 +186,55 @@ Synthetic fixtures establish deleted/missing/type-mismatched/ambiguous cases,
 separate frame scopes, repeated lists and safely escaped names; these statuses
 are not all present in the original. No runtime observation or behaviour proof
 is implied by editor/storage evidence.
+
+
+## Editor group structure (schema 4)
+
+Only a row's first **condition** with signed object type -1 and opcode -10 or
+-11 is treated as an editor group open or close. The external pinned reader's
+`common/reconstruct_event_test.py::group_marker` establishes the bytes FF F6 /
+FF F5 at row+16. Other object types, action records and later conditions with
+those same opcode bytes remain ordinary rows. Positive/negative stored row
+sizes do not change this rule.
+
+Every row receives `event_group_annotation`: `kind` (open/close/event), outer
+`enclosing_open_row_ids` in nesting order, nullable `matching_row_id` and nullable
+`title`. Open/close marker rows exclude their own group from the enclosing list;
+ordinary rows include every open group. Pairing is by a per-program nesting
+stack and storage row IDs, never by an opaque word, title or runtime group ID.
+Programs never share a stack. The program's `event_groups` lists `open_row_ids`,
+`unclosed_open_row_ids`, `unmatched_close_row_ids` and balanced/unbalanced status.
+Unbalanced programs are retained with explicit missing partners; no row is
+inserted, deleted or repaired. An enclosing list in an unbalanced program is
+only the literal marker stack, not proven runtime membership.
+
+An opening condition with exactly one type-38 parameter of stored size 88
+has a supported title: two raw little-endian u16 prefix words, followed by an
+80-byte field. `prefix_raw_u16` preserves both words without labelling flags,
+identity or initial activation. `field_hex` retains the complete field including
+nonzero bytes after NUL; `bytes_hex` stops at its first NUL, or keeps all 80 bytes
+if none is present. `byte_view_latin1` is a reversible display of those bytes,
+not a claim about the original code page (`source_encoding: unknown`). Unknown
+sizes or absent/duplicate type-38 parameters leave title null while preserving
+all raw parameters. No unrelated parameter type is decoded. Readable output
+adds JSON-escaped GROUP lines and a GROUP_STRUCTURE summary, so source names
+with control characters cannot introduce false event rows.
+
+Name offset/80-byte extent have independent evidence in pinned KlikBack
+`common/global_event_reconstruct.py::group_records`. That helper is used only
+for its row/title traversal, not its newer global-container dialect or prefix
+word labels. The implementation is ours; no reader code is bundled. Every local
+original title agrees with that helper and separate source-byte reads. All 41
+open/close pairs are balanced: 21 frame groups (one in the second frame, two in
+each following frame) and 20 global groups. The title field includes named
+movement, animation, underwater and weapon sections, but names alone do not
+prove those behaviours. Nested/unbalanced groups, ambiguous title parameters,
+full-width names, non-ASCII byte views and nonzero NUL tails have synthetic
+proof; the original's groups are flat.
+
+This adds a navigation aid for the behaviour specification. It does not infer
+activation/deactivation actions, active-at-start flags, global execution order,
+physics, controller ownership or gameplay semantics. Raw record/parameter
+`meaning` remains unknown. Existing research-v1 bundles contain the prior
+component version: move them aside explicitly before a new combined export;
+immutable repeat checks deliberately refuse to replace their old bytes.

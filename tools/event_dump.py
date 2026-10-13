@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "event-dump/3"
+VERSION = "event-dump/4"
 
 
 def word(data, offset, form="<H"):
@@ -54,7 +54,7 @@ def decode_rows(data):
         if signed_size == 0:
             if cursor + 2 != len(data):
                 raise project.InputError("event row terminator has trailing bytes")
-            return rows
+            return annotate_groups(rows)
         size = abs(signed_size)
         if size < 14 or cursor + size > len(data):
             raise project.InputError("event row length exceeds its program")
@@ -79,6 +79,49 @@ def decode_rows(data):
         cursor += size
 
 
+def annotate_groups(rows):
+    """Keep editor group nesting separate from unknown execution semantics."""
+    stack = []
+    for row in rows:
+        first = row["records"][0] if row["condition_count"] else None
+        marker = first["opcode"] if first and first["object_type"] == -1 else None
+        kind = "open" if marker == -10 else "close" if marker == -11 else "event"
+        annotation = {"kind": kind, "enclosing_open_row_ids": list(stack),
+                      "matching_row_id": None, "title": None}
+        if kind == "open":
+            parameters = [p for p in first["parameters"] if p["type"] == 38]
+            # Only the observed ANSI 80-byte field is interpreted. Other valid
+            # parameter shapes remain lossless raw data, not guessed titles.
+            if len(parameters) == 1 and parameters[0]["bytes"] == 88:
+                payload = bytes.fromhex(parameters[0]["payload_hex"])
+                field = payload[4:84]
+                name = field.split(b"\0", 1)[0]
+                annotation["title"] = {
+                    "parameter_id": parameters[0]["id"],
+                    "prefix_raw_u16": list(struct.unpack_from("<HH", payload)),
+                    "field_hex": field.hex(), "bytes_hex": name.hex(),
+                    "byte_view_latin1": name.decode("latin1"),
+                    "source_encoding": "unknown"}
+            stack.append(row["id"])
+        elif kind == "close" and stack:
+            opened = stack.pop()
+            annotation["enclosing_open_row_ids"] = list(stack)
+            annotation["matching_row_id"] = opened
+            rows[opened]["event_group_annotation"]["matching_row_id"] = row["id"]
+        row["event_group_annotation"] = annotation
+    return rows
+
+
+def group_structure(rows):
+    opens = [r["id"] for r in rows if r["event_group_annotation"]["kind"] == "open"]
+    unclosed = [i for i in opens if rows[i]["event_group_annotation"]["matching_row_id"] is None]
+    unmatched = [r["id"] for r in rows if r["event_group_annotation"]["kind"] == "close"
+                 and r["event_group_annotation"]["matching_row_id"] is None]
+    return {"status": "unbalanced" if unclosed or unmatched else "balanced",
+            "open_row_ids": opens, "unclosed_open_row_ids": unclosed,
+            "unmatched_close_row_ids": unmatched}
+
+
 def decode_program(data):
     # Headerless runtime programs and other event dialects need separate proof.
     if data[:4] != b"Fra\0" or word(data, 4) != 0x0217:
@@ -91,8 +134,9 @@ def decode_program(data):
     third = end + 2 + second_size
     if third > len(data):
         raise project.InputError("event auxiliary block length exceeds its block")
+    rows = decode_rows(data[10:end])
     return {"header_hex": data[:6].hex(), "program_offset": 10,
-            "program_bytes": size, "rows": decode_rows(data[10:end]),
+            "program_bytes": size, "rows": rows, "event_groups": group_structure(rows),
             "auxiliary": [{"id": 2, "offset": end + 2, "bytes": second_size,
                            "meaning": "unknown", "raw_hex": data[end + 2:third].hex()},
                           {"id": 3, "offset": third, "bytes": len(data) - third,
@@ -112,8 +156,9 @@ def decode_global_program(data):
         raise project.InputError("unsupported global event header extent")
     if start < header_size or size < 2 or start + size != total:
         raise project.InputError("global event program extent is invalid")
+    rows = decode_rows(data[start:start + size])
     return {"header_hex": data[:header_size].hex(), "program_offset": start,
-            "program_bytes": size, "rows": decode_rows(data[start:start + size]),
+            "program_bytes": size, "rows": rows, "event_groups": group_structure(rows),
             "auxiliary": [{"id": 0, "offset": header_size,
                            "bytes": start - header_size, "meaning": "unknown",
                            "raw_hex": data[header_size:start].hex()}]}
@@ -172,11 +217,12 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return {"schema_version": 3, "exporter": VERSION,
+    return {"schema_version": 4, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
                          "frame_local_reference_candidates": True,
+                         "editor_group_structure": True,
                          "global_reference_resolution": False},
             "frames": frames,
             "global_events": [{"segment_id": slot, "offset": segment.offset,
@@ -193,6 +239,8 @@ def readable_program(program):
         lines.append(f"    ROW {row['id']} offset={row['offset']} bytes={row['bytes']} "
                      f"conditions={row['condition_count']} actions={row['action_count']} "
                      f"header={row['header_hex']}")
+        group = row["event_group_annotation"]
+        lines.append("      GROUP " + json.dumps(group, ensure_ascii=True, sort_keys=True))
         for record in row["records"]:
             lines.append(f"      {record['role'].upper()} {record['id']} "
                          f"offset={record['offset']} bytes={record['bytes']} "
@@ -209,6 +257,7 @@ def readable_program(program):
                              f"bytes={parameter['bytes']} type={parameter['type']} "
                              f"meaning=UNKNOWN payload={parameter['payload_hex']}")
     lines.append("    TERMINATOR 0000")
+    lines.append("    GROUP_STRUCTURE " + json.dumps(program["event_groups"], sort_keys=True))
     for auxiliary in program["auxiliary"]:
         lines.append(f"    AUX {auxiliary['id']} offset={auxiliary['offset']} "
                      f"bytes={auxiliary['bytes']} meaning=UNKNOWN raw={auxiliary['raw_hex']}")

@@ -20,7 +20,9 @@ The flat bundle contains `project-index.json`, `events.json`, `events.txt`,
 and its own `manifest.json`. Media filenames and bank/segment/slot identities
 are unchanged. File names in the audio/image manifests resolve inside this
 same directory; their former `manifest.json` names become distinct component
-manifest names. Component schemas and versions remain unchanged.
+manifest names. Component schemas and versions are recorded from the current standalone tools;
+event schema4 includes editor group structure. Older snapshots must be moved
+aside explicitly before exporting changed component bytes.
 
 The top-level schema1 manifest records source/reader fingerprints, component
 schema/exporter versions, and a sorted list of every other file's byte count

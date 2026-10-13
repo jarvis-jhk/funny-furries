@@ -581,3 +581,52 @@ All89 passed locally with original enabled; saved source/docs/test hashes still
 match. Verification/CI snapshots/job log accompany data/furries/research-bundle/.
 This delivery update is Markdown only; tested source unchanged. No unfinished
 implementation or CI continuation. Combined exporter/spec remains started/sol.
+
+2026-10-13: Sol tick t_mv6ln7z3tnnnu, one bounded M0 editor-event-group
+slice. Clean main, fetched origin, no open PRs/issues or in-flight work at start;
+direct main follows repository convention. event_dump/4/schema4 adds per-row
+editor open/close/event annotations, nesting and matching storage row IDs,
+per-program balance diagnostics and supported stored titles in JSON/readable
+text. Global/frame stacks remain separate; unmatched/unclosed markers and
+unknown title shapes remain explicit without repairing or discarding bytes.
+
+Pinned KlikBack common/reconstruct_event_test.py::group_marker establishes
+first-condition type-1/opcode-10/-11 marker bytes; common/global_event_reconstruct.py
+::group_records independently verifies type38 title offset/80-byte extent.
+The implementation is ours. Supported parameter is88 bytes: two opaque raw u16
+words then80 title bytes. Prefix meanings/flags/activation/identity stay unknown;
+Latin-1 is only a reversible byte view, not an asserted source code page. Complete
+field including nonzero NUL tails is retained. All41 original pairs balance:
+21 frame groups/20 global groups, all flat. Named movement/animation/underwater/
+weapon sections are navigation evidence, not proof of their runtime behaviour.
+
+Validation: compileall and all96 local tests pass with original enabled and
+pinned reader6e178b9470206f71871417dec852fbfa24cd01b9. Seven new cases cover nested
+pairs/scopes, empty/full-width/non-ASCII/control-character titles and NUL tails,
+unknown/duplicate title shapes, first-system-condition marker specificity,
+unbalanced programs/separate stacks, duplicate opaque words and all original
+names/source fields/pairs versus external helpers. All previous JSON raw fields
+and frame reference annotations equal prior source after removing only additions/
+version; old text matches after removing GROUP/GROUP_STRUCTURE lines and version.
+Raw frame/global byte reconstruction remains exact. Existing late-invalid input,
+atomic/symlink/fault-classification tests pass; detached optional private reporter
+unchanged, no URL/assets/metadata committed or published.
+
+Executed title-offset+1 control fails four intended assertions in seven executed
+cases. Source restored byte-exact. The first post-control suite exposed cached
+mutant Python bytecode after a same-size restore within one timestamp second;
+force compileall cleared it, all96 positives reran successfully, and generated
+standalone/bundle exports were corrected and their title fields independently
+rechecked. Keep that failure log; force bytecode regeneration after future
+same-size Python controls. Existing immutable research-v1 refused changed bytes
+without mutation; old bundle preserved privately, corrected643-file bundle
+installed/repeated. Only events.json/events.txt/manifest.json change; all640
+other files remain byte-identical. All three CLIs repeat byte-identically;
+original unchanged SHA25698c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Actual agent ./node_modules/.bin/tsc --noEmit passed before commit. Evidence:
+agent state data/furries/event-groups/; source delivery/CI follows within this turn.
+
+Combined exporter/spec remains started/sol: activation/gameplay opcode/parameter/
+global execution and placement semantics, arenas/spawns and observed behaviour
+remain open. No engine/release/Windows/Deck/hardware claim/new schedule/CI
+continuation/second slice.
