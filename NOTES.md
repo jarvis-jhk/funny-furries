@@ -1096,3 +1096,15 @@ Delivery and CI follow below within this tick; no schedule/continuation created.
 Combined exporter/spec remains started/sol: compound/global/opcode semantics,
 placement/arena geometry/spawns and observation-backed behaviour remain open.
 No playable engine/release/Windows/Deck/hardware claim or second slice.
+
+
+Delivery: tested source3dff3344248c427d58494bf9c012cf6096054f31 pushed main;
+CI38433104767 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38433104767 . Downloaded
+job115420095592 log verifies actual source/reader git outputs, Python3.10,
+compileall and158 cases (138 pass/twenty original-file fixtures skipped).
+All158 passed locally with original enabled; saved source/docs/test hashes
+match. CI snapshots/job log and runtime oracle saved with evidence in
+ data/furries/expression-strings/. This delivery update changes Markdown only;
+tested source unchanged. No unfinished implementation/schedule/continuation;
+combined exporter/spec remains started/sol, no release or second slice.
