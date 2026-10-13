@@ -4,6 +4,8 @@ The first M0 slice inventories an unprotected CnC project. A separate
 [event structure exporter](EVENTS.md) now preserves ordered frame records and
 raw parameters in JSON/readable text. These are research tools, not yet the
 asset/arena exporter or a decoded behaviour specification.
+The [audio exporter](AUDIO.md) adds original PCM WAV/MIDI files in an ignored,
+immutable bundle; images and arenas remain unimplemented.
 
 Requirements: Python 3.10+, a separate local checkout of GPL-3.0-or-later
 KlikBack, and the player's local original/decompiled project. No third-party
@@ -22,8 +24,9 @@ For parser tests, set `FF_KLIKBACK_SRC` to that source directory. Additionally
 set `FF_TEST_PROJECT` to the local decompiled FF2 Xmas project to verify the
 original inventory. Without the reader, the index's four parser tests and the
 event exporter's two container tests explicitly skip;
-portable output/fault tests still run. CI fetches the pinned external reader,
-runs the synthetic parser tests and skips only the two original-file tests.
+portable output/fault tests still run. The audio exporter's two container tests
+also require the reader. CI fetches the pinned external reader,
+runs the synthetic parser tests and skips only the three original-file tests.
 
 Output is always `export/<source-sha256>/project-index.json`, ignored by git.
 Never commit, publish or release it. The JSON contains object names and layout
@@ -67,6 +70,6 @@ repo; tests use mocks and never send a real report. Game runtime fault delivery
 via ntfy remains part of M2.
 
 Remaining M0 work: decoded opcode/parameter meanings and global events;
-decoded image/audio files with original bank IDs;
+decoded image files with original bank IDs (PCM/MIDI audio is now supported);
 arena geometry/spawns JSON; a behaviour spec backed by those exports and actual
 original observations. These need their own bounded slices.

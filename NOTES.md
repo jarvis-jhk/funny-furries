@@ -91,3 +91,48 @@ compileall and all18 cases (16 pass, only the two original-file fixtures skipped
 All18 passed locally with the original enabled. Current evidence and CI logs:
 data/furries/event-dump/. No in-flight work or CI continuation remains; this
 delivery update changes NOTES only and preserves the tested source.
+
+2026-10-13: Sol tick t_mv6axhx46z8qm, bounded M0 audio-export v1 slice.
+Clean main/fetched origin, no open PRs/issues or in-flight work at start; direct
+main follows the initial repository convention. `tools/audio_dump.py` and
+`docs/AUDIO.md` export local supported CnC audio records as an ignored immutable
+`audio-v1` bundle with a manifest, numeric bank/slot filenames and fingerprints.
+17 PCM samples become WAV without changing any sample byte; both MIDI records
+are copied unchanged. Slots 10/15 stay absent; repeated banks retain separate
+segment positions, missing and empty banks remain distinct. Original record
+header bytes stay opaque in the manifest; runtime/event mappings are unknown.
+Audio dialect offsets are observation-backed against every local original
+entry, not borrowed from a different Clickteam version. MIDI container lengths
+are checked, but event semantics/playback/synthesis are outside this exporter.
+
+All records validate before output starts. A complete sibling staging directory
+is renamed into place once; failed writes/rename clean staging and leave no
+partial bundle. Repeat exports verify every file/byte; changed/incomplete/extra
+files and symlinks are refused without replacing the existing bundle. Malformed
+input is exit2 without reporting; real unexpected/write faults are exit1 through
+the existing detached FF_FAULT_REPORT_URL reporter, carrying only version/platform
+and exception class. No endpoint or original content is committed or published.
+
+Validation: compileall and all26 unittest cases pass locally with pinned reader
+6e178b9470206f71871417dec852fbfa24cd01b9 and original enabled. Direct source-bank
+slot table reads and Python wave readback prove exact PCM/MIDI extraction and
+correct mono/stereo 8/16-bit headers, interleaving, sample counts and odd-length
+RIFF padding. Synthetic invalid formats/rates/alignment, bad MIDI lengths/counts,
+gapped/repeated/empty banks, late invalid entries before save, symlinks, atomic
+write/rename failures and fault classification run. An executed negative control
+reversing PCM sample bytes fails four intended assertions (original extraction
+plus all three synthetic PCM shapes); source restored byte-exact before positives.
+Both CLI runs succeed and verify the identical 20-file bundle. Original SHA-256
+remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0,
+input unchanged. Independent ffprobe reads all17 WAV formats; Mido1.3.3 parses
+both original-byte MIDI files (format0/one track/96PPQN/3659 events and format1/
+21 tracks/120PPQN/8110 events, all tracks terminate). Mido/packaging are data-only
+local evidence dependencies, not repo/CI/runtime dependencies. Actual agent
+./node_modules/.bin/tsc --noEmit passed before commit. Evidence:
+agent state data/furries/audio-dump/; generated assets remain ignored/private.
+
+Combined furries-exporter-spec stays started/sol. Global containers/opcode and
+parameter semantics, images, arena JSON and an observation-backed behaviour
+spec remain. Initial global-container research found the newer reader's
+KLBEDAEH format does not match this CnC source; no guessed decoder was committed.
+No engine, release, Windows/Deck/hardware claim, new schedule or second slice.

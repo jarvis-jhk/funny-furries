@@ -5,6 +5,8 @@
       source/reader fingerprints, strict input checks and synthetic/original tests.
 - [x] Ordered frame-event structure in JSON/readable text, raw typed parameters,
       explicit unknown meanings, lossless reconstruction and strict validation.
+- [x] Local PCM WAV/MIDI export preserving audio bank slots and sample/music bytes,
+      strict format checks and atomic immutable bundles; original content ignored.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 
