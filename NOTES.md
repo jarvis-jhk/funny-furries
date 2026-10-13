@@ -1350,3 +1350,50 @@ CI snapshots/job log and runtime oracle saved in agent state
  data/furries/expression-division/. This delivery update is Markdown only;
 tested source unchanged. No unfinished implementation/schedule/continuation;
 combined exporter/spec stays started/sol, no release or second slice.
+
+2026-10-13: Sol tick t_mv75nd3s4dqmw, one bounded M0 signed-remainder
+capability slice. Clean main, fetched origin, no open PRs/issues or in-flight
+work at start; direct main follows repository convention. event-dump/17/schema17
+annotates exact four-byte0x0A00 numeric remainder: signed32/quotient-toward-zero,
+nonzero sign follows dividend, zero-divisor result is the left operand unchanged,
+x86 divide-error overflow and unknown exception recovery. An independent original
+project walk finds zero instances: runtime capability, no new gameplay claim.
+No surrounding contexts, nonnumeric tags, grammar/precedence, constant folding or
+dynamic results inferred. Unsupported extents fail exit2 before all outputs/reports.
+Existing detached optional fault reporter and atomic/symlink/immutable guards
+unchanged; no original bytes/assets/metadata/private endpoint committed/published.
+
+Original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+evaluator0x42a42e/table0x41b574 pointer0x41b588 -> handler0x42a547 swaps EAX/ECX,
+CDQ/IDIV ECX at0x42a54d then MOV EAX,EDX returns signed remainder. Zero skips
+IDIV/MOV, preserving dividend; INT32_MIN/-1 traps before result move/tag clear.
+Independent Unicorn2.1.4 executes handler and complete evaluator for565 boundary/
+rounding/seeded pairs:1130 runs,1128 checked returns/two vector0 overflows.
+Result/low16 numeric tag/balanced stack and evaluator cursor verified; overflow
+instruction/operands/trap stack verified. All seven boundary zero-divisors covered.
+Fresh CPU per execution; OS recovery/dynamic/nonnumeric/gameplay not executed.
+Python-modulo expectation fails (-2147483648,2147483647); zero-result expectation
+fails (-2147483648,0), both on actual original instruction execution.
+
+Forced compileall and all197 local tests pass with original/pinned KlikBack6e178b9.
+Eight new cases cover isolation/opaque contexts, signed/zero/overflow literals
+without evaluation, unsupported extents, all six expression types/both roles/
+scopes, readable annotations, lossless programs, immutable repeats, late-invalid
+refusal before every output/report and independent original absence proof.
+Recognition0x0A00->0x0E00 control produces11 intended assertion failures/four
+errors in eight executed cases (original-absence case passes); restored byte-exact
+and compileall-f before final positives. Version assertions updated to17;
+earlier unsupported-code cases now use still-opaque codes. Actual agent
+./node_modules/.bin/tsc --noEmit passes before commit.
+
+Prior JSON fields/annotations match b51201e after stripping only capability
+coverage/version; original has no new token annotations. Prior text identical
+apart from banner/coverage sentence. Previous643-file immutable bundle refuses
+replacement without mutation and is preserved before regeneration;640 other
+files identical. JSON/text/bundle CLIs repeat identically, source unchanged:
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/expression-remainder/; delivery/CI follows
+within this tick. Combined furries-exporter-spec stays started/sol: actual
+expression/global/opcode/placement/arenas/spawns/observed behaviour remain open.
+No second slice, new schedule/continuation, release or hardware claim.

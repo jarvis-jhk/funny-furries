@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 16 and `exporter` is `event-dump/16`.
+  fingerprints. `schema_version` is 17 and `exporter` is `event-dump/17`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -882,3 +882,59 @@ late-invalid refusal before all outputs/reporting and immutable repeats. The
 optional original fixture walks source-program token spans independently with
 the pinned reader registry and checks all15 stored division words/extents and
 annotations. CI skips that fixture when the player's local project is absent.
+
+## Numeric remainder token (schema17)
+
+Exactly four-byte `0x0A00` tokens receive `integer_operation` with `name: remainder`,
+`operand_order: left_remainder_right`, `bits: 32`, `signed: true`,
+`quotient_rounding: toward_zero`, `nonzero_result_sign: dividend`,
+`zero_divisor_result: left_operand`, `overflow: x86_divide_error`,
+`exception_recovery: unknown`, numeric `required_operand_tag: 0`,
+`other_operand_tags: unknown` and `evidence: cnc_runtime_operator_table`.
+For a nonzero divisor the result is left - trunc(left/right) * right: -7 % 3
+returns -1 and 7 % -3 returns 1. For divisor zero this handler returns the left
+operand unchanged. INT32_MIN % -1 raises the CPU divide-error exception, even
+though its mathematical remainder is zero. OS/process recovery is unverified.
+This is a numeric runtime capability: independent source walks find **no such
+tokens in this original project**, so it establishes no new observed gameplay.
+
+The annotation never selects actual operand tags/contexts, validates grammar or
+precedence, folds constants or evaluates dynamic expressions. There is no prefix
+annotation. Short/extended recognized tokens fail exit2 before JSON/text/bundle
+writes or reporting; other codes retain their storage rules. Prior raw fields,
+annotations and ordering are preserved. `coverage.expression_integer_remainder`
+marks supported decoding, not presence in the input; `expression_evaluation`,
+`parameter_semantics` and `opcode_semantics` remain false. Readable EXPRESSION JSON
+includes the operation for inputs containing it. Older immutable bundles must
+be moved aside before regeneration; other research components stay unchanged.
+
+### Original instructions and independent execution
+
+Original executable SHA256 remains
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`.
+Evaluator0x42a42e selects table0x41b574+(code>>8)*2: `0x0A00` selects pointer
+0x41b588 to handler0x42a547. It swaps EAX/right with ECX/left, uses CDQ to
+sign-extend the dividend, tests ECX and skips IDIV/MOV EAX,EDX on zero. Otherwise
+IDIV ECX at0x42a54d computes the remainder, MOV EAX,EDX returns it, and SUB DX,DX
+sets the numeric result tag. INT32_MIN/-1 traps before the result move/tag clear.
+These binary-specific addresses are evidence, not exporter dependencies; no
+original machine bytes/assets/generated metadata are committed or published.
+
+Private agent evidence `data/furries/expression-remainder/runtime_oracle.py`
+executes the actual handler and complete evaluator independently via Unicorn2.1.4.
+49 signed-boundary pairs, four explicit signed rounding pairs and512 seeded pairs
+give1130 executions:1128 checked returns and two vector0 overflow exceptions at
+the actual IDIV. Results, low16 numeric tags and balanced return stacks are checked;
+evaluator cursors and trap operands/stacks are checked in both outcomes. All seven
+boundary dividends with zero divisors are covered. Each execution has a fresh CPU.
+A Python-modulo expectation fails an executed opposite-sign pair. No dynamic
+functions, original surrounding expressions, gameplay or nonnumeric inputs are
+executed/mocked; exception recovery is not emulated.
+
+Eight exporter cases cover exact-code isolation, opaque contexts, signed/zero/
+overflow literals without folding, unsupported extents, all six expression types
+in both record roles and scopes, readable annotations, lossless programs, immutable
+repeats and late-invalid refusal before all outputs/reports. The optional original
+fixture independently walks source spans with the pinned reader registry and
+confirms absence of remainder tokens and annotations. Synthetic inputs exercise
+positive annotations; CI skips only the local-original fixture when absent.

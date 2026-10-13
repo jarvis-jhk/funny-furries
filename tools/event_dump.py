@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "event-dump/16"
+VERSION = "event-dump/17"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 
@@ -99,6 +99,19 @@ def decode_expression(payload):
                 "bits": 32, "signed": True, "rounding": "toward_zero",
                 "zero_divisor_result": 0, "overflow": "x86_divide_error",
                 "exception_recovery": "unknown",
+                "required_operand_tag": 0, "other_operand_tags": "unknown",
+                "evidence": "cnc_runtime_operator_table"}
+        if code == 0x0A00:
+            # IDIV supplies a signed remainder; the zero-divisor branch keeps
+            # the dividend. INT32_MIN % -1 still faults in the original CPU,
+            # even though its mathematical remainder would be zero.
+            if size != 4:
+                raise project.InputError("remainder operator token has an unsupported extent")
+            tokens[-1]["integer_operation"] = {
+                "name": "remainder", "operand_order": "left_remainder_right",
+                "bits": 32, "signed": True, "quotient_rounding": "toward_zero",
+                "nonzero_result_sign": "dividend", "zero_divisor_result": "left_operand",
+                "overflow": "x86_divide_error", "exception_recovery": "unknown",
                 "required_operand_tag": 0, "other_operand_tags": "unknown",
                 "evidence": "cnc_runtime_operator_table"}
         if code == 0x00FF:
@@ -521,7 +534,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 16, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 17, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -534,6 +547,7 @@ def event_document(reader, raw):
                          "expression_integer_minus": True,
                          "expression_integer_multiplication": True,
                          "expression_integer_division": True,
+                         "expression_integer_remainder": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "audio_bank_reference_candidates": True,
@@ -603,7 +617,7 @@ def readable_program(program):
 
 def readable(document):
     lines = [f"Funny Furries {VERSION}", f"Source SHA-256: {document['source']['sha256']}",
-             "Opcode/parameter execution UNKNOWN; integer/string literals and numeric addition/minus/multiplication/division tokens decoded.",
+             "Opcode/parameter execution UNKNOWN; integer/string literals and numeric addition/minus/multiplication/division/remainder tokens decoded.",
              "Row/record/parameter offsets are relative to the event program."]
     for table in document.get("level_number_storage", []):
         lines.append("LEVEL_NUMBER_STORAGE " + json.dumps(table, ensure_ascii=True, sort_keys=True))

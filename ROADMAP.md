@@ -49,6 +49,8 @@
       32-bit results and unresolved operand contexts/nonnumeric expression semantics.
 - [x] Runtime-proven signed division token annotations, with truncation toward zero,
       zero-divisor result and CPU overflow exception; runtime recovery stays unknown.
+- [x] Runtime-proven signed remainder capability, including dividend-preserving zero
+      divisors and CPU overflow; original project contains no instances.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 
