@@ -820,3 +820,41 @@ still match. CI snapshot/job log and verification accompany
  data/furries/event-audio/. This delivery edit is Markdown only; tested source
 unchanged. No unfinished implementation/schedule/CI continuation; combined
 exporter/spec remains started/sol, no release or second slice.
+
+2026-10-13: Sol tick t_mv6ukje319lmmn, one bounded M0 object-parameter
+reference slice. Clean main, fetched origin, no open PRs/issues or in-flight
+work at start; direct main follows the repository convention. event-dump/8,
+schema8 adds type1 object-parameter slot words (payload+2) and untyped same-frame
+candidates to JSON/readable text. Pinned KlikBack6e178b9 registry independently
+identifies type1/minimum10 bytes/parameter+6; executed editor-converter probes
+remap only that payload word for both conditions and actions. No neighbour word
+is guessed as a type or qualifier. Missing/deleted/ambiguous/encoded slots remain
+explicit, including0xFFFE/0xFFFF with no invented sentinel; globals stay unresolved.
+All974 original references agree with direct source words, independent registry
+traversal and same-frame definitions:760 local candidates/214 unresolved globals.
+Opcode/collision/selection/qualifier/evaluation/runtime meanings remain unknown.
+
+Validation: force compileall and all128 local tests pass with the original and
+pinned reader enabled. Eight new cases cover both roles/scopes, raw tails, short
+shapes, slot boundaries, arbitrary adjacent words, missing/deleted/multiple lists,
+escaped names, converter/registry agreement, late invalid input refusal before
+JSON/text/bundle writes/reporting, integrated bundle and original source proof.
+Executed reference-word offset+1 control fails five intended assertions in eight
+executed cases; source restored byte-exact and compileall -f forced before final
+positives. Actual agent ./node_modules/.bin/tsc --noEmit passed before commit.
+Existing optional detached FF_FAULT_REPORT_URL handler, atomic/symlink guards and
+immutable bundle rules remain unchanged. No endpoint or original data/assets/
+metadata committed or published. Evidence: data/furries/event-object-parameters/.
+
+Prior raw event fields and all earlier annotations remain identical after removing
+only new fields/version; prior readable text matches after removing new lines/
+version. Old immutable bundle refuses changed output without mutation and is
+preserved privately before updated643-file installation/repeat. Only events.json,
+events.txt/manifest.json change;640 other files remain byte-identical. JSON/text/
+bundle CLIs repeat identically; input SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Source delivery/CI result follows within this turn; no continuation or schedule.
+
+Combined furries-exporter-spec stays started/sol: opcode/global/parameter
+semantics, placement coordinates/arenas/spawns and observed behaviour remain.
+No playable engine, release, Windows/Deck/hardware claim or second slice.

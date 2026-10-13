@@ -31,6 +31,8 @@
       absolute sentinels and frame-local candidates; coordinates/flags stay opaque.
 - [x] Event audio-handle candidates joined to application sound/music bank slots,
       with gaps/duplicate banks explicit and all playback semantics still unknown.
+- [x] Object-parameter local slot candidates in readable events, with opaque neighbour
+      words retained and global/encoded references explicitly unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

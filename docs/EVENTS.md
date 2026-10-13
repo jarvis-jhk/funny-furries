@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 7 and `exporter` is `event-dump/7`.
+  fingerprints. `schema_version` is 8 and `exporter` is `event-dump/8`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -409,3 +409,37 @@ will refuse changed event bytes; preserve/move the old bundle aside explicitly
 before generating the new one. Audio/media bytes and standalone audio schema
 remain unchanged. This is storage-to-bank evidence, not proof of which opcode
 plays/stops/loops audio or its timing, volume, name resolution or runtime use.
+
+
+## Object-parameter reference candidates (v8)
+
+`event-dump/8`, schema8 adds `object_parameter_reference` to parameter type1
+in both conditions and actions, frame and global programs. Pinned KlikBack
+6e178b9470206f71871417dec852fbfa24cd01b9 independently identifies this type
+and the little-endian u16 at parameter+6 (`payload_offset: 2`) in
+`common/event_object_registry.py::event_object_slots`; its
+`reconstruct_event_test.py::compiled_event_to_editor_event` remaps that exact
+word for both roles. The supported parameter needs at least ten bytes including
+its four-byte size/type header. Shorter shapes fail exit2 before JSON, text or
+research-bundle writes or fault reporting. Extra bytes survive unchanged.
+
+The word is an untyped local object-slot candidate, using the existing same-frame
+object lists and status vocabulary. No expected type is inferred from the
+neighbouring words: the independent registry returns `None` for the expected
+type. Unique live slots are `local_slot_candidate`; deleted/missing/ambiguous
+lists stay explicit. Words >=0x4000 are `encoded_reference_unresolved` (including
+0xFFFE/0xFFFF, with no borrowed absolute-position sentinel). Global programs
+retain `frame_context_unresolved` and no candidates; no local list is chosen
+for them. Global flags on local definitions are preserved without resolving
+application definitions. Candidate names are JSON-escaped on a separate
+`OBJECT_PARAMETER_REFERENCE` text line.
+
+All974 original type1 parameters were verified against independent registry
+traversal and direct source words:760 frame-local candidates and214 unresolved
+global words. This identifies stored relationships for subsequent behaviour
+research, without claiming collision/selection/opcode, evaluation, qualifier or
+runtime semantics. The entire raw payload, earlier annotations and original
+record reconstruction are preserved. Schema/version and the added fields/lines
+are the only event-output changes; the composed bundle picks them up normally.
+Existing fault handling, atomic writes, immutable repeat checks and private
+original-content policy are unchanged.

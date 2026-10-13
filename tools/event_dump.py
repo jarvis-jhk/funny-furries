@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "event-dump/7"
+VERSION = "event-dump/8"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 
@@ -74,6 +74,15 @@ def decode_position_references(payload, kind):
     return {"references": references}
 
 
+def decode_object_parameter(payload):
+    # The pinned independent registry identifies only the slot at parameter+6.
+    # Adjacent words do not establish an expected type or qualifier semantics.
+    if len(payload) < 6:
+        raise project.InputError("object parameter is shorter than its supported layout")
+    return {"payload_offset": 2, "reference_raw_u16": word(payload, 2),
+            "status": "frame_context_unresolved", "candidates": []}
+
+
 def decode_audio_reference(payload, kind):
     if len(payload) < 2:
         raise project.InputError("audio parameter has no complete bank handle")
@@ -128,6 +137,8 @@ def decode_record(data, role, offset, index):
         parameters.append({"id": number, "offset": offset + cursor, "bytes": size,
                            "type": code, "meaning": "unknown",
                            "payload_hex": data[cursor + 4:cursor + size].hex()})
+        if code == 1:
+            parameters[-1]["object_parameter_reference"] = decode_object_parameter(data[cursor + 4:cursor + size])
         if code in EXPRESSION_TYPES:
             parameters[-1]["expression_storage"] = decode_expression(data[cursor + 4:cursor + size])
         if code in POSITION_PARAMETER_BYTES:
@@ -316,6 +327,11 @@ def event_document(reader, raw):
                     for record in row["records"]:
                         record["object_reference_annotation"] = reference_annotation(record, object_lists)
                         for parameter in record["parameters"]:
+                            target = parameter.get("object_parameter_reference")
+                            if target is not None:
+                                target.update(reference_annotation({
+                                    "object_type": None,
+                                    "object_reference": target["reference_raw_u16"]}, object_lists))
                             for target in parameter.get("position_reference_storage", {}).get("references", []):
                                 if target["status"] != "absolute_position_sentinel":
                                     target.update(reference_annotation({
@@ -330,7 +346,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return {"schema_version": 7, "exporter": VERSION,
+    return {"schema_version": 8, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -339,6 +355,7 @@ def event_document(reader, raw):
                          "expression_token_storage": True,
                          "position_reference_storage": True,
                          "audio_bank_reference_candidates": True,
+                         "object_parameter_reference_candidates": True,
                          "global_reference_resolution": False},
             "frames": frames,
             "global_events": [{"segment_id": slot, "offset": segment.offset,
@@ -372,6 +389,9 @@ def readable_program(program):
                 lines.append(f"        PARAM {parameter['id']} offset={parameter['offset']} "
                              f"bytes={parameter['bytes']} type={parameter['type']} "
                              f"meaning=UNKNOWN payload={parameter['payload_hex']}")
+                if "object_parameter_reference" in parameter:
+                    lines.append("          OBJECT_PARAMETER_REFERENCE " + json.dumps(
+                        parameter["object_parameter_reference"], ensure_ascii=True, sort_keys=True))
                 if "expression_storage" in parameter:
                     lines.append("          EXPRESSION " + json.dumps(
                         parameter["expression_storage"], ensure_ascii=True, sort_keys=True))
