@@ -293,3 +293,14 @@ Combined furries-exporter-spec stays started/sol. Other object artwork/global
 reference resolution, event/global/placement semantics, arena geometry/spawns
 and observation-backed behaviour remain open. No engine, release, Windows/Deck/
 hardware claim, new schedule or second slice; no separate CI continuation.
+
+Delivery: tested source acfb934574a7f118b6cca9e2ebac7d54ebe3a926 pushed main.
+CI38383463499 completed/success on that exact source:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38383463499 . Downloaded
+job115249342174 log verifies actual source/reader checkout SHA, Python3.10.22,
+compileall and49 cases (43 pass/six local-original fixtures explicitly skipped).
+All49 ran locally with original enabled. Saved source/docs/test hashes still
+match; verification.json and CI snapshots/log accompany local evidence in
+data/furries/animation-dump/. This delivery update is Markdown only; tested
+source unchanged. No in-flight work or CI continuation remains. Combined
+exporter/spec stays started/sol; no release or second slice.
