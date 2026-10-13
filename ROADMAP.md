@@ -9,6 +9,8 @@
       strict format checks and atomic immutable bundles; original content ignored.
 - [x] Local mode4 TGF image export to RGBA PNG preserving bank slots, colours,
       explicit transparency and raw anchors; strict decoding and immutable bundles.
+- [x] Lossless frame-header and placement-slot/record storage JSON, preserving
+      gaps, pointer order and unknown fields; arena semantics remain undecoded.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

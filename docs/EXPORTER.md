@@ -6,7 +6,8 @@ raw parameters in JSON/readable text. These are research tools, not yet the
 asset/arena exporter or a decoded behaviour specification.
 The [audio exporter](AUDIO.md) adds original PCM WAV/MIDI files in an ignored,
 immutable bundle. The [image exporter](IMAGES.md) adds mode4 RGBA PNG files
-with bank IDs, explicit opacity and raw anchors. Arenas remain unimplemented.
+with bank IDs, explicit opacity and raw anchors. The [frame layout exporter](FRAME-LAYOUT.md)
+preserves frame headers and placement slots/records; arena semantics remain unimplemented.
 
 Requirements: Python 3.10+, a separate local checkout of GPL-3.0-or-later
 KlikBack, and the player's local original/decompiled project. No third-party
@@ -27,8 +28,9 @@ original inventory. Without the reader, the index's four parser tests and the
 event exporter's two container tests explicitly skip;
 portable output/fault tests still run. The audio exporter's two container tests
 also require the reader, as do the image exporter's two container tests.
+The frame layout exporter's two synthetic container tests also require the reader.
 CI fetches the pinned external reader, runs the synthetic parser tests and
-skips only the four original-file tests.
+skips only the five original-file tests.
 
 Output is always `export/<source-sha256>/project-index.json`, ignored by git.
 Never commit, publish or release it. The JSON contains object names and layout

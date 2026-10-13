@@ -189,3 +189,54 @@ and parameter semantics, object-to-image animation mapping, arena JSON and an
 observation-backed behaviour spec remain. No engine/release/Windows/Deck/hardware
 claim, new schedule or second slice. Source delivery/CI result will be recorded
 below; no separate CI continuation is scheduled by this tick.
+
+
+Delivery of preceding image slice: source6666409ae186e8effb6df03a60acabf7ded0f1ef
+passed CI38360137087, job115172114787:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38360137087 . Existing
+snapshot and downloaded job log verify actual source/reader checkout and Python3.10
+all33 cases (29 pass/four original fixtures skipped); all33 passed locally.
+No continuation or in-flight work remained when this tick began. This closes
+the preceding note's missing delivery paragraph without repeating that slice.
+
+2026-10-13: Sol tick t_mv6isc229vpil, one bounded M0 frame-layout storage slice.
+Clean main, fetched origin, no open PRs/issues or in-flight work at start; direct
+main follows the repo convention. tools/frame_layout.py and docs/FRAME-LAYOUT.md
+export ignored frame-layout.json with all raw frame headers and placement
+pointer tables/32-byte records. Unused slots, aliases, reversed pointer order,
+empty/missing/repeated blocks and both header shapes remain distinct. Pointers
+are relative to the record area after the table; they are not absolute block
+offsets. Unknown record/header fields are preserved without guessing x/y,
+object IDs, collision, draw order or spawns. This is an arena-decoder prerequisite,
+not completed arena JSON or a behaviour spec.
+
+Strict counts, aligned/in-bounds pointers, complete record sizes and full
+referenced-byte coverage validate before atomic file replacement. Symlinks
+are refused, failed writes retain the old file and clean temporary files.
+Unexpected/write faults use detached optional FF_FAULT_REPORT_URL reporting
+with version/platform/exception class only; input errors are not reported.
+No private endpoint, original data or graphics are committed/published.
+
+Validation: compileall and all41 local unittest cases pass with pinned reader
+6e178b9470206f71871417dec852fbfa24cd01b9 and local original enabled. All13 frame
+headers/all12 placement blocks reconstruct byte-for-byte; direct source-table
+reads verify each of10141 slots and its referenced32-byte record (7968 distinct
+records). Supported dialect, pointer origin and fixed record extent established
+against every original block; no universal-format claim. Synthetic reversed
+order/alias/gap fixtures, malformed sizes/pointers/unreferenced data, late invalid
+blocks, atomic write failures, symlinks and fault classification exercised.
+Executed reversed-record-mapping negative control fails the two intended
+synthetic/original assertions; restored source before all41 positive cases.
+An earlier all-zero mapping control was rejected by storage validation itself;
+its log is retained separately, not claimed as an assertion probe.
+Both CLI runs produce byte-identical JSON; input hash remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0,
+unchanged. Evidence: agent state data/furries/frame-layout/; generated original
+metadata stays ignored/private. Actual agent ./node_modules/.bin/tsc --noEmit passed after restoring omitted
+dev dependencies with npm ci --include=dev --ignore-scripts; agent source and
+lockfile unchanged. Source delivery/CI observations will be appended below.
+
+Combined furries-exporter-spec remains started/sol. Placement/header semantics,
+global-event containers/opcodes/parameters, animation mapping, arena geometry/
+spawns and observation-backed behaviour remain open. No engine, release,
+Windows/Deck/hardware claim, new schedule or second slice.

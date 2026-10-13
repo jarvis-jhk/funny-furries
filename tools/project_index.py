@@ -102,7 +102,7 @@ def save_export(document, payload, filename, repo=REPO):
     if export_root.is_symlink() or directory.is_symlink():
         raise InputError("export directories must not be symlinks")
     directory.mkdir(parents=True, exist_ok=True)
-    if filename not in {"project-index.json", "events.json", "events.txt"}:
+    if filename not in {"project-index.json", "events.json", "events.txt", "frame-layout.json"}:
         raise InputError("unsupported export filename")
     target = directory / filename
     if target.is_symlink():
