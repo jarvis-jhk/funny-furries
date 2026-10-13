@@ -1709,3 +1709,15 @@ Evidence: agent state data/furries/position-coordinates/; source delivery/CI
 follows within this tick. Combined furries-exporter-spec stays started/sol:
 placement/arena geometry/spawns/global/opcode/actual selection/observed behaviour
 remain open. No second slice, new schedule/continuation, release or hardware claim.
+
+Delivery: tested source5ee1a664d8b823c9d4ba8c088cdef6e57c2230b4 pushed main;
+CI38474522649 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38474522649 . Downloaded
+job115561819566 log verifies actual source and pinned-reader checkout outputs,
+Python3.10, compileall and240 tests (210 pass/30 original fixtures skipped).
+All240 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match CI-tested revision. Evidence/CI
+snapshots/job log in agent state data/furries/position-coordinates/. This delivery
+edit changes Markdown only; tested source unchanged. No unfinished implementation,
+continuation/new schedule/release/second slice; combined exporter/spec remains
+started/sol, actual selection/arena geometry/spawn/observed behaviour still open.
