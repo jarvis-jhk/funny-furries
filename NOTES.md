@@ -36,3 +36,11 @@ explicit unknown-opcode evidence; media extraction, arena JSON and observation-
 backed behaviour spec also remain. No engine, playable build, release, hardware
 claim, new schedule or CI continuation. Native Windows/Deck exporter operation
 is not established by this Linux run.
+
+Delivery: source commit 7b64c5979364bd7e009b4f60762175ad05e2d423 pushed to main.
+Exporter tests CI38354022066 completed successfully on that exact commit:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38354022066 . Downloaded
+job115152630746 log confirms actual checkout SHA, pinned reader SHA and Python3.10
+execution: 10 cases, 9 pass, only the local-original case explicitly skipped.
+All10 ran locally with the original enabled. ci.json and ci-job.log saved with
+local evidence. This follow-up changes NOTES only; tested source unchanged.
