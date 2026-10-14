@@ -3002,3 +3002,15 @@ data/furries/late-address-getters/. Tested source push and exact-head CI
 verification follow within this tick. Exporter/spec remains started/sol:actual
 caller/opcode/global/selection/placement/arena/spawn/observed behaviour open.
 No second slice/new schedule/continuation/release/hardware claim.
+
+Delivery: tested sourceb7483000756d2d8d2c425d05c26702d667952102 pushed main;
+CI38541392112 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38541392112 . Downloaded
+job115776746035 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and397 tests (347 pass/50 local-original fixtures skipped).
+All397 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in data/furries/late-address-getters/. This delivery edit changes
+NOTES only; tested source unchanged. No unfinished work/continuation/new schedule/
+release/second slice/hardware claim. Combined exporter/spec stays started/sol:
+actual caller/opcode/global/selection/placement/arenas/spawns/observed behaviour open.
