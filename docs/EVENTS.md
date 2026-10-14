@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 28 and `exporter` is `event-dump/28`.
+  fingerprints. `schema_version` is 31 and `exporter` is `event-dump/31`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -1742,3 +1742,46 @@ Strict parameter headers/record extents and previously supported storage
 validation remain in place. A late malformed type48 is refused with exit2
 before JSON/text/bundle writes or fault reporting. Real unexpected faults keep
 the existing detached optional private reporter; no endpoint is committed.
+
+## Type46 expression getter capability (v31)
+
+`event-dump/31`, schema31 adds `expression_storage` and
+`type46_getter_storage` to exact **type46**, in both event roles/scopes.
+Unlike the six expression types originally identified by the pinned reader,
+this type's input view is grounded in the original runtime dispatch itself.
+Entry46 of table `0x41af64`, reached through dispatcher `0x42775f`, selects
+`0x427788`, the same complete wrapper `0x42a417`/evaluator `0x42a42e` path
+independently executed for type45. It evaluates starting at parameter+6/payload+2;
+the stored prefix is ignored. Normal returns transport evaluator EAX/DX, clear
+BX and carry. This supersedes the explicit v29/v30 exclusion of type46.
+
+The shared byte-string view applies only to an exact lone `0x03FF` token:
+unknown runtime parameter address plus10, 32-bit address wrapping, bounded
+literal bytes and DX1/BX0/carry clear. Token tail, prefix and expression suffix
+remain lossless. Encoding, caller/content meaning, ownership and filesystem
+use are unknown. Closed proven integer expressions return conditional EAX/DX0
+with BX0/carry clear; divide overflow has no normal return and unknown recovery.
+Dynamic/compound/recursive strings and unsupported expression forms remain
+unresolved. Embedded object words get the existing editor candidate annotations,
+never live object resolution. All earlier type22/type23/type45 views are unchanged.
+Coverage adds `type46_expression_getter_inputs` and readable text adds
+`TYPE46_GETTER`; general parameter/opcode/global/behaviour semantics and live
+`runtime_resolution` remain false. Invalid bounded expressions fail before any
+JSON/text/bundle write or fault report; the optional detached reporter is unchanged.
+
+An independent absolute traversal of all **8,160 original parameters** confirms
+**zero type46 instances**. This is a runtime capability, not new original-game
+behaviour or an arena/spawn result. No original event annotations change.
+
+Private Unicorn2.1.4 proof executes the unmodified FF2xmas.exe SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`
+through the complete exact dispatcher/getter/wrapper/evaluator/handlers:
+**66,527 executions** (66,091 string,434 integer,two CPU divide faults).
+All65,536 prefix WORDs,42 string boundaries,27 integer/tag boundaries,
+405 independently calculated arithmetic pairs,four recursive integer forms,
+512 seeded byte strings and one wrong pointer expectation are checked.
+Full mapped PE/input/128-byte return stack/preserved registers, EAX/pointer
+bytes/DX/BX/carry and normal/fault exits are verified. Faults stop before recovery
+and use a fresh CPU next time. No instruction/import/callback substitutions,
+dynamic/caller/event/gameplay execution or hardware claims. Proof scripts,
+original executable/assets/exports stay outside the repository.

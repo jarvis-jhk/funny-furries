@@ -14,8 +14,8 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/30"
-EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
+VERSION = "event-dump/31"
+EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 46, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
 SCALAR_DWORD_TYPES = frozenset({2, 24, 29})
@@ -366,6 +366,15 @@ def decode_type45_getter(expression):
     return out
 
 
+def decode_type46_getter(expression):
+    # The exact original table entry shares type45's wrapper and returns. This
+    # proves a storage capability, not that this game's events use type46.
+    out = decode_type45_getter(expression)
+    out["conditional_normal_return"]["assumption"] = "type46_dispatch_and_expression_normal_return"
+    out["evidence"] = "cnc_type46_expression_parameter_getter"
+    return out
+
+
 def decode_comparison_prefix(payload):
     # Type23's getter transports the prefix separately from the expression.
     # Numeric consumers mask it before signed comparison; that path is an
@@ -566,6 +575,9 @@ def decode_record(data, role, offset, index):
                 parameters[-1]["expression_storage"])
         if code == 45:
             parameters[-1]["type45_getter_storage"] = decode_type45_getter(
+                parameters[-1]["expression_storage"])
+        if code == 46:
+            parameters[-1]["type46_getter_storage"] = decode_type46_getter(
                 parameters[-1]["expression_storage"])
         if code == 23:
             parameters[-1]["comparison_prefix_storage"] = decode_comparison_prefix(
@@ -781,7 +793,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 30, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 31, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -806,6 +818,7 @@ def event_document(reader, raw):
                          "type1_object_getter_inputs": True,
                          "type42_fixed_value_getter_inputs": True,
                          "type45_expression_getter_inputs": True,
+                         "type46_expression_getter_inputs": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,
@@ -873,6 +886,9 @@ def readable_program(program):
                 if "type45_getter_storage" in parameter:
                     lines.append("          TYPE45_GETTER " + json.dumps(
                         parameter["type45_getter_storage"], ensure_ascii=True, sort_keys=True))
+                if "type46_getter_storage" in parameter:
+                    lines.append("          TYPE46_GETTER " + json.dumps(
+                        parameter["type46_getter_storage"], ensure_ascii=True, sort_keys=True))
                 if "position_getter_storage" in parameter:
                     lines.append("          POSITION_GETTER " + json.dumps(
                         parameter["position_getter_storage"], ensure_ascii=True, sort_keys=True))

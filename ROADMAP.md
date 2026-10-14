@@ -101,6 +101,8 @@
       address/closed integer returns, with dynamic forms and caller meanings unresolved.
 - [x] Runtime-proven remaining header-address parameter getter inputs, preserving
       type48 local/global storage and unproven caller/content semantics.
+- [x] Runtime-proven type46 expression getter capability, retaining lossless token
+      storage/conditional string and integer returns; original instances absent.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

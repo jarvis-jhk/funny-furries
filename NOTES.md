@@ -3014,3 +3014,57 @@ snapshots/job log in data/furries/late-address-getters/. This delivery edit chan
 NOTES only; tested source unchanged. No unfinished work/continuation/new schedule/
 release/second slice/hardware claim. Combined exporter/spec stays started/sol:
 actual caller/opcode/global/selection/placement/arenas/spawns/observed behaviour open.
+
+2026-10-14: Sol tick t_mv7wsolsmw92f, one bounded M0 type46 expression
+parameter-getter capability slice. Clean main/fetched origin, no open PRs/issues
+or unfinished work at start; direct main follows repository convention.
+event-dump/31 schema31 adds exact type46 expression_storage/type46_getter_storage
+for both roles/scopes. Original dispatcher42775f/table41af64 entry46 ->427788
+calls full wrapper42a417/evaluator42a42e at parameter6/payload2, ignores prefix;
+normal EAX/DX=evaluator result/tag, BX0/carry0. Exact lone03FF string returns
+unknown parameter address+10/DX1 with bounded bytes, no encoding/caller meaning.
+Closed proven integers return EAX/DX0; CPU faults have no normal return/recovery
+unknown. Dynamic/compound/recursive strings unresolved, general/live semantics
+false. Type22/23/45 and every earlier annotation remain unchanged. Independent
+absolute source traversal verifies all8160 parameters and zero type46 instances:
+capability only, no newly decoded original gameplay. Late malformed type46 now
+fails2 before JSON/text/bundle writes/report; optional private detached unexpected
+fault reporter unchanged. No assets/executable/proof scripts/private endpoint
+committed or published.
+
+Unmodified FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f,Unicorn2.1.4:
+66527 complete dispatcher/getter/wrapper/evaluator runs (66091 string,434 integer,
+two CPU faults). All65536 prefixes,42 byte-string boundaries,27 integer/tag
+boundaries,405 independently calculated arithmetic pairs,four recursive integer
+cases,512 seeded strings,one wrong pointer rejected. Full mapped PE/input/128-byte
+return stack/preserved regs/EAX/pointer bytes/DX/BX/carry checked. Fresh CPU after
+faults; no recovery/instruction/import/callback substitutions or live dynamic/
+caller/event/gameplay execution. Unused copied type45 original-shape branch was
+removed from private proof before rerunning; type46 absence checked directly.
+
+Nine new tests cover prefix/raw bytes/string pointer/integer/fault contracts,
+exact types/both roles/scopes/dynamic candidates/reconstruction/text/bundle
+repeats/immutability/strict late refusal and independent original absence.
+All406 local tests pass with original/pinned KlikBack6e178b9 enabled. Type46
+pointer-offset+1 control fails one intended assertion in three executed cases;
+source restored byte-exact/compileall-f forced before final positives. Initial
+full suite had three stale schema/version expectations, corrected before final
+all406 positives. Actual agent ./node_modules/.bin/tsc --noEmit passes; no agent
+source/lockfile changed.
+
+Evidence: agent state data/furries/type46-getters/. Compatibility and delivery
+verification follow within this tick. Combined exporter/spec remains started/sol:
+actual caller/opcode/global/selection/placement/arena/spawn/observed behaviour
+open. No second slice/new schedule/continuation/release/hardware claim.
+
+Compatibility: prior JSON equals796ae57 after stripping only new type46 coverage/
+version (original has no type46 annotations); readable text unchanged except
+version. All prior fields/lines retained. Old643-file immutable bundle refused
+replacement without mutation, preserved before regeneration;640 files identical,
+only events.json/events.txt/manifest.json change. Standalone JSON/text/bundle
+CLI repeats byte-identical; original project/executable unchanged. Project SHA256
+remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Saved source/docs/test/roadmap hashes match final restored/tested files. Tested
+source push/exact-head CI verification follow within this tick; exporter/spec
+stays started/sol. No second slice/new schedule/continuation/release/hardware claim.
