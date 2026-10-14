@@ -59,8 +59,7 @@ class ValueTableInputTests(unittest.TestCase):
 
     def test_dynamic_recursive_compound_missing_and_suffix_do_not_supply_argument(self):
         tails = [[], [token(0xFF, bytes(4))], [token(0x3FF, b'x\0'), token(0xFEFF)],
-                 [token(0xFF, bytes(4)), token(0x200), token(0xFF, bytes(4)), token(0xFEFF)],
-                 [token(0xFFFF), token(0xFF, bytes(4)), token(0xFEFF), token(0xFDFF)],
+                 [token(0xFFFF), token(0xFF, bytes(4)), token(0xFEFF)],
                  [token(0x2FF), token(0xFEFF)]]
         for tail in tails:
             raw = expression([token(0x2FF), *tail], suffix=token(0xFF, bytes(4)) + token(0xFEFF))

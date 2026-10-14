@@ -1901,3 +1901,57 @@ dynamic expressions, caller opcodes or gameplay.
 Non-four-byte0x02FF storage now exits2 before JSON/text/bundle writes or fault
 reporting. Existing optional detached unexpected-fault reporting stays unchanged.
 Original executable/project/proof scripts remain local and uncommitted.
+
+## Closed integer value-table argument inputs (v34)
+
+`event-dump/34`, schema34 extends `value_table_inputs.argument` only when the
+legacy adjacent-literal view does not apply. A stored argument ending at the
+first top-level FEFF/FDFF stop can now use the existing runtime-proven closed
+integer subset: literals, prefix minus, numeric addition/subtraction,
+multiplication/division/remainder, and nested FFFF operands. Each recursive
+operand consumes its own stop; a separate top-level stop must still be stored.
+Opaque suffix bytes never supply that stop. Unsupported tokens or incomplete
+shapes remain `unsupported_shape`, including a dynamic tail after apparent
+faulting arithmetic. No general function grammar or dynamic evaluation is added.
+
+A successful view is `closed_integer_and_stop`, with the argument token IDs,
+top-level stop ID and complete conditional integer `evaluation`. It retains
+signed/raw32-bit result, low16 argument, zero-based slot `(argument_u16 - 1) & 0xF`
+and relative byte offset. A CPU divide error instead has `status: cpu_exception`
+and its original operator token ID; there is no slot, value or normal-return
+cursor, and recovery remains unknown. This is argument evaluation conditional
+on execution reaching this token as a numeric operand. Live table contents,
+containing-expression result, caller opcodes and game behaviour remain unknown;
+`runtime_resolution` and general `expression_evaluation` remain false.
+
+The wrapper `0x42a424` restores the argument-start EDI after the full evaluator
+returns. Outer dispatcher `0x42a474` then advances by the length of **only the
+first argument token**. The new view explicitly reports
+`dispatch_return_cursor: after_first_argument_token` and its parameter-payload
+byte offset. For `1 + 16` that cursor is at the plus token, not at the top-level
+stop. A leading minus or recursive token advances only four bytes. The index
+computed from a longer argument does not establish the enclosing expression's
+result or parse cursor. Legacy literal+stop annotations remain byte-for-byte
+unchanged and still report their unconsumed-stop cursor.
+
+A private Unicorn2.1.4 oracle executes unmodified complete original dispatcher,
+value-table handler, wrapper and numeric evaluator paths. Independently computed
+binary boundaries (all five operations), wrapping/prefix signs, both recursive
+and top-level stops, nested operands, unequal priorities, equal-priority
+association and512 seeded pairs cover1487 argument cases through both the
+argument evaluator and dispatcher. All2974 exported argument views also match the independent expected values,
+slots/cursors or fault-only shapes. Total5949 executions include eight CPU faults
+before any table read and an executed wrong-full-argument-cursor rejection.
+Normal runs check the selected synthetic table DWORD, EAX, low numeric DX tag,
+EDI/ESP/EBX/ECX, preserved ESI/EBP,128-byte return stack, unchanged full mapped PE
+and input bytes. Unsupported tokens deliberately stored after the top-level stop
+are never executed. Fault runs check the actual IDIV instruction/CPU exception,
+no table read and unchanged PE/input; no normal return is claimed. No instruction,
+import or callback substitutions, original live table or gameplay execution.
+
+The original project still has only45 adjacent-literal table references, so this
+slice is a synthetic capability expansion rather than newly decoded original
+behaviour. Previous original annotations/readable lines remain unchanged; only
+coverage `expression_value_table_closed_argument_inputs` and version change.
+Strict malformed-token refusal and detached optional private fault reporting
+are unchanged. No original executable, assets or proof scripts are committed.

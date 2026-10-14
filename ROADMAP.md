@@ -107,6 +107,8 @@
       argument inputs, retaining unknown live state/results and unsupported argument shapes.
 - [x] Runtime-proven indexed value-table expression inputs, retaining low-word
       wrapping/conditional slots and unresolved live contents/table meanings.
+- [x] Runtime-proven closed integer value-table argument inputs, retaining recursive
+      stops, first-token return cursors and CPU faults with live values unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

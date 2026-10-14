@@ -3213,3 +3213,63 @@ changes NOTES only; tested source unchanged. No unfinished work/continuation/new
 schedule/release/second slice/hardware claim. Combined exporter/spec stays
 started/sol:live state/caller/opcode/global/selection/placement/arenas/spawns/
 observed behaviour remain open.
+
+
+2026-10-14: Sol tick t_mv83l2visnkl2, one bounded M0 closed integer
+value-table argument input slice. Clean main/fetched origin, no open PRs/issues
+or unfinished work at start; direct main follows repository convention.
+event-dump/34 schema34 extends value_table_inputs only beyond the existing
+adjacent-literal view: closed numeric arithmetic/prefix/recursive arguments
+bounded by a stored top-level FEFF/FDFF stop. Existing proven integer evaluator
+supplies conditional signed/raw32 value, low16 input, slot/byte offset and token
+IDs; CPU divide faults have no slot/value/normal-return cursor. Unsupported,
+dynamic/string/incomplete argument shapes remain unresolved, including a dynamic
+tail after apparent faulting arithmetic. Opaque suffix never supplies the stop.
+Actual live table/containing expression/caller/gameplay remain unresolved, general
+expression_evaluation/runtime_resolution false. Original45 table references are
+still adjacent literals: capability expansion, no newly decoded original gameplay.
+
+Unmodified original dispatcher42a474/handler42876c/wrapper42a424/evaluator42a42e
+restores the argument-start cursor then advances ONLY the first token's length.
+New conditional views retain after_first_argument_token and payload offset:
+compound 1+16 returns at plus; leading minus/recursive token advances4 bytes.
+This is not the enclosing expression's result or full parse cursor. Legacy
+literal+stop annotations are byte-for-byte unchanged. Strict input checks and
+optional detached private unexpected-fault reporting preserved; malformed late
+integer extent refuses JSON/text/bundle writes/reporting. No assets/executable/
+proof scripts/private endpoint committed or published.
+
+Independent Unicorn2.1.4 runs5949 complete original instruction paths against
+FF2xmas.exe SHA256 f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+1487 arithmetic/wrapping/prefix/recursive/nested/priority/association cases,
+both recursive/top-level stops,512 seeded pairs, both dispatcher and argument
+evaluator. All2974 exported views match independently calculated expected
+values/slots/cursors or fault-only shapes. Eight IDIV CPU faults occur before
+any table read; fresh CPU per run, no normal return/recovery claimed. Normal
+runs check EAX/lowDX/EDI/ESP/EBX/ECX/preserved ESI/EBP/128-byte return stack;
+all runs check unchanged full PE/table/input. Wrong full-argument-cursor
+expectation rejected against actual returned EDI. Unsupported tokens deliberately
+stored after the top-level stop are never executed. No instruction/import/
+callback substitutions, original live-table/containing-expression/gameplay run.
+
+Seven new cases cover arithmetic/boundaries/recursive/prefix/cursor/fault/unknown
+shapes, exact legacy preservation, both roles/scopes/all expression types/text,
+lossless program reconstruction/bundle repeats and late malformed refusal.
+Previous unsupported-shape fixtures now exclude the newly proven arithmetic
+and recursive forms. All428 local tests pass with original/pinned KlikBack
+6e178b9 enabled; closed-argument decrement omission control fails22 intended
+assertions in seven executed cases. Source restored byte-exact and compileall-f
+forced before final full suite; no concurrent source mutation during positives.
+Actual agent ./node_modules/.bin/tsc --noEmit passes; no agent source/lockfile change.
+
+Prior original JSON/text equals8b174ab after stripping only new coverage/version:
+all old token/getter/raw fields and readable lines retained. Old643-file immutable
+bundle refused replacement without mutation, preserved before regeneration;
+640 files identical, only events.json/events.txt/manifest.json change. Standalone
+JSON/text/bundle CLI repeats byte-identical, project/executable unchanged.
+Project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence/restored source/test/docs/roadmap hashes in agent state
+ data/furries/value-table-arguments/. Tested push/exact-head CI verification
+follow within this tick. Exporter/spec stays started/sol:live state/caller/opcode/
+global/selection/placement/arenas/spawns/observed behaviour remain open.
+No second slice/new schedule/continuation/release/hardware claim.
