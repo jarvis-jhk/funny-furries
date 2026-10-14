@@ -2094,3 +2094,52 @@ edit changes NOTES only; tested source unchanged. No unfinished implementation,
 continuation/new schedule/release/second slice; combined exporter/spec remains
 started/sol, actual header/image selection/arena geometry/spawns/observed behaviour
 still open.
+
+2026-10-14: Sol tick t_mv7hfou8uatrl, one bounded M0 frame-local backdrop
+placement refresh-probe slice. Clean main/fetched origin, no open PRs/issues or
+in-flight work at start; direct main follows repository convention.
+backdrop-dump/5 schema5 joins every stored placement record's first-word equality
+probe to ALL definition lists in its own frame. Candidate definition block/slot/
+header offset/hash/type/global/deleted identities retained; missing/multiple,
+non-backdrop/deleted states explicit. Live backdrop candidates add conditional
+32-byte record previews applying the previously proven ordered header refresh
+writes to the original stored bytes. Incoming creation type never filters matches;
+all unwritten bytes/coordinates retained. Global-flagged local headers remain local
+probes, no application-global fallback or winning header selected. Every record
+runtime_resolution=false. This supports later arena artwork/placement research,
+not effective live placement/global selection/collision/spawns/behaviour.
+Existing optional detached private fault reporter unchanged; malformed placement
+storage exits2 before standalone/bundle output/reporting. No original content,
+assets/exports/instructions/proof data or private endpoint committed/published.
+
+Independent source traversal checks all7968 original stored records and every
+local header candidate. All5090 conditional backdrop previews (69 quick/5021
+ordinary) match full unmodified original helper0x40f250 returns in Unicorn2.1.4;
+512 seeded conflicting header/record pairs also match exported probe previews:
+5602 complete executions. Every output byte, return stack, callee-preserved
+registers, header/instructions checked. Supplied stored headers/records are DATA;
+no instruction/import/callback replacements and no actual loader selection,
+rendering/collision/gameplay executed. Original executable SHA256 remains
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f.
+
+Eight new cases/all296 local tests pass with original/pinned KlikBack6e178b9.
+Coverage: independent source spans, quick/ordinary untouched bytes, inconsistent
+stored types, high header-type/fill bits, local/global flag differences, ambiguous
+lists/all candidate types/no global fallback, unsigned words, aliases/gaps/reversed
+pointers, absent/empty/repeated blocks, immutable standalone/bundle repeats and
+late malformed refusal without output/reporting. Initial synthetic fixture lacked
+final segment/block markers and expected signed deleted type; corrected before
+positives (reader retains255). Placement destination-offset+1 negative control
+fails both intended assertions in2 executed cases; byte-exact restoration and
+compileall-f before final full296 positives. Actual agent
+./node_modules/.bin/tsc --noEmit passes before commit.
+
+Prior document equals43c501b after stripping only new frame probes/coverage/version.
+Previous643-file immutable bundle refuses replacement without mutation and is
+preserved before regeneration;641 files unchanged, only backdrops.json/manifest.json
+change. Standalone/bundle CLI repeats identical/input unchanged SHA256
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/backdrop-placement-probes/. Source delivery/CI
+follows within this tick. Combined exporter/spec stays started/sol: actual header/
+image selection/arena geometry/spawns/global/opcode/observed behaviour remain open.
+No second slice/new schedule/continuation/release or hardware claim.

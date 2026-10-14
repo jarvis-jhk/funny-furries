@@ -1,9 +1,9 @@
-# Backdrop artwork and refresh inputs and dimension candidates v4
+# Backdrop artwork, refresh inputs and placement probes v5
 
 `tools/backdrop_dump.py` exports the artwork fields stored directly in ordinary
 and quick-backdrop definition headers. It supplies image handles and editor fill
-colors for a later arena decoder. Version 4 adds complete ordered placement-refresh inputs alongside the
-ordinary-image candidates and quick-backdrop dimension inputs. It does not render
+colors for a later arena decoder. Version 5 adds frame-local placement probes and conditional refreshed record
+bytes alongside the existing artwork, refresh inputs and dimension candidates. It does not render
 an arena or establish final placement coordinates, shape, collision, spawns or
 runtime behavior. Effective ordinary-backdrop runtime dimensions remain unresolved.
 
@@ -26,7 +26,7 @@ exception messages or original content enters reports or committed source.
 
 ## Contract
 
-- `schema_version` is 4 and `exporter` is `backdrop-dump/4`. All previous raw
+- `schema_version` is 5 and `exporter` is `backdrop-dump/5`. All previous raw
   fields and artwork annotations remain unchanged.
 - Source and reader fingerprints match the project index. Image banks retain
   ordered segment IDs/offsets and occupied slot IDs; gaps, repeated/empty/missing
@@ -258,3 +258,60 @@ and local headers, repeated banks, immutable standalone/bundle repeats, and late
 invalid fill refusal before output/reporting. Outputs remain private/ignored;
 existing optional detached fault handling and invalid-input exit codes remain.
 An older immutable research bundle must be preserved before regenerating.
+
+
+## Conditional placement refresh probes
+
+Every frame adds `placement_refresh_probes`, one entry per placement block in
+frame order, with actual `block_id`, `frame_offset`, payload SHA-256, complete
+slot pointers/aliases and stored records. Missing blocks stay distinct from
+empty ones. The strict lossless placement decoder from [FRAME-LAYOUT.md](FRAME-LAYOUT.md)
+rejects malformed pointers, truncated storage or unreferenced records before any
+standalone or bundle output. Context-free header and placement decoders are unchanged.
+
+Each record retains its `id`, payload-relative `offset`, original `raw_hex` and
+unsigned first word (`object_word_raw_u16`). That word probes every definition
+list of the SAME frame by slot equality. Application globals and other frames
+are never searched, including for a local header with its global flag set.
+All u16 values use the same lookup; no new sentinel/encoded-reference assumption.
+`status` is `missing_local_slot`, `single_local_candidate` or
+`multiple_local_candidates`; all matches are retained without selecting a winner.
+
+Each candidate gives `definition_block_id`, slot `id`, header `object_list_offset`,
+`type`, `global`, `deleted`, nullable backdrop `header_sha256` and nullable
+`conditional_record_hex`. Deleted and non-backdrop definitions keep explicit
+`deleted_definition`/`non_backdrop_definition` status and a null preview. Live
+backdrops have `conditional_backdrop_refresh` status. Their preview applies ONLY
+the previously proven ordered header refresh writes to a copy of the stored
+32-byte record. Every unwritten byte remains identical. Incoming record type
+bits do not filter candidates: the supplied header overwrites that field.
+The header hash/definition coordinates identify the matching artwork, fill and
+image-bank candidates elsewhere in the same document without duplicating them.
+
+`evidence` is `stored_word_local_slot_equality_and_conditional_header_refresh`
+and `runtime_resolution` remains false on every record. These previews say what
+the helper WOULD write IF this stored local header and record were supplied.
+They are NOT effective runtime placements or a claim that the original loader
+selects the local header, calls this helper for that placement, preserves these
+coordinates until drawing, or creates a collision object. Global header selection,
+ordinary image metadata lookup, collision, arena geometry and spawns remain open.
+`coverage.local_placement_refresh_probes` is true; existing unsupported coverage
+fields remain false. Schema 5 propagates into the immutable research bundle;
+move an existing different bundle aside before regeneration.
+
+Independent original-source traversal checks all 7,968 stored records, every
+same-frame definition match, header hashes and conditional byte spans. All
+5,090 backdrop previews (69 quick / 5,021 ordinary) were compared byte-for-byte
+to complete unmodified original helper 0x40f250 calls in Unicorn 2.1.4, using
+those stored records/headers as supplied DATA. Another 512 seeded conflicting
+header/record pairs exercise the exported joins/previews. Every output byte,
+return stack, callee-preserved registers, unchanged header and instructions
+is checked. No original instructions, imports or callbacks were replaced;
+actual loader selection, drawing, collision and gameplay were not executed.
+All original content and executable proof data stay private and untracked.
+
+Synthetic tests cover local/global flag differences, conflicting definition
+lists, all candidate types, missing slots/unsigned boundaries, inconsistent
+stored type bits, opaque fill/type bytes, aliases/gaps/reversed pointer order,
+absent/empty/repeated blocks, strict late input refusal without writing/reporting,
+standalone/bundle equality, repeat output and immutable bundle refusal.

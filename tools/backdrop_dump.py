@@ -12,8 +12,9 @@ import sys
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
+from tools import frame_layout
 
-VERSION = "backdrop-dump/4"
+VERSION = "backdrop-dump/5"
 HEADER_BYTES = 68
 
 
@@ -141,15 +142,67 @@ def backdrop_document(reader, raw):
         {"block_id": j, "frame_offset": b.offset, "objects": objects(b.data)}
         for j, b in enumerate(reader.level_blocks(level.data)[1]) if b.ident == 2]}
         for i, level in enumerate(game.levels())]
-    return {"schema_version": 4, "exporter": VERSION,
+    for level, frame in zip(game.levels(), frames):
+        frame["placement_refresh_probes"] = placement_refresh_probes(
+            reader.level_blocks(level.data)[1], frame["object_lists"])
+    return {"schema_version": 5, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "image_banks": banks, "global_object_lists": globals_, "frames": frames,
             "coverage": {"backdrop_header_artwork": True, "image_handles": True,
                          "quick_backdrop_dimension_inputs": True,
                          "ordinary_backdrop_image_dimension_candidates": True,
                          "backdrop_placement_refresh_inputs": True,
+                         "local_placement_refresh_probes": True,
                          "runtime_rendering": False, "global_reference_resolution": False,
                          "arena_geometry": False, "spawns": False, "behaviour": False}}
+
+
+def placement_refresh_probes(blocks, object_lists):
+    # The first word is only an equality probe. Keep every same-frame header,
+    # even a conflicting type, and never pick a global body or a winning list.
+    definitions = {}
+    for objects in object_lists:
+        for obj in objects["objects"]:
+            definitions.setdefault(obj["id"], []).append((objects["block_id"], obj))
+    result = []
+    for block_id, block in enumerate(blocks):
+        if block.ident != 3:
+            continue
+        stored = frame_layout.decode_placements(block.data)
+        records = []
+        for record in stored["records"]:
+            raw = bytes.fromhex(record["raw_hex"])
+            word = int.from_bytes(raw[:2], "little")
+            candidates = []
+            for definition_block, obj in definitions.get(word, []):
+                preview = None
+                decoded = obj["backdrop"]
+                if decoded is not None and not obj["deleted"]:
+                    preview = bytearray(raw)
+                    for write in decoded["placement_refresh_inputs"]["writes"]:
+                        at, size = write["placement_offset"], write["bytes"]
+                        preview[at:at + size] = write["written_unsigned"].to_bytes(size, "little")
+                    preview = preview.hex()
+                candidates.append({"definition_block_id": definition_block,
+                    **{key: obj[key] for key in
+                       ("id", "type", "global", "deleted", "object_list_offset")},
+                    "status": "deleted_definition" if obj["deleted"] else
+                              "conditional_backdrop_refresh" if decoded is not None else
+                              "non_backdrop_definition",
+                    "header_sha256": decoded["header_sha256"] if decoded is not None else None,
+                    "conditional_record_hex": preview})
+            records.append({"id": record["id"], "offset": record["offset"],
+                "raw_hex": record["raw_hex"], "object_word_raw_u16": word,
+                "status": "missing_local_slot" if not candidates else
+                          "single_local_candidate" if len(candidates) == 1 else
+                          "multiple_local_candidates",
+                "runtime_resolution": False,
+                "evidence": "stored_word_local_slot_equality_and_conditional_header_refresh",
+                "candidates": candidates})
+        result.append({"block_id": block_id, "frame_offset": block.offset,
+                       "placement_sha256": stored["sha256"],
+                       "slots": stored["slots"], "records": records})
+    return result
 
 
 def save_backdrops(document, repo=project.REPO):

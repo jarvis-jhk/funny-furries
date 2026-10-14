@@ -73,6 +73,8 @@
       banks and local/global handles; runtime selection/arena geometry remain open.
 - [x] Runtime-proven complete backdrop header-to-placement refresh inputs, with
       ordered writes, masked type bits and opaque copied fields; actual selection unresolved.
+- [x] Frame-local backdrop placement probes and conditional refreshed record bytes,
+      preserving ambiguous/global-flagged candidates and unsupported live selection.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 
