@@ -103,6 +103,8 @@
       type48 local/global storage and unproven caller/content semantics.
 - [x] Runtime-proven type46 expression getter capability, retaining lossless token
       storage/conditional string and integer returns; original instances absent.
+- [x] Runtime-proven random expression transition/scaling and conditional literal
+      argument inputs, retaining unknown live state/results and unsupported argument shapes.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

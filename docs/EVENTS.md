@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 31 and `exporter` is `event-dump/31`.
+  fingerprints. `schema_version` is 32 and `exporter` is `event-dump/32`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -1785,3 +1785,64 @@ bytes/DX/BX/carry and normal/fault exits are verified. Faults stop before recove
 and use a fresh CPU next time. No instruction/import/callback substitutions,
 dynamic/caller/event/gameplay execution or hardware claims. Proof scripts,
 original executable/assets/exports stay outside the repository.
+
+## Random expression inputs (v32)
+
+`event-dump/32`, schema32 adds `random_inputs` to exact four-byte **0x01FF**
+expression tokens. The original expression dispatcher at `0x42a474` uses the
+system table `0x41b2b8`, entry1, selecting `0x42882a`. This advances to token+4,
+calls evaluator wrapper `0x42a424`, and passes the low WORD of its EAX result to
+helper `0x421991`. Numeric arguments therefore use `value_raw_u32 & 0xFFFF`,
+including negative values and values above65535. No signed bound/clamping or
+32-bit range semantics are substituted.
+
+The helper reads a16-bit state WORD at runtime address `0x41c8ce` and writes:
+
+```
+updated_state = (state * 0x7AB7 + 1) & 0xFFFF
+result = (updated_state * argument_u16) >> 16
+```
+
+The expression handler zero-extends the helper's AX result into EAX and sets
+DX0. Bound0 yields0 **and still advances the state**. For positive bounds the
+returned value is below the bound. This establishes the transition/scaling
+algorithm, not an actual game seed, the number/order of calls, initialisation,
+replay determinism, uniformity or the containing event/action result. Exported
+`runtime_state` remains `unknown`, `runtime_resolution` remains false and the
+whole expression's existing closed-integer evaluation still refuses this token.
+No runtime state/result is guessed from source bytes.
+
+An `argument` view is populated only when the next stored token is an exact
+integer literal immediately followed by either proven evaluator stop FEFF/FDFF.
+It retains the literal/stop token IDs, signed/raw32-bit value and low16-bit helper
+input, conditional on execution reaching this random token as a numeric operand.
+Missing, dynamic, string, compound and recursive argument shapes stay explicitly
+unsupported. The stored token itself has no bound field. No general function
+argument grammar or parenthesis pairing is inferred. The wrapper restores the
+argument-start EDI; the outer dispatcher then reads that token's length and
+advances past it. In the supported literal+stop shape, its return cursor is the
+**unconsumed stop**, which was verified independently. General cursor behaviour
+and side effects of unsupported argument expressions remain unannotated.
+
+All39 original occurrences are four-byte random tokens followed by an8-byte
+integer literal and FEFF stop:30 frame actions and9 global actions. Inputs are
+12(30),300(1),400(1),900(2),5(1),3(1),4(2),2(1). An independent absolute source
+walk checks all8160 parameters, raw token bytes and these views. Every prior
+raw field, expression evaluation, parameter-getter view and readable line is
+retained; only the new token view, coverage flag and exporter/schema version
+change. The existing EXPRESSION text line carries the annotation.
+
+The private runtime oracle executes the **unmodified** FF2xmas.exe dispatcher,
+argument evaluator and RNG helper in Unicorn2.1.4. All65536 state words are
+checked at bound65535; all65536 bound words at one fixed state are checked through
+the enclosing lone-operand evaluator. Additional200 signed/high-word/state/stop
+boundary executions,512 seeded contexts and234 byte-exact original-token runs
+cover both entry paths, both stops, state mutation, result/tag/cursor/return
+stack/preserved registers and the full mapped PE except the expected state word.
+One wrong32-bit-bound expectation is rejected. Total132019 executions pass.
+No instructions, imports or callbacks are replaced. Actual game initialisation,
+containing dynamic expressions, caller opcodes and gameplay are not executed.
+
+Non-four-byte random tokens now fail with exit2 before JSON/text/bundle output
+or fault reporting. Original files, runtime proof scripts and game content stay
+local/ignored; existing optional detached unexpected-fault reporting is unchanged.

@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/31"
+VERSION = "event-dump/32"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 46, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
@@ -42,6 +42,7 @@ def decode_expression(payload):
         if code == 0:
             # The external reader stops here. Keep the rest opaque, including
             # observed padding, instead of interpreting it as more tokens.
+            annotate_random_inputs(tokens)
             return {"prefix_raw_u16": prefix, "tokens": tokens,
                     "terminator_payload_offset": cursor,
                     "suffix_hex": payload[cursor + 2:].hex(),
@@ -162,7 +163,42 @@ def decode_expression(payload):
                 "terminator_token_offset": 4 + terminator,
                 "suffix_hex": field[terminator + 1:].hex(),
                 "source_encoding": "unknown", "evidence": "cnc_runtime_dispatch"}
+        if code == 0x01FF and size != 4:
+            raise project.InputError("random expression token has an unsupported extent")
         cursor += size
+
+
+def annotate_random_inputs(tokens):
+    # The helper restores the argument-start cursor. Only the adjacent literal
+    # followed by an evaluator stop has a complete, independently proven view;
+    # neither a flat tail nor a guessed function grammar establishes its input.
+    for index, token in enumerate(tokens):
+        if token["code_raw_u16"] != 0x01FF:
+            continue
+        annotation = {
+            "operation": "random_u16_scaled", "argument_start_token_offset": 4,
+            "numeric_argument_transport": "low_word_of_evaluator_eax",
+            "state_bits": 16, "state_multiplier": 0x7AB7, "state_increment": 1,
+            "state_overflow": "wrap_modulo_2_16",
+            "result_formula": "(updated_state_u16 * argument_u16) >> 16",
+            "normal_result_tag": 0, "runtime_state": "unknown",
+            "argument": {"status": "unsupported_shape"},
+            "other_argument_tags": "unknown", "runtime_resolution": False,
+            "evidence": "cnc_runtime_random_expression_and_rng_helper"}
+        following = tokens[index + 1:index + 3]
+        if (len(following) == 2 and following[0]["code_raw_u16"] == 0x00FF
+                and following[1]["code_raw_u16"] in integer_constants.STOPS):
+            literal, stop = following
+            value = literal["integer_literal"]
+            annotation["argument"] = {
+                "status": "adjacent_integer_literal_and_stop",
+                "assumption": "execution_reaches_this_token_as_numeric_operand",
+                "literal_token_id": literal["id"], "stop_token_id": stop["id"],
+                "value_raw_u32": value["value_raw_u32"],
+                "value_signed_i32": value["value_signed_i32"],
+                "rng_argument_u16": value["value_raw_u32"] & 0xFFFF,
+                "dispatch_return_cursor": "unconsumed_stop_token"}
+        token["random_inputs"] = annotation
 
 
 def decode_position_references(payload, kind):
@@ -793,7 +829,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 31, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 32, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -819,6 +855,7 @@ def event_document(reader, raw):
                          "type42_fixed_value_getter_inputs": True,
                          "type45_expression_getter_inputs": True,
                          "type46_expression_getter_inputs": True,
+                         "expression_random_inputs": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,

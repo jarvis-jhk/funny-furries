@@ -70,7 +70,7 @@ class CoordinateContainerTests(unittest.TestCase):
     def test_all_types_scopes_reference_annotations_and_readable_values(self):
         raw, source = position_project([(k, coordinate_payload(k, -7, 13, 65535, 10)) for k in SIZES])
         doc = events.event_document(self.reader, raw)
-        self.assertEqual((doc['schema_version'], doc['exporter']), (31, 'event-dump/31'))
+        self.assertEqual((doc['schema_version'], doc['exporter']), (32, 'event-dump/32'))
         self.assertTrue(doc['coverage']['position_coordinate_storage'])
         self.assertFalse(doc['coverage']['position_resolution'])
         programs = [p for f in doc['frames'] for p in f['programs']] + doc['global_events']
@@ -91,7 +91,7 @@ class CoordinateContainerTests(unittest.TestCase):
         from klikback.core.common import reconstruct_event_test as independent
         raw, _ = position_project([(k, coordinate_payload(k, -32768, 32767, 7, 65535)) for k in SIZES])
         manifest, files = bundle.research_bundle(self.reader, raw)
-        self.assertEqual(manifest['components']['events.json'], {'exporter': 'event-dump/31', 'schema_version': 31})
+        self.assertEqual(manifest['components']['events.json'], {'exporter': 'event-dump/32', 'schema_version': 32})
         (project.REPO / 'build').mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=project.REPO / 'build') as scratch:
             target = bundle.save_bundle(manifest, files, Path(scratch))

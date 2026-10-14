@@ -3080,3 +3080,52 @@ snapshots/job log in data/furries/type46-getters/. This delivery edit changes NO
 only; tested source unchanged. No unfinished work/continuation/new schedule/release/
 second slice/hardware claim. Combined exporter/spec stays started/sol:actual caller/
 opcode/global/selection/placement/arenas/spawns/observed behaviour remain open.
+
+2026-10-14: Sol tick t_mv825nanoqht5, one bounded M0 random expression input
+slice. Clean main/fetched origin, no open PRs/issues or unfinished work at start;
+direct main follows repository convention. event-dump/32 schema32 adds exact
+four-byte01FF random_inputs. Original dispatcher42a474/table41b2b8 entry1 ->
+42882a evaluates from token+4 via42a424, passes low EAX WORD to421991;16-bit
+state at41c8ce updates (state*7AB7+1)&FFFF, result=(updated*bound_u16)>>16,
+zero-extended EAX/DX0. Bound0 still changes state. Conditional adjacent integer
+literal+FEFF/FDFF stop retains raw/signed32 and low16 input/token IDs; wrapper
+restores argument start and outer dispatcher leaves stop unconsumed. Dynamic,
+compound, recursive/string/missing argument shapes unresolved. No live state,
+seeding/call order/containing expression/opcode/event/gameplay result inferred;
+runtime_resolution false and prior closed-integer evaluator still refuses random.
+
+Independent absolute source traversal checks all8160 parameters:39 exact random
+occurrences,all actions (30 frame/9 global),all adjacent literal+FEFF:12(30),
+300(1),400(1),900(2),5(1),3(1),4(2),2(1). Unmodified FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f in Unicorn2.1.4
+executes132019 complete dispatcher/evaluator/helper paths:all65536 states,
+all65536 bounds,200 signed/high-word/state/stop boundaries,512 seeded contexts,
+234 byte-exact original runs and one rejected wrong32-bit-bound expectation.
+EAX/tag/cursor/state mutation/preserved regs/input/128-byte return stack/full
+mapped PE except expected state WORD checked. No instruction/import/callback
+substitutions or actual game initialisation/containing-expression execution.
+
+Seven new tests cover exact code/extent,low-word boundaries/both stops,unsupported
+shapes,both roles/scopes/all expression types,text/reconstruction,immutable bundle
+repeats,late invalid refusal before output/reporting and independent original
+storage. All413 local tests pass with original/pinned KlikBack6e178b9 enabled;
+bound maskFFFF->7FFF control fails nine intended assertions in two executed
+cases,source restored byte-exact/compileall-f forced before final positives.
+Initial neighbour-token test supplied a too-short object-expression fixture;
+corrected to its existing required header extent before all413 positives.
+Actual agent ./node_modules/.bin/tsc --noEmit passes; no agent source/lockfile changed.
+
+Prior JSON fields and readable text equal877522d after stripping only random
+annotations/coverage/version. Every previous view retained. Old643-file immutable
+bundle refused replacement without mutation,preserved before regeneration;640
+files identical,only events.json/events.txt/manifest.json change. Standalone
+JSON/text/bundle CLI repeats byte-identical,input/executable unchanged. Project
+SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Late bad random extent now exits2 before JSON/text/bundle writes/report; existing
+optional detached private fault reporter unchanged. No original assets/executable/
+proof scripts/private endpoint committed or published. Evidence and saved restored
+source/docs/test/roadmap hashes in agent state data/furries/expression-random/.
+Tested source push/exact-head CI verification follow within this tick.
+Exporter/spec stays started/sol:caller/opcode/global/selection/placement/arena/
+spawn/observed behaviour remain open. No second slice/new schedule/continuation/
+release/hardware claim.
