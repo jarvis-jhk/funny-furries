@@ -3425,3 +3425,16 @@ Evidence/restored source/test/docs/roadmap hashes in agent state
 within this tick. Exporter/spec remains started/sol:live table/caller/other opcodes/
 global/selection/placement/arenas/spawns/observed behaviour open. No second slice/
 new schedule/continuation/release/hardware claim.
+
+Delivery: tested sourced81964ddd2a10175ef5c916910981fe221407543 pushed main;
+CI38571607706 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38571607706 . Downloaded
+job115877959164 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and442 tests (388 pass/54 local-original fixtures skipped).
+All442 passed locally with original enabled after negative-control restoration.
+Saved source/test/docs/roadmap hashes match both working files and CI-tested
+commit tree. Evidence/CI snapshots/job log in data/furries/value-table-actions/.
+This delivery update changes NOTES only; tested source unchanged. No unfinished
+work/continuation/new schedule/release/second slice/hardware claim. Combined
+exporter/spec stays started/sol:live table/caller/other opcodes/global/selection/
+placement/arenas/spawns/observed behaviour remain open.
