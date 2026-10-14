@@ -121,6 +121,8 @@
       link traversal, preserving stored offsets and unresolved live targets/activation.
 - [x] Runtime-proven conditional group-flag condition inputs and header-bit carry
       returns, preserving runtime offsets and unresolved live row/group selection.
+- [x] Runtime-proven conditional current-row bit test-and-set capability, preserving
+      both carries/conditional writes and unresolved live row/bit lifecycle; original instances absent.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

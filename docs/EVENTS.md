@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 40 and `exporter` is `event-dump/40`.
+  fingerprints. `schema_version` is 41 and `exporter` is `event-dump/41`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -2308,3 +2308,53 @@ condition offset, unsupported parameter shapes, strict validation, frame/global
 readable lossless reconstruction, immutable/repeat bundles and late malformed
 input refusal before output or fault reporting. A swapped conditional-carry
 negative control must fail executed assertions before final restoration.
+
+
+## Conditional current runtime-row bit test and set
+
+`event-dump/41`, schema41 adds `row_bit_test_set_condition_inputs` only to
+system CONDITION type-1/opcode-6. The original nonzero-ESI signed dispatcher
+`0x4263a7`, table `0x41b244`, selects the complete handler at `0x4285ff`.
+This is a capability annotation: independent traversal of all9306 records in
+the decompiled project finds **zero instances**, in both frame/global programs.
+It does not assign this opcode to another observed condition or claim that
+Funny Furries uses it.
+
+The handler reads the current runtime-row pointer DWORD at `0x41c830`, then
+WORD flags at row+4 and tests bit0 (`1`). If the bit is already set, it returns
+clear carry via `0x4294b1` without writing row memory. If clear, it ORs the row
+flags WORD with1, retaining all other15 bits, then returns set carry via
+`0x4294a2`. Neither branch preserves incoming carry. The handler reads no
+condition header, parameter, editor row offset or group key, and performs no
+row traversal. Its surrounding dispatcher still reads the record type/opcode,
+clears scratch DWORD `0x41cbbe`, and calls through the normal return stack.
+Header+9 is **not** an inversion input for this handler.
+
+The export retains both conditional carries, the conditional16bit OR write,
+row pointer/flags storage roles and explicit unresolved actual pointer/row,
+previous/final flags and return carry. It does not expose the process-global
+address as an editor identifier. The lifecycle of this bit, row pointer
+selection, ESI-zero dispatch, surrounding condition/row result and gameplay
+remain unknown (`runtime_resolution=false`). Two calls against the same row
+without other writes always leave bit0 set and the second returns clear carry;
+this isolated transport fact does not establish a once-per-frame/once-per-game
+rule. General opcode/parameter semantics, expression evaluation, global
+resolution and behaviour coverage stay false.
+
+Local private Unicorn proof executes the unmodified complete original
+dispatcher/handler under every16bit row flag, every header byte with both tested
+bit states and incoming carries, seeded opaque records/valid unused faulting
+expressions, and repeated calls without resetting row memory. Exact reads and
+writes, every byte of mapped PE/input/row/return stack and all ordinary registers
+are checked. No instruction, import or callback is substituted; runtime row
+memory and current-row pointer are explicit synthetic inputs, not evidence of
+live loader selection. No original-record handler execution is claimed because
+there are no original instances. Executable, proof scripts and generated
+exports stay local and uncommitted.
+
+Tests cover exhaustive signed role/type/opcode gates, both conditional write/
+carry branches and preservation of15bits, ignored header/parameter content,
+strict storage validation even for unused parameters, frame/global readable
+lossless output, immutable repeat bundles, malformed late input refusal before
+writes/fault reporting, and the independent original-source absence check.
+Existing optional detached private unexpected-fault reporting remains unchanged.

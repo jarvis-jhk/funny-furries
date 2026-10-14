@@ -3715,3 +3715,60 @@ edit changes NOTES only; tested source unchanged. No unfinished work/continuatio
 new schedule/release/second slice/hardware claim. Combined exporter/spec stays
 started/sol:live rows/activation/other opcodes/global/selection/placement/arenas/
 spawns/observed behaviour remain open.
+
+2026-10-14: Sol tick t_mv87ijzq16w5rc, one bounded M0 current runtime-row
+bit-test/set capability slice. Clean main/fetched origin, no open PRs/issues
+or unfinished work at start; direct main follows repository convention.
+event-dump/41 schema41 adds row_bit_test_set_condition_inputs only to exact
+system CONDITION type-1/opcode-6. Nonzero-ESI original signed dispatch4263a7/
+table41b244 selects complete4285ff..428619 handler: reads current runtime-row
+pointer DWORD41c830, tests row+4 WORD bit0. Set bit -> CLC/RET4294b1 without
+row write; clear -> OR WORD1 preserving other15bits, STC/RET4294a2. Header+9,
+parameters/editor group keys/source offsets unused; no row traversal. Current
+row/pointer/previous/final flags/carry/lifecycle/condition/row/gameplay/ESI-zero
+remain unknown, runtime_resolution/general semantics false. Repeated isolated
+calls without row reset leave bit0 set/second carry false; never label this
+once-per-frame/once-per-game without lifecycle proof. Existing optional private
+detached unexpected-fault reporting unchanged; malformed inputs still exit2
+without output/reporting.
+
+Independent source traversal checks all9306 original records and finds ZERO
+instances in frame/global programs. This is an original-runtime capability,
+not a Funny Furries observed condition or original-record execution claim.
+Initial fixture expected a positive original count and failed; corrected to
+explicit independently observed absence (diagnostic tests-slice.log retained).
+Unmodified original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f
+executes67585 complete Unicorn2.1.4 dispatcher/handler paths:65536 all16bit
+flags,1024 all header bytes/both bit states/entry carries,1024 seeded opaque
+record repeated calls without row reset,one wrong header-inversion expectation
+rejected. Exact reads/writes/full mapped PE/input/rows/144byte stack/registers
+checked; no instruction/import/callback substitutions/live row selection or
+hardware proof. First oracle register expectation incorrectly retained incoming
+EBX; dispatcher actually sets it to signed type-1; corrected before successful
+complete proof. Original executable/project remain byte-identical.
+
+Seven new cases cover exhaustive signed role/type/opcode gates,both conditional
+carries/write branches/all15preserved bits,all header bytes/unused valid faulting
+expressions,strict unused-parameter validation,frame/global readable lossless
+reconstruction,immutable/repeat bundles,late malformed refusal before save/report
+and independent original absence traversal. Wrong-bit mask1->2 mutant fails one
+intended assertion in seven executed cases; restored byte-exact/compileall-f
+forced before final positives. All476 local tests pass with original/pinned
+KlikBack6e178b9 enabled; actual agent ./node_modules/.bin/tsc --noEmit passes.
+Nine older test files only update explicit schema/version40->41; no agent
+source/lockfile changed. Evidence data/furries/row-bit-test-set/ in agent state.
+
+Prior original JSON/text equalsc99126a after stripping only new coverage/view/
+version; every previous raw field/annotation/text line retained (new condition
+views absent in this source). Old643-file immutable bundle refused replacement
+without mutation,preserved before rebuild;640 files identical,only events.json/
+events.txt/manifest.json change. Standalone JSON/text/bundle CLI repeats identical,
+input unchanged. Source project SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Saved restored source/test/docs/roadmap hashes and proof/logs in matching evidence.
+Tested source push/exact-head CI verification follow within this tick; no second
+slice/new schedule/continuation/release/hardware claim. Combined exporter/spec
+stays started/sol:live row/bit lifecycle/other opcodes/global/selection/placement/
+arenas/spawns/behaviour open. No original assets/executable/generated output/
+private endpoint/proof scripts committed or published.
