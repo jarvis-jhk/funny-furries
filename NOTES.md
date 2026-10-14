@@ -2835,3 +2835,46 @@ snapshots/job log in agent state data/furries/object-getters/. This delivery edi
 changes NOTES only; tested source unchanged. No unfinished work/continuation/new
 schedule/release/second slice; combined exporter/spec remains started/sol:
 actual caller/opcode/global/selection/arenas/spawns/observed behaviour open.
+
+2026-10-14: Sol tick t_mv7vd79kgwlpr, one bounded M0 type42 fixed-value
+parameter-getter slice. Clean main/fetched origin, no open PRs/issues or unfinished
+work at start; direct main follows repository convention. event-dump/28 schema28
+adds fixed_value_getter_storage to exact type42, both roles/frame/global. Original
+dispatch42775f/table41af64 entry42 ->4277d9 loads DWORD at parameter4/payload0,
+WORD at parameter12/payload8, increments BX16 without masking, clears carry and
+preserves incoming DX. Middle four bytes/suffix retained; no expression evaluation,
+comparison alias, signedness/units/player/global/opcode/caller meanings inferred.
+Type42 is absent from this original game: capability only, runtime_resolution=false.
+Strict ten-byte payload minimum fails before output/reporting; existing optional
+private detached fault reporter unchanged. No original assets/executable/proof
+scripts/private endpoint committed or published.
+
+Unmodified FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f, Unicorn2.1.4:
+66897 complete dispatcher/getter executions: all65536 control WORDs,336 Cartesian
+DWORD/control/DX/carry boundaries,1024 seeded middle/suffix/input contexts and one
+wrong-mask expectation rejected. Full EAX/EBX/EDX/carry/preserved-register/input/
+128-byte return-stack/whole mapped PE checks; no instruction/import/callback
+substitutions or caller/event/gameplay execution. Independent absolute source
+traversal checks8160 parameters and confirms zero type42 instances.
+
+Eight new tests cover wrap/high bit/opaque spans,exact type/both roles/scopes,
+lossless reconstruction,text/bundle equality/repeats/immutability,all short extents,
+late invalid refusal before writes/reporting and original absence. All384 local
+tests pass with original/pinned KlikBack6e178b9 enabled. WORD-offset8->6 control
+fails two intended assertions in two executed cases; source restored byte-exact,
+compileall-f forced, final all384 positives pass. Actual agent
+./node_modules/.bin/tsc --noEmit passes; no agent source/lockfile changed.
+
+Evidence: agent state data/furries/fixed-value-getters/. Compatibility and delivery
+verification follow within this tick. Combined exporter/spec remains started/sol:
+actual caller/opcode/global/selection semantics,arenas/spawns/observed behaviour
+still open. No second slice/new schedule/continuation/release/hardware claim.
+
+Compatibility: previous JSON/text equals8ff1bce after stripping only the new
+coverage/version (no original type42 annotations exist). All prior fields and
+text lines preserved;640 of643 bundle files identical,only events.json/events.txt/
+manifest.json change. Old immutable bundle refused replacement without mutation,
+preserved before regeneration. Standalone JSON/text/bundle CLI repeats identical;
+input/executable unchanged,project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Saved source/test/docs/roadmap hashes match final restored/tested files.

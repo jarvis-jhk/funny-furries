@@ -138,7 +138,7 @@ class ExpressionContainerTests(unittest.TestCase):
                               token(0x3007, bytes(4)), token(0x3002, struct.pack('<HH', 0x4000, 0))])
         raw, program = expression_project(payload)
         doc = events.event_document(self.reader, raw)
-        self.assertEqual(doc['schema_version'], 27)
+        self.assertEqual(doc['schema_version'], 28)
         statuses = []
         for frame in doc['frames']:
             out = frame['programs'][0]

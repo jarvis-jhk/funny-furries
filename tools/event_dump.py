@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/27"
+VERSION = "event-dump/28"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
@@ -276,6 +276,24 @@ def decode_scalar_getter(payload, kind):
             "evidence": "cnc_immediate_scalar_parameter_getters"}
 
 
+def decode_fixed_value_getter(payload):
+    # Type42 loads a DWORD and a separate WORD eight bytes later. INC BX
+    # wraps without masking; no caller units or comparison meaning is proven.
+    value = word(payload, 0, "<I")
+    control = word(payload, 8)
+    return {"value_payload_offset": 0, "value_raw_u32": value,
+            "control_payload_offset": 8, "control_raw_u16": control,
+            "opaque_middle_hex": payload[4:8].hex(),
+            "opaque_suffix_hex": payload[10:].hex(),
+            "conditional_getter_return": {
+                "assumption": "execution_reaches_original_type42_parameter_getter",
+                "eax_raw_u32": value, "bx_raw_u16": (control + 1) & 0xFFFF,
+                "carry": False,
+                "dx": "preserved_incoming_word_not_a_new_value_tag"},
+            "caller_interpretation": "unknown", "runtime_resolution": False,
+            "evidence": "cnc_type42_fixed_value_parameter_getter"}
+
+
 def decode_position_getter(payload):
     # Type16 calls the position helper with BX0, then packs its returned words.
     # The final SUB clears carry even when the helper returned failure; no
@@ -512,6 +530,9 @@ def decode_record(data, role, offset, index):
                 data[cursor + 4:cursor + size], code)
         if code == 26 and role == "action":
             parameters[-1]["frame_target_storage"] = decode_frame_target(data[cursor + 4:cursor + size])
+        if code == 42:
+            parameters[-1]["fixed_value_getter_storage"] = decode_fixed_value_getter(
+                data[cursor + 4:cursor + size])
         if code == 39:
             parameters[-1]["group_parameter_storage"] = decode_group_parameter(data[cursor + 4:cursor + size])
         if code == 1:
@@ -736,7 +757,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 27, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 28, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -759,6 +780,7 @@ def event_document(reader, raw):
                          "type22_expression_getter_inputs": True,
                          "type16_position_getter_inputs": True,
                          "type1_object_getter_inputs": True,
+                         "type42_fixed_value_getter_inputs": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,
@@ -832,6 +854,9 @@ def readable_program(program):
                 if "scalar_getter_storage" in parameter:
                     lines.append("          SCALAR_GETTER " + json.dumps(
                         parameter["scalar_getter_storage"], ensure_ascii=True, sort_keys=True))
+                if "fixed_value_getter_storage" in parameter:
+                    lines.append("          FIXED_VALUE_GETTER " + json.dumps(
+                        parameter["fixed_value_getter_storage"], ensure_ascii=True, sort_keys=True))
                 if "position_reference_storage" in parameter:
                     lines.append("          POSITION_REFERENCES " + json.dumps(
                         parameter["position_reference_storage"], ensure_ascii=True, sort_keys=True))

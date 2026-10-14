@@ -95,6 +95,8 @@
       order and discarded helper carry with live object/failure values unresolved.
 - [x] Runtime-proven type1 conditional object getter inputs, keeping runtime-gate
       branches, first-word selector storage and editor references separate; live selection unresolved.
+- [x] Runtime-proven type42 fixed value/control-word getter inputs, retaining
+      opaque intervening bytes and unmasked word wrapping; original instances absent.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

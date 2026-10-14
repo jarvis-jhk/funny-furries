@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 27 and `exporter` is `event-dump/27`.
+  fingerprints. `schema_version` is 28 and `exporter` is `event-dump/28`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -1587,3 +1587,51 @@ special-selector diagnostic fails the generic preserved-register expectation and
 is excluded from the cached-selector proof; its live context is not inferred.
 No caller/event/gameplay execution, actual object selection, arena or spawn
 resolution is claimed. Proof scripts/original bytes/generated exports stay private.
+
+## Type42 fixed value and control-word parameter getter (v28)
+
+`event-dump/28`, schema28 adds `fixed_value_getter_storage` only to exact
+**type42**, in condition/action records and frame/global programs. This is a
+runtime capability with **zero instances in the original project**. It is not
+a newly decoded original gameplay condition. Types41/43/other parameter types
+keep their previous opaque or independently documented views.
+
+The unmodified FF2xmas.exe dispatcher `0x42775f` zero-extends the parameter type
+at header+2 into EBX. Its table at `0x41af64`, exact entry42, selects `0x4277d9`.
+The complete handler loads WORD at header+12 into BX, loads DWORD at header+4
+into EAX, increments BX with 16-bit wrap, clears carry and returns. It preserves
+incoming EDX; DX is not a new expression tag. There is no expression evaluation,
+object lookup or callback in this path. Its DWORD transport alone proves no
+signedness, time unit, player/global ownership, opcode or comparison meaning.
+
+The annotation records `value_payload_offset: 0`, `value_raw_u32`,
+`control_payload_offset: 8` and `control_raw_u16`. The four intervening bytes
+at payload4..7 remain `opaque_middle_hex`; all bytes after payload9 remain
+`opaque_suffix_hex`. Complete `payload_hex` and raw program storage remain
+unchanged. `conditional_getter_return` explicitly assumes execution reaches the
+original type42 getter; EAX equals the stored DWORD, BX equals `(control+1)&0xFFFF`
+and carry is false. Control bit15 is **not masked**: 0x8000 returns BX0x8001,
+and 0xFFFF returns BX0. No type23 numeric-consumer mapping is borrowed for it.
+`caller_interpretation: unknown` and `runtime_resolution: false` still apply.
+
+Type42 requires ten payload bytes (14 including the header) to expose both
+loads safely. Any shorter shape fails with InputError/exit2 before standalone
+JSON/text or research-bundle writes and is not fault-reported. This is an
+exporter storage validation rule; the original getter itself does not check
+its length. The existing optional detached private unexpected-fault reporter
+is unchanged. Readable text adds `FIXED_VALUE_GETTER`; coverage adds
+`type42_fixed_value_getter_inputs: true`. General parameter/opcode/global
+semantics, live condition results and observed behaviour remain unsupported.
+
+Private execution evidence uses the unchanged original executable SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`
+and Unicorn2.1.4. **66,897** complete dispatcher/getter executions include every
+65,536 control word, 336 Cartesian DWORD/control/DX/incoming-carry boundaries,
+1,024 seeded cases with arbitrary middle/suffix bytes and one executed rejection
+of a wrong high-bit-mask expectation. EAX, full EBX/EDX, carry, preserved registers,
+128-byte return stack, input bytes and the whole mapped executable are checked.
+No instruction/import/callback substitutions, parameter caller/event dispatch,
+original gameplay or live selection is executed. Independent absolute source
+traversal checks all8,160 original parameters and confirms type42 is absent;
+original program reconstruction stays exact. Proof data and original executable/
+project/export bytes remain outside the repository and are never published.
