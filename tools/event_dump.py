@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/38"
+VERSION = "event-dump/39"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 46, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
@@ -824,6 +824,48 @@ def annotate_constant_condition(record):
     return record
 
 
+def annotate_group_flag_action(record):
+    # The handler follows runtime row links, not editor title/key candidates.
+    # A zero stored offset is still an offset, never an inferred group target.
+    if (record["role"] != "action" or record["object_type"] != -1
+            or record["opcode"] not in (6, 7)):
+        return record
+    view = {
+        "status": "conditional_runtime_row_flag_update",
+        "operation": "clear_bit_14" if record["opcode"] == 6 else "set_bit_14",
+        "runtime_resolution": False,
+        "assumption": "system_dispatch_reaches_handler_with_valid_terminating_runtime_rows",
+        "inputs": {"status": "unsupported_parameter_shape"},
+        "row_flags": {"row_byte_offset": 4, "bits": 16,
+                      "and_mask_raw_u16": 0xBFFF,
+                      "or_mask_raw_u16": 0 if record["opcode"] == 6 else 0x4000,
+                      "formula": "(previous_flags_u16 & 0xBFFF) | or_mask_raw_u16",
+                      "previous_flags": "unknown"},
+        "traversal": {
+            "first_row_updated_before_step": True,
+            "step_word_row_byte_offset": 0, "step_word_signed": True,
+            "next_row_formula": "(current_row_address - signed_i16_step_word) modulo 2^32",
+            "stop_word_next_row_byte_offset": 16, "stop_word_raw_u16": 0xF5FF,
+            "stop_row_flags_also_updated": True,
+            "nested_group_depth_checked": False,
+            "runtime_bounds_or_cycle_guard": False},
+        "target_rows": "unknown", "final_row_flags": None,
+        "editor_group_selection": "unresolved", "activation_semantics": "unknown",
+        "evidence": "cnc_system_actions_6_7_runtime_row_flag_handlers"}
+    parameters = record["parameters"]
+    if len(parameters) == 1 and parameters[0]["type"] == 39:
+        stored = parameters[0]["group_parameter_storage"]
+        view["inputs"] = {
+            "status": "stored_runtime_offset",
+            "offset_record_byte_offset": 16, "offset_payload_byte_offset": 0,
+            "target_offset_raw_u32": stored["runtime_raw_u32"],
+            "runtime_base": "unknown",
+            "target_address_formula": "(runtime_base + target_offset_raw_u32) modulo 2^32",
+            "editor_key_used_by_handler": False, "parameter_type_dispatch": False}
+    record["group_flag_action_inputs"] = view
+    return record
+
+
 def decode_record(data, role, offset, index):
     header_size = 14 if role == "condition" else 12
     if len(data) < header_size:
@@ -881,10 +923,10 @@ def decode_record(data, role, offset, index):
         cursor += size
     if cursor != len(data):
         raise project.InputError("event parameter count leaves trailing record bytes")
-    return annotate_constant_condition(annotate_value_table_condition(annotate_value_table_action({"id": index, "role": role, "offset": offset, "bytes": len(data),
+    return annotate_group_flag_action(annotate_constant_condition(annotate_value_table_condition(annotate_value_table_action({"id": index, "role": role, "offset": offset, "bytes": len(data),
             "object_type": word(data, 2, "<b"), "opcode": word(data, 3, "<b"),
             "object_reference": word(data, 4, "<h"), "meaning": "unknown",
-            "header_hex": data[:header_size].hex(), "parameters": parameters})))
+            "header_hex": data[:header_size].hex(), "parameters": parameters}))))
 
 
 def decode_rows(data):
@@ -1079,7 +1121,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 38, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 39, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -1112,6 +1154,7 @@ def event_document(reader, raw):
                          "value_table_action_inputs": True,
                          "value_table_condition_inputs": True,
                          "constant_condition_returns": True,
+                         "group_flag_action_inputs": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,
@@ -1160,6 +1203,9 @@ def readable_program(program):
             if "constant_condition_return" in record:
                 lines.append("        CONSTANT_CONDITION_RETURN " + json.dumps(
                     record["constant_condition_return"], ensure_ascii=True, sort_keys=True))
+            if "group_flag_action_inputs" in record:
+                lines.append("        GROUP_FLAG_ACTION " + json.dumps(
+                    record["group_flag_action_inputs"], ensure_ascii=True, sort_keys=True))
             for parameter in record["parameters"]:
                 lines.append(f"        PARAM {parameter['id']} offset={parameter['offset']} "
                              f"bytes={parameter['bytes']} type={parameter['type']} "

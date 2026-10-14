@@ -117,6 +117,8 @@
       prefix dispatch, ordered faults and unresolved live table/condition results.
 - [x] Runtime-proven fixed carry returns for two system conditions, preserving
       opaque headers/unused parameters and unresolved live condition/row results.
+- [x] Runtime-proven conditional group-action row-flag write inputs and signed
+      link traversal, preserving stored offsets and unresolved live targets/activation.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

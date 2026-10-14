@@ -3576,3 +3576,63 @@ edit changes NOTES only; tested source unchanged. No unfinished work/continuatio
 new schedule/release/second slice/hardware claim. Combined exporter/spec stays
 started/sol:other opcodes/global/selection/placement/arenas/spawns/live behaviour
 remain open.
+
+2026-10-14: Sol tick t_mv86g0it12b0lc, one bounded M0 conditional runtime
+group-action row-flag slice. Clean main/fetched origin, no open PRs/issues or
+unfinished work at start; direct main follows repository convention.
+event-dump/39 schema39 adds group_flag_action_inputs only to exact system ACTION
+type-1/opcodes6/7. Original signed dispatch426538/table41b27c selects428790/428795:
+AX0/4000; complete shared handler428799..4287c3 adds action+16 DWORD to runtime
+base41c7e6 with32bit wrap. One validated type39 parameter supplies the stored
+full-DWORD offset; other layouts explicit unsupported. Editor key/titles are
+not read or used to select a target. Runtime row+4 gets two WORD writes:
+AND BFFF then OR AX, clear/set bit14 preserving other15 bits. Signed step word
+at row+0 is SUBTRACTED from current address; next row+16 F5FF stops traversal,
+but that closing row is also updated. First row updated before marker check;
+no nested depth/bounds/cycle guard. Target rows/runtime base/previous and final
+flags/loader relocation/editor selection/activation/gameplay remain unknown;
+runtime_resolution/general opcode semantics false. Existing optional private
+detached unexpected-fault reporter and strict input-error refusal unchanged.
+
+Independent raw source traversal checks9306 records and115 original actions:
+95 frame opcode7,12 global opcode6/eight global opcode7. Stored offsets include
+15 zeros/100 nonzero words, all preserved without source-row mapping. Unmodified
+original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f executes131847
+complete Unicorn2.1.4 dispatch/handler paths:131072 all16bit flags/both opcodes,
+512 seeded mixed-direction chains,32 offset/key/wrapping-base boundaries,230
+byte-exact original records under synthetic runtime rows,one rejected wrong
+bit14-preserving interpretation. First-row marker ignored,intermediate and closing
+row writes,positive/negative step words and opaque keys/tails verified. Exact all
+reads/writes,full mapped PE except expected runtime-base input/dispatcher DWORD,
+complete runtime-row buffer/input/144byte return stack/registers checked. No
+instruction/import/callback substitutions,live gameplay or editor-to-runtime
+row resolution. Private proof scripts/executable/exports stay uncommitted.
+
+Seven new cases cover exact role/type/opcode gates,full-DWORD offset vs key,
+opaque fields,conditional signed traversal/closing contract,unsupported layouts,
+strict record/parameter validation,frame/global readable lossless output,
+immutable/repeat bundles,malformed late group offset refusal before save/report
+and independent original traversal. Initial new test fixtures expected an overly
+specific error string and all-zero original offsets; corrected to the actual
+strict group-word error and independent15zero/100nonzero source observation.
+Initial full run also caught five old explicit schema38 expectations; updated
+those version-only assertions. All462 local tests pass with original/pinned
+KlikBack6e178b9 enabled after offset+1 mutant fails two intended assertions in
+seven executed cases. Source restored byte-exact/compileall-f forced before full
+final positives; actual agent ./node_modules/.bin/tsc --noEmit passes. No agent
+source/lockfile changed; initial diagnostics retained in evidence.
+
+Prior original JSON/text equals9b564fe after stripping only new record views/
+coverage/version; every prior raw field/annotation/text line preserved. Old643-
+file immutable bundle refused replacement without mutation,preserved before
+rebuild;640 files identical,only events.json/events.txt/manifest.json change.
+Standalone JSON/text/bundle CLI repeats identical,input/executable unchanged.
+Project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Saved restored source/test/docs/roadmap hashes and proof/logs in agent state
+ data/furries/group-flag-actions/. Tested push/exact-head CI verification follows
+within this tick. Combined exporter/spec stays started/sol:live row flags/other
+opcodes/global/selection/placement/arenas/spawns/observed behaviour remain open.
+No unfinished implementation,new schedule/continuation/release/second slice/
+hardware claim. No original assets/executable/generated data/private endpoint
+committed/published.

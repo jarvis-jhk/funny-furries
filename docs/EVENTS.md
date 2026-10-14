@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 33 and `exporter` is `event-dump/33`.
+  fingerprints. `schema_version` is 39 and `exporter` is `event-dump/39`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -2193,3 +2193,64 @@ checked. No instruction/import/callback substitutions or live gameplay
 execution. Original executable SHA256 remains
 `f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`.
 The executable, private proof scripts and generated exports are never committed.
+
+## Conditional group-action row flags (v39)
+
+`event-dump/39`, schema39 adds `group_flag_action_inputs` only to exact system
+ACTION type-1/opcodes6 and7. The `group_flag_action_inputs` coverage flag covers
+these handler inputs; general opcode semantics, runtime resolution, event/row
+execution and gameplay remain unproven. Existing raw records, group-title/key
+candidates and all earlier annotations are retained.
+
+Original signed action dispatch `0x426538..0x426556` selects table `0x41b27c`
+through `0x41a168`. Entry6 selects `0x428790`, entry7 selects `0x428795`.
+The former puts zero in AX; the latter puts `0x4000` in AX. Shared code
+`0x428799..0x4287c3` loads the full DWORD at action+16 and adds the runtime
+base DWORD stored at `0x41c7e6`, wrapping at32bits. For exactly one validated
+type39 parameter, that action DWORD is its payload+0 `runtime_raw_u32`. Export
+`inputs` carries it as `target_offset_raw_u32`, its record/payload offsets, and
+an explicitly unknown runtime base. Other parameter shapes retain an
+`unsupported_parameter_shape` view. The handler itself performs no parameter
+type dispatch, reads no following editor key and does not search editor titles.
+Zero, high-bit and `0xFFFFFFFF` offsets are all ordinary raw values, with no
+inferred sentinel or source-program target.
+
+Given a valid terminating chain of runtime rows, the handler performs two WORD
+writes at row+4: first AND with `0xBFFF`, then OR with AX. Opcode6 clears bit14;
+opcode7 sets it, preserving the other15 flag bits. It then sign-extends the
+WORD at row+0 and subtracts it from the current row address, wrapping at32bits.
+It tests the WORD at **next** row+16 against `0xF5FF`. If unequal, it updates
+that next row and repeats. If equal, it still performs both flag writes on
+that stop row before returning. The first row is updated before any marker
+check; its own marker is not tested. There is no nested-group-depth counter,
+bounds check or cycle guard in this handler. Positive and negative step words
+are both transported; no assertion that editor rows form this live chain is
+made. A missing marker or invalid link has no normal-return guarantee.
+
+The exported `row_flags` and `traversal` describe this conditional algorithm.
+Actual target rows, previous/final flags, editor-group selection, activation,
+loader relocation, row ownership and game effects remain unknown. In
+particular, the type39 editor key's stored-word title matches do not select the
+runtime target, and a group-action view must not be treated as proof that an
+editor group is enabled/disabled. The decompiled source has115 such actions:
+95 frame opcode7,12 global opcode6 and eight global opcode7. Their stored
+runtime offsets include15 zeros and100 nonzero words; these are preserved,
+not mapped to source rows.
+
+Independent private proof executes the unmodified original PE action dispatch
+and complete handlers with synthetic valid runtime rows. It covers every16bit
+initial flag under both opcodes, mixed forward/backward linked chains, first-row
+markers, closing-row writes, full-width offsets/wrapping bases, opaque editor
+keys/tails and every byte-exact original record. Exact reads/writes, complete
+mapped PE, row buffers, input, return stack and registers are checked, with a
+wrong bit14-preserving interpretation rejected. No instruction, import or
+callback is substituted; synthetic row memory is test input. This does not
+execute live original gameplay or prove editor-to-runtime row resolution.
+
+Tests cover exact role/type/opcode gates, full-DWORD storage, opaque fields,
+unsupported shapes, signed traversal/stop contracts, strict malformed refusal,
+frame/global readable output, lossless reconstruction, immutable/repeat bundles
+and independent original source traversal. Optional private unexpected-fault
+reporting is unchanged; malformed user inputs still exit2 before output or
+reporting. The original PE, project, media, runtime proof scripts and generated
+exports remain local and uncommitted.
