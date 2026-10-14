@@ -89,6 +89,8 @@
       dispatch, WORD zero extension and DWORD transport; caller meanings unresolved.
 - [x] Runtime-proven parameter address getter inputs, distinguishing header/payload
       transport from scalar values and preserving unresolved caller content semantics.
+- [x] Runtime-proven type22 expression getter inputs and conditional closed integer
+      returns, with dynamic forms/CPU faults separated and caller semantics unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

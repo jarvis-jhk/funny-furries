@@ -1412,3 +1412,60 @@ stack/return, parameter bytes and entire mapped executable bytes. Original
 instructions are unchanged; no imports/instructions/callbacks are substituted.
 No caller/event/gameplay execution or runtime pointer resolution is claimed.
 Proof scripts, executable bytes and generated exports stay private outside the repo.
+
+## Type22 expression parameter getter inputs (v25)
+
+`event-dump/25`, schema25 adds `expression_getter_storage` to **type22 only**,
+for both record roles in frame and global programs. The original generic
+parameter dispatcher `0x42775f` uses table `0x41af64`; exact entry22 selects
+`0x4277c1`, **not** the similar code at `0x427788`. It calls `0x42a417`, then
+executes `sub bx,bx; ret`. The wrapper preserves ESI/EDI and starts expression
+evaluation at parameter+6 (payload+2). It skips the stored prefix WORD; that word
+is not returned in BX. On normal expression return, EAX and DX come from the
+evaluator, BX becomes zero and carry is clear. DX is an evaluator tag, unlike
+the preserved incoming DX of the previously documented address/scalar getters.
+The high half of EDX is not assigned a new meaning.
+
+`conditional_normal_return` explicitly assumes both reaching type22's generic
+dispatch and a normal expression return. `conditional_closed_integer_return`
+uses the already proven closed integer evaluator subset: `status: value` adds
+EAX raw32, DX0, BX0 and carry false. `cpu_exception` retains the divide-error
+vector and unknown recovery, without any normal-return registers/flags. An
+unsupported token/shape retains only its unsupported status; no dynamic/string
+return or exception is guessed. The general normal-return contract is conditional,
+not a promise that an unsupported expression reaches it. Opaque expression suffix
+bytes and prefix remain unchanged in the existing expression-storage view.
+
+This annotation does not establish that any containing opcode calls this getter,
+what the caller does with its return, or the results of state-dependent expressions.
+Type15's reader token view still coexists with its scalar getter; type23's prefix
+transport/comparison view remains separate. No other expression-layout type is
+assigned type22's runtime dispatch. `runtime_resolution` remains false and
+`caller_interpretation` unknown. Coverage adds `type22_expression_getter_inputs`,
+while general parameter/opcode semantics and dynamic expression evaluation remain
+false. Text adds an `EXPRESSION_GETTER` line; prior lines/fields are preserved.
+Malformed supported expression storage remains exit2 before JSON/text/bundle
+output/reporting; unexpected failures retain the existing detached optional reporter.
+
+Independent absolute source traversal finds **2,461** original type22 parameters:
+2,172 action/289 condition; every stored prefix is zero. Of these, 2,112 are
+closed single integer literals and 349 dynamic expressions remain unevaluated.
+Original byte spans, literal bits, annotations and complete event reconstruction
+are checked independently. Nonzero-prefix and compound/recursive capabilities
+are synthetic proofs, not observations about original gameplay.
+
+Private Unicorn2.1.4 proof runs the unchanged FF2xmas.exe SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`
+through the **complete original dispatcher, exact type22 handler, wrapper and
+numeric evaluator**. The 72,821 executions cover all 65,536 stored prefix words,
+27 signed literal/incoming-DX probes, 405 arithmetic boundary pairs, four focused
+recursive cases, 512 seeded recursive streams, 6,336 byte-exact original literal
+runs (three incoming DX patterns) and one deliberately wrong prefix-transport
+expectation that fails. 72,817 normal returns and four divide-error exceptions
+are observed. Normal-return EAX/DX/BX/carry/stack/preserved registers, parameter
+bytes and the entire mapped executable are verified; faults stop before exception
+recovery. Each fault uses a fresh CPU afterwards, because Unicorn otherwise retains
+pending exception state and a later divide error can appear as double-fault8.
+No instruction/import/callback substitutions, dynamic/string evaluation, caller/
+event dispatch or gameplay are executed. Proof scripts/original bytes/exports
+stay private outside the repository.

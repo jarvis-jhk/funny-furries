@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/24"
+VERSION = "event-dump/25"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
@@ -249,6 +249,29 @@ def decode_scalar_getter(payload, kind):
             "evidence": "cnc_immediate_scalar_parameter_getters"}
 
 
+def decode_expression_getter(expression):
+    # Only type22's exact dispatch entry is proven here. Reader expression
+    # layouts for other types do not imply this runtime getter evaluates them.
+    result = expression["constant_integer_evaluation"]
+    probe = {"status": result["status"]}
+    if result["status"] == "value":
+        probe.update({"eax_raw_u32": result["value_raw_u32"],
+                      "dx_raw_u16": 0, "bx_raw_u16": 0, "carry": False})
+    elif result["status"] == "cpu_exception":
+        probe.update({"fault": result["fault"], "vector": result["vector"],
+                      "exception_recovery": "unknown"})
+    return {"first_token_parameter_offset": 6, "first_token_payload_offset": 2,
+            "stored_prefix_read_by_getter": False,
+            "conditional_normal_return": {
+                "assumption": "type22_dispatch_and_expression_normal_return",
+                "eax": "expression_evaluator_result",
+                "dx": "expression_evaluator_tag_not_preserved_incoming_word",
+                "bx_raw_u16": 0, "carry": False},
+            "conditional_closed_integer_return": probe,
+            "caller_interpretation": "unknown", "runtime_resolution": False,
+            "evidence": "cnc_type22_expression_parameter_getter"}
+
+
 def decode_comparison_prefix(payload):
     # Type23's getter transports the prefix separately from the expression.
     # Numeric consumers mask it before signed comparison; that path is an
@@ -440,6 +463,9 @@ def decode_record(data, role, offset, index):
             parameters[-1]["object_parameter_reference"] = decode_object_parameter(data[cursor + 4:cursor + size])
         if code in EXPRESSION_TYPES:
             parameters[-1]["expression_storage"] = decode_expression(data[cursor + 4:cursor + size])
+        if code == 22:
+            parameters[-1]["expression_getter_storage"] = decode_expression_getter(
+                parameters[-1]["expression_storage"])
         if code == 23:
             parameters[-1]["comparison_prefix_storage"] = decode_comparison_prefix(
                 data[cursor + 4:cursor + size])
@@ -651,7 +677,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 24, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 25, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -671,6 +697,7 @@ def event_document(reader, raw):
                          "comparison_prefix_inputs": True,
                          "immediate_scalar_getter_inputs": True,
                          "parameter_address_getter_inputs": True,
+                         "type22_expression_getter_inputs": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,
@@ -729,6 +756,9 @@ def readable_program(program):
                 if "comparison_prefix_storage" in parameter:
                     lines.append("          COMPARISON_PREFIX " + json.dumps(
                         parameter["comparison_prefix_storage"], ensure_ascii=True, sort_keys=True))
+                if "expression_getter_storage" in parameter:
+                    lines.append("          EXPRESSION_GETTER " + json.dumps(
+                        parameter["expression_getter_storage"], ensure_ascii=True, sort_keys=True))
                 if "address_getter_storage" in parameter:
                     lines.append("          ADDRESS_GETTER " + json.dumps(
                         parameter["address_getter_storage"], ensure_ascii=True, sort_keys=True))

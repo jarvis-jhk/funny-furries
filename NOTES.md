@@ -2626,3 +2626,59 @@ snapshots/job log in agent state data/furries/address-getters/. This delivery
 edit changes NOTES only; tested source unchanged. No unfinished work/continuation/
 new schedule/release/second slice; combined exporter/spec remains started/sol:
 actual opcode/caller/global semantics, arenas/spawns/observed behaviour open.
+
+2026-10-14: Sol tick t_mv7t8246awarw, one bounded M0 type22 expression
+parameter-getter slice. Clean main/fetched origin, no open PRs/issues or unfinished
+work at start; direct main follows repository convention. event-dump/25 schema25
+adds expression_getter_storage to exact type22 only, both roles/frame/global.
+Original generic dispatch42775f/table41af64 selects4277c1, calls42a417 wrapper,
+starts tokens at parameter6/payload2, skips stored prefix. On normal evaluation
+return EAX/DX are evaluator result/tag, BX0/carry clear. Closed integer probes
+transport prior proven raw32 results/DX0; CPU faults have no invented normal
+return, unsupported dynamic/string/shape forms have no inferred numeric result.
+General normal-return contract explicitly conditional; runtime_resolution=false,
+caller meanings unknown. Type15 scalar/type23 comparison/other reader token views
+unchanged. Existing detached optional private reporter unchanged; malformed
+expressions exit2 before standalone/bundle output/reporting. No original assets/
+exports/executable instructions/proof data/private endpoint committed/published.
+
+Independent absolute source walk verifies all2461 original type22 spans:2172
+actions/289 conditions, all prefix0;2112 closed integer literals/349 dynamics.
+Unmodified FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f, Unicorn2.1.4:
+72821 complete original dispatcher/exact getter/wrapper/evaluator executions,
+72817 normal returns/four divide errors. All65536 prefix words,27 literal/DX
+boundaries,405 arithmetic pairs,four focused recursive cases,512 seeded recursive
+streams,2112 original parameter byte spans*three incoming DX patterns and one
+incorrect prefix-transport expectation (fails). EAX/DX/BX/carry/128-byte return
+stack/preserved regs/parameter bytes/entire mapped executable checked; faults stop
+before recovery. No instruction/import/callback substitutions,dynamic/string/
+caller/event/gameplay execution. Initial private proof selected similar427788
+code; exact table audit corrected handler to4277c1 before final execution.
+Unicorn retains pending exception state after stopped divide errors: reusing that
+CPU gave vector8 on the next fault; fresh CPU after each fault gives correct
+vector0 without any runtime instruction changes. Preserve this isolation rule.
+
+Eight new cases cover signed/raw returns,ignored prefixes/opaque suffixes,
+compound/recursive/wrapped/zero-divisor inputs,CPU faults versus normal returns,
+dynamic/string/empty refusal,exact type22/both roles/scopes,retained prior views,
+source-byte counts/reconstruction,text/bundle equality/repeats/immutability and
+late invalid refusal before writes/reporting. First full run caught missing
+original expected-count constants; inserted independent source-walk counts.
+Schema24 expectations updated25 with other old contracts intact. EAX bit0-toggle
+control fails two intended assertions in two executed cases; source restored
+byte-exact and compileall-f forced before final all360 local positives with
+original/pinned KlikBack6e178b9 enabled. Actual agent ./node_modules/.bin/tsc
+--noEmit passes before commit. No agent code/lockfile change.
+
+Previous JSON/text equalsf9e6717 after stripping only new annotation/coverage/
+version; all old fields/text lines preserved. Previous643-file immutable bundle
+refuses replacement without mutation and is preserved before regeneration;640
+files unchanged,only events.json/events.txt/manifest.json change. Standalone
+JSON/text/bundle CLI repeats byte-identical,input/executable unchanged. Project
+SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/expression-getters/. Tested source delivery
+and exact-head CI verification follow within this tick. Combined exporter/spec
+remains started/sol: actual opcode/caller/global/placement selection/arenas/spawns/
+observed behaviour still open. No second slice,new schedule,continuation,release
+or hardware claim.
