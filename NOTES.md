@@ -2143,3 +2143,16 @@ Evidence: agent state data/furries/backdrop-placement-probes/. Source delivery/C
 follows within this tick. Combined exporter/spec stays started/sol: actual header/
 image selection/arena geometry/spawns/global/opcode/observed behaviour remain open.
 No second slice/new schedule/continuation/release or hardware claim.
+
+Delivery: tested source8dc1c62fd98a10c9373613836f1900323277504b pushed main;
+CI38501069264 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38501069264 . Downloaded
+job115647888303 log verifies actual source/pinned-reader checkout outputs,
+Python3.10, compileall and296 cases (259 pass/37 local-original fixtures skipped).
+All296 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in agent state data/furries/backdrop-placement-probes/. This
+delivery edit changes NOTES only; tested source unchanged. No unfinished work/
+continuation/new schedule/release/second slice; combined exporter/spec remains
+started/sol, actual header/image selection/arena collision/spawns/opcode/observed
+behaviour still open.
