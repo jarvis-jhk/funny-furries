@@ -3636,3 +3636,17 @@ opcodes/global/selection/placement/arenas/spawns/observed behaviour remain open.
 No unfinished implementation,new schedule/continuation/release/second slice/
 hardware claim. No original assets/executable/generated data/private endpoint
 committed/published.
+
+Delivery: tested source1ac414e5b1a82d5ead35f4b2883fbfc3bcbb0528 pushed main;
+CI38578131780 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38578131780 . Downloaded
+job115900554988 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and462 tests (405 pass/57 local-original fixtures skipped).
+All462 passed locally with original enabled after negative-control restoration.
+Saved source/test/docs/roadmap hashes match working files and CI-tested tree;
+job log SHA256fff8405268b6cfeb4599eff0ebed27f12fe3c62d4a9db89efe2baeb45bdce9ad.
+Evidence/CI snapshots/job log in data/furries/group-flag-actions/. This delivery
+edit changes NOTES only; tested source unchanged. No unfinished work/continuation/
+new schedule/release/second slice/hardware claim. Combined exporter/spec stays
+started/sol:live rows/activation/other opcodes/global/selection/placement/arenas/
+spawns/observed behaviour remain open.
