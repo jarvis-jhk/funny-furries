@@ -1,12 +1,13 @@
-# Backdrop artwork, refresh inputs and placement probes v6
+# Backdrop artwork, refresh inputs and placement probes v7
 
 `tools/backdrop_dump.py` exports the artwork fields stored directly in ordinary
 and quick-backdrop definition headers. It supplies image handles and editor fill
-colors for a later arena decoder. Version 6 adds conditional quick-backdrop
-rectangle inputs to frame-local placement probes and conditional refreshed
-record bytes alongside artwork, refresh inputs and dimension candidates. It does not render
-an arena or establish final placement coordinates, shape, collision, spawns or
-runtime behavior. Effective ordinary-backdrop runtime dimensions remain unresolved.
+colors for a later arena decoder. Version 7 adds conditional quick-backdrop
+fill dispatch and call inputs to frame-local placement candidates, alongside
+rectangle inputs, refreshed record bytes, artwork and dimension candidates.
+It does not render an arena or establish final placement coordinates, shape,
+collision, spawns or runtime behavior. Effective ordinary-backdrop runtime
+dimensions remain unresolved.
 
 Use Python 3.10+ and the separately supplied KlikBack reader from
 [EXPORTER.md](EXPORTER.md):
@@ -27,7 +28,7 @@ exception messages or original content enters reports or committed source.
 
 ## Contract
 
-- `schema_version` is 6 and `exporter` is `backdrop-dump/6`. All previous raw
+- `schema_version` is 7 and `exporter` is `backdrop-dump/7`. All previous raw
   fields and artwork annotations remain unchanged.
 - Source and reader fingerprints match the project index. Image banks retain
   ordered segment IDs/offsets and occupied slot IDs; gaps, repeated/empty/missing
@@ -297,7 +298,7 @@ selects the local header, calls this helper for that placement, preserves these
 coordinates until drawing, or creates a collision object. Global header selection,
 ordinary image metadata lookup, collision, arena geometry and spawns remain open.
 `coverage.local_placement_refresh_probes` is true; existing unsupported coverage
-fields remain false. Schema 6 propagates into the immutable research bundle;
+fields remain false. Schema 7 propagates into the immutable research bundle;
 move an existing different bundle aside before regeneration.
 
 Independent original-source traversal checks all 7,968 stored records, every
@@ -352,7 +353,7 @@ is true; arena geometry, runtime rendering, globals, spawns and behavior remain
 false. These are conditional drawing inputs, not effective arena bounds: header
 selection, record mutation until rendering, translation state, render gates,
 collision and spawns remain unresolved. Previous artwork, records and refresh
-annotations remain byte-for-byte unchanged. The bundle component schema follows version 6.
+annotations remain byte-for-byte unchanged. The bundle component schema follows version 7.
 
 Independent source-span traversal verifies every one of the original's 69 quick
 placement candidates; other candidate types retain null. Local Unicorn 2.1.4
@@ -375,3 +376,78 @@ immutable refusal/repeats, original absolute spans and late invalid headers befo
 any output or optional fault report. Existing detached optional private fault
 reporting is unchanged; no translation state, original content or endpoint enters
 reports. Original executable proof and generated exports remain ignored/private.
+
+## Conditional quick-backdrop fill call inputs
+
+Schema 7 adds nullable `conditional_quick_fill_inputs` to the same live quick
+placement candidates as rectangle inputs. Ordinary/deleted/non-backdrop candidates
+are null; missing definitions remain absent. Every ambiguous local/global-flagged
+quick header has its own annotation, with no application-global fallback or winner.
+The annotation consumes the conditional refreshed record, not its old fill/image/
+color words. Existing source bytes, artwork, refresh and rectangle fields are unchanged.
+
+`fill_word` retains the complete u16 at record +24, its offset and dispatch low
+nibble. `image_word` retains u16 at +8; `colors` retains the complete dwords at
++16/+20, including high bytes without inventing alpha/import color semantics.
+The original fill path dispatches on `fill_word & 0x000F`:
+
+- 0: `branch: solid`, with `solid_color_raw_u32` from +16.
+- 1 with zero image word: also `branch: solid`, with explicit
+  `mosaic_zero_image_solid_fallback: true` and the same +16 color input.
+- 1 with any nonzero image word, including 0xFFFF: `mosaic_metadata_required`.
+  Actual lookup, tile dimensions/loops and pixels are unresolved.
+- 2: `branch: gradient`, with `gradient_arguments`. Bit 0x0100 swaps the two
+  raw color arguments. It is independent of low-byte orientation bit 0x0010.
+  `flags_raw_u16` is `fill_word & 0x00F0`; it is not a full dword call argument.
+
+The original uses `mov dx` and `and dx`, then **pushes edx**. Incoming EDX's high
+16 bits survive into the gradient flag argument. `flags_high_u16_input` therefore
+stays null; `flags_argument_rule` retains the incoming-high-word rule. No zero
+extension, meaning for those upper bits, or import interpretation is guessed.
+The editor artwork view continues to describe the header's low byte; the new
+runtime call view establishes one high-byte bit without reinterpreting other bits.
+Existing strict header artwork validation and image-bank membership are unchanged:
+a synthetic mosaic-zero header still needs slot 0 for that earlier editor view.
+Direct `quick_fill_inputs` requires exactly 32 record bytes and refuses unsupported
+low nibbles; context-free header and placement decoders retain their contracts.
+
+`clipping_inputs` lists supplied signed-int32 origin X/Y and right/bottom clip
+arguments with null values. The original prologue computes signed minimum of
+`origin + signed_refreshed_dimension - 1` and supplied clip for each endpoint.
+Arithmetic wraps to 32 bits before the signed comparison. No left/top clamp,
+positive-size requirement, empty-rectangle rejection or normalization is invented.
+Unlike the existing exclusive rectangle preview, this is an inclusive call-input
+rule. The annotation does not calculate unknown live endpoints. Caller culling,
+translation selection and all fill/metadata imports remain unresolved.
+
+`meaning` is `conditional_quick_fill_call_inputs`, `evidence` is
+`original_runtime_fill_dispatch_and_call_argument_paths`, `runtime_resolution`
+and `drawing_performed` are false. `coverage.conditional_quick_fill_inputs` is
+true; rendering, arena geometry, global resolution, spawns and behavior remain
+false. This supplies a later renderer/spec with proven inputs, not a drawn arena.
+The immutable research bundle records component schema 7; move a different old
+bundle aside before regeneration. Invalid input still exits 2 before either
+output/reporting; existing detached optional private fault reporting is unchanged.
+
+Evidence uses the unchanged original executable hash above. Independent local
+Unicorn 2.1.4 executes complete refresh helper 0x40f250 and the original fill
+function prologue/dispatch/argument assembly from 0x4054b0 to the **first call**:
+0x4055d9 (solid), 0x4055b6 (gradient), or 0x405528 (mosaic metadata). It stops before
+executing the call instruction; there are no patched instructions/imports/callbacks.
+These are conditional fill-entry executions after refresh, not actual loader or
+renderer caller execution. Every refreshed byte, unchanged header, original
+instruction span, saved callee registers, entry stack and assembled call argument
+is checked. Gradient tests vary incoming EDX high bits and show a wrong
+zero-extended flag expectation fails on actual pushed 0xDEAD0010.
+
+4,411 supplied contexts / 8,822 original path executions cover every high fill
+byte with six low fills and zero/nonzero image handles (3,072), asymmetric signed
+word/int32/wrapping/clipping boundaries (343), seeded random int32 contexts (512),
+all 69 original candidates with seven contexts each (483), and the incorrect
+flag expectation (1). Independent absolute project-byte spans check all original
+candidates: 24 gradient / 45 mosaic, all stored high fill bytes zero. Solid,
+zero-handle fallback and high-byte color swaps are synthetic capabilities, never
+claimed as observed original gameplay. Eight new tests also cover other candidate
+types, ambiguity, opaque neighbors, alias/reversed/gapped slots, absent/empty/
+repeated blocks, strict late malformed refusal, bundle/standalone equality and
+immutable repeats. No original assets, instructions, proof data or exports are committed.

@@ -145,7 +145,7 @@ class QuickRectangleContainerTests(unittest.TestCase):
         doc = backdrop.backdrop_document(self.reader,raw)
         manifest,files = bundle.research_bundle(self.reader,raw)
         self.assertEqual(json.loads(files['backdrops.json']),doc)
-        self.assertEqual(manifest['components']['backdrops.json'], {'exporter':'backdrop-dump/6','schema_version':6})
+        self.assertEqual(manifest['components']['backdrops.json'], {'exporter':'backdrop-dump/7','schema_version':7})
         (project.REPO/'build').mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=project.REPO/'build') as scratch:
             repo=Path(scratch);target=bundle.save_bundle(manifest,files,repo)
@@ -157,7 +157,8 @@ class QuickRectangleContainerTests(unittest.TestCase):
                     for r in block['records']:
                         for c in r['candidates']:
                             c.pop('conditional_quick_rectangle_inputs')
-            old['coverage'].pop('conditional_quick_rectangle_inputs');old['schema_version']=5;old['exporter']='backdrop-dump/5'
+                            c.pop('conditional_quick_fill_inputs')
+            old['coverage'].pop('conditional_quick_fill_inputs');old['coverage'].pop('conditional_quick_rectangle_inputs');old['schema_version']=5;old['exporter']='backdrop-dump/5'
             different=dict(files,**{'backdrops.json':bundle.json_bytes(old)})
             old_manifest=copy.deepcopy(manifest)
             old_manifest['components']['backdrops.json']={'exporter':'backdrop-dump/5','schema_version':5}

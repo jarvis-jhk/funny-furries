@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import frame_layout
 
-VERSION = "backdrop-dump/6"
+VERSION = "backdrop-dump/7"
 HEADER_BYTES = 68
 
 
@@ -145,7 +145,7 @@ def backdrop_document(reader, raw):
     for level, frame in zip(game.levels(), frames):
         frame["placement_refresh_probes"] = placement_refresh_probes(
             reader.level_blocks(level.data)[1], frame["object_lists"])
-    return {"schema_version": 6, "exporter": VERSION,
+    return {"schema_version": 7, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "image_banks": banks, "global_object_lists": globals_, "frames": frames,
             "coverage": {"backdrop_header_artwork": True, "image_handles": True,
@@ -154,6 +154,7 @@ def backdrop_document(reader, raw):
                          "backdrop_placement_refresh_inputs": True,
                          "local_placement_refresh_probes": True,
                          "conditional_quick_rectangle_inputs": True,
+                         "conditional_quick_fill_inputs": True,
                          "runtime_rendering": False, "global_reference_resolution": False,
                          "arena_geometry": False, "spawns": False, "behaviour": False}}
 
@@ -178,6 +179,7 @@ def placement_refresh_probes(blocks, object_lists):
             for definition_block, obj in definitions.get(word, []):
                 preview = None
                 rectangle = None
+                fill = None
                 decoded = obj["backdrop"]
                 if decoded is not None and not obj["deleted"]:
                     preview = bytearray(raw)
@@ -186,6 +188,7 @@ def placement_refresh_probes(blocks, object_lists):
                         preview[at:at + size] = write["written_unsigned"].to_bytes(size, "little")
                     if obj["type"] == 0:
                         rectangle = quick_rectangle_inputs(preview)
+                        fill = quick_fill_inputs(preview)
                     preview = preview.hex()
                 candidates.append({"definition_block_id": definition_block,
                     **{key: obj[key] for key in
@@ -195,7 +198,8 @@ def placement_refresh_probes(blocks, object_lists):
                               "non_backdrop_definition",
                     "header_sha256": decoded["header_sha256"] if decoded is not None else None,
                     "conditional_record_hex": preview,
-                    "conditional_quick_rectangle_inputs": rectangle})
+                    "conditional_quick_rectangle_inputs": rectangle,
+                    "conditional_quick_fill_inputs": fill})
             records.append({"id": record["id"], "offset": record["offset"],
                 "raw_hex": record["raw_hex"], "object_word_raw_u16": word,
                 "status": "missing_local_slot" if not candidates else
@@ -233,6 +237,45 @@ def quick_rectangle_inputs(record):
             "zero_translation_edges": {"left": x, "top": y,
                                        "right_exclusive": x + width,
                                        "bottom_exclusive": y + height}}
+
+
+def quick_fill_inputs(record):
+    if len(record) != frame_layout.RECORD_BYTES:
+        raise project.InputError("quick fill requires a complete placement record")
+    fill = struct.unpack_from("<H", record, 24)[0]
+    kind = fill & 15
+    if kind not in (0, 1, 2):
+        raise project.InputError("unsupported quick fill dispatch nibble")
+    image = struct.unpack_from("<H", record, 8)[0]
+    colors = [struct.unpack_from("<I", record, at)[0] for at in (16, 20)]
+    # The original fill path consumes the full refreshed word: its high-byte
+    # bit 0 swaps gradient arguments, independently of editor orientation.
+    # Stop at call inputs; neither import behavior nor live clipping is known.
+    branch = "gradient" if kind == 2 else "mosaic_metadata_required" if kind == 1 and image else "solid"
+    gradient = None
+    if kind == 2:
+        swapped = bool(fill & 0x0100)
+        gradient = {"swap_colors": swapped, "swap_mask": 0x0100,
+                    "first_color_raw_u32": colors[1 if swapped else 0],
+                    "second_color_raw_u32": colors[0 if swapped else 1],
+                    "flags_mask": 0x00F0, "flags_raw_u16": fill & 0x00F0,
+                    "flags_high_u16_input": None,
+                    "flags_argument_rule": "(incoming_edx & 0xFFFF0000) | (refreshed_fill_word & 0x00F0)"}
+    return {"meaning": "conditional_quick_fill_call_inputs",
+            "evidence": "original_runtime_fill_dispatch_and_call_argument_paths",
+            "runtime_resolution": False,
+            "fill_word": {"record_offset": 24, "raw_u16": fill, "dispatch_nibble": kind},
+            "image_word": {"record_offset": 8, "raw_u16": image},
+            "colors": [{"record_offset": at, "raw_u32": value}
+                       for at, value in zip((16, 20), colors)],
+            "branch": branch, "mosaic_zero_image_solid_fallback": kind == 1 and image == 0,
+            "solid_color_raw_u32": colors[0] if branch == "solid" else None,
+            "gradient_arguments": gradient,
+            "clipping_inputs": {name: {"signed_i32": None}
+                                for name in ("origin_x", "origin_y", "right_clip", "bottom_clip")},
+            "inclusive_endpoint_rule": "signed_min(origin + signed_refreshed_dimension - 1, clip)",
+            "arithmetic": "x86_32bit_wrap_before_signed_min",
+            "drawing_performed": False}
 
 
 def save_backdrops(document, repo=project.REPO):

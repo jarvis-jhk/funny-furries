@@ -77,6 +77,8 @@
       preserving ambiguous/global-flagged candidates and unsupported live selection.
 - [x] Runtime-proven conditional quick-backdrop rectangle inputs, with signed
       runtime translation rules and explicit zero-translation previews; live bounds unresolved.
+- [x] Runtime-proven conditional quick-backdrop fill dispatch and call inputs,
+      preserving mosaic-zero fallback, gradient swap/flags and unresolved clipping/drawing.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

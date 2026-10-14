@@ -2222,3 +2222,57 @@ edit changes NOTES only; tested source unchanged. No unfinished implementation,
 continuation/new schedule/release/second slice; combined exporter/spec remains
 started/sol, actual header/image/translation selection/arena collision/spawns/
 global/opcode/observed behavior still open.
+
+2026-10-14: Sol tick t_mv7i5bhly1rkv, one bounded M0 conditional quick-backdrop
+fill dispatch/call-input slice. Clean main/fetched origin, no open PRs/issues or
+unfinished work at start; direct main follows repository convention.
+backdrop-dump/7 schema7 adds conditional_quick_fill_inputs to live quick placement
+candidates, null for ordinary/deleted/non-backdrop; all ambiguous/local-global-
+flagged candidates retained. It uses refreshed fill WORD24/image8/colors16/20.
+Low nibble selects solid/mosaic/gradient; mosaic image zero falls back to solid
+color16. Nonzero mosaic requires unresolved metadata; no invented0xFFFF sentinel.
+Gradient high fill bit0x0100 swaps raw color arguments independently of low-byte
+orientation; low flag word is fill&0xF0. Original mov/and DX then push EDX preserves
+incoming high16 bits, so full flags remain unresolved rather than zero-extended.
+Clipping inputs are null signed-int32 call arguments with inclusive signed-min/
+32-bit-wrapping rule; no unknown live bounds calculated. All runtime_resolution/
+drawing_performed false, previous artwork/records/refresh/rectangle fields unchanged.
+Strict earlier artwork/bank validation unchanged (editor mosaic0 needs occupied0).
+Existing detached optional private fault reporter unchanged; malformed input exits2
+before standalone/bundle output/reporting. No original content/assets/instructions/
+proof data/exports/private endpoint committed or published.
+
+Independent absolute-source traversal verifies all69 original quick candidates:
+24 gradient/45 mosaic, high fill bytes all0. Complete unmodified original helper
+0x40f250 then fill ENTRY0x4054b0 through first CALL INPUTS execute in Unicorn2.1.4:
+4411 contexts/8822 paths. Fill stops before solid4055d9/gradient4055b6/metadata405528
+call instruction. Every full refreshed record/header/instruction span, saved callee
+registers/entry stack/assembled arguments checked. All256 high fill bytes*six fills*
+two handles=3072 contexts,343 asymmetric signed-word/int32/wrapping/clip boundaries,
+512 seeded,69 originals*7 contexts,one wrong zero-extension expectation fails on
+actual0xDEAD0010. No instruction/import/callback replacement. No fill import,
+metadata lookup/tile loops/drawing/full renderer/caller/header selection/collision/
+spawns/gameplay execution. Solid/zero fallback/high-byte swaps are synthetic
+capabilities, not observed original gameplay. Original executable SHA256 remains
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f.
+
+Eight new cases/all312 local tests pass with original/pinned KlikBack6e178b9,
+compileall-f. Coverage includes independent source spans/all high fill bytes,
+zero/nonzero handles, other types/missing/ambiguous/local-global definitions,
+opaque neighbors, alias/reversed/gapped slots, absent/empty/repeated blocks,
+strict late malformed refusal without writing/reporting, bundle/standalone/
+immutable repeats. Initial original branch-count expectation was wrong (36/33);
+absolute-source assertion showed24/45, corrected before final validation.
+Swap-mask0x0100->0x0200 control fails258 intended assertions in8 executed cases;
+source restored byte-exact/compileall-f before final312 positives. Actual agent
+./node_modules/.bin/tsc --noEmit passes before commit.
+
+Previous document equals e1e5fe6 after stripping only fill annotations/coverage/
+version. Previous643-file immutable bundle refuses replacement without mutation
+and is preserved before regeneration;641 files unchanged, only backdrops.json/
+manifest.json change. Standalone/bundle CLI repeats identical/input/exe unchanged;
+project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/quick-fill-inputs/. Source delivery/CI follows
+within this tick. Combined exporter/spec remains started/sol: actual header/image/
+translation/clip selection, fill imports/arenas/spawns/global/opcodes/observed behavior
+remain open. No second slice/new schedule/continuation/release/hardware claim.
