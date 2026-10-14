@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/35"
+VERSION = "event-dump/36"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 46, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
@@ -684,6 +684,69 @@ def annotate_audio(program, banks):
     return program
 
 
+def annotate_value_table_action(record):
+    # This is the original action table, not the expression table or the newer
+    # SDK's opcode order. Conditional inputs do not establish event execution.
+    operations = {3: "set", 4: "subtract", 5: "add"}
+    if (record["role"] != "action" or record["object_type"] != -1
+            or record["opcode"] not in operations):
+        return record
+    operation = operations[record["opcode"]]
+    view = {
+        "operation": operation, "target": "runtime_value_table",
+        "slots": 16, "entry_bytes": 4,
+        "slot_formula": "(low_word_of_index_eax - 1) & 0xF",
+        "operand_transport": "raw_dword_of_operand_eax",
+        "evaluation_order": ["index", "operand", "write"],
+        "expression_wrapper": "parameter_header_plus_6_preserving_record_cursor",
+        "parameter_type_dispatch": False, "operand_tags_checked_by_action": False,
+        "overflow": "wrap_modulo_2_32", "table_meaning": "unknown",
+        "runtime_values": "unknown", "runtime_resolution": False,
+        "assumption": "execution_reaches_enabled_action_with_supported_numeric_parameters",
+        "inputs": {"status": "unsupported_parameter_shape"},
+        "write": {"status": "unresolved"},
+        "evidence": "cnc_runtime_action_table_and_value_table_write_handlers"}
+    record["value_table_action_inputs"] = view
+    parameters = record["parameters"]
+    # The handler ignores parameter types, but interpreting arbitrary payloads
+    # as expressions would exceed the validated storage contract. Other shapes
+    # retain the operation annotation and explicitly unresolved inputs.
+    if len(parameters) != 2 or any(p["type"] != 22 for p in parameters):
+        return record
+    index, operand = [p["expression_storage"]["constant_integer_evaluation"] for p in parameters]
+    inputs = {"status": "two_type22_parameters",
+              "index_parameter_id": parameters[0]["id"],
+              "operand_parameter_id": parameters[1]["id"],
+              "index_parameter_record_offset": 12,
+              "operand_parameter_record_offset": 12 + parameters[0]["bytes"],
+              "index_evaluation": index,
+              "operand_evaluation_if_index_returns": operand}
+    view["inputs"] = inputs
+    if index["status"] == "cpu_exception":
+        view["write"] = {"status": "cpu_exception_before_write", "stage": "index",
+                         "exception_recovery": "unknown"}
+    elif index["status"] == "value":
+        slot = (index["value_raw_u32"] - 1) & 0xF
+        inputs.update({"index_argument_u16": index["value_raw_u32"] & 0xFFFF,
+                       "table_slot_index": slot, "table_byte_offset": slot * 4})
+        if operand["status"] == "cpu_exception":
+            view["write"] = {"status": "cpu_exception_before_write", "stage": "operand",
+                             "exception_recovery": "unknown"}
+        elif operand["status"] == "value":
+            value = operand["value_raw_u32"]
+            view["write"] = {"status": "conditional_numeric_write",
+                             "table_slot_index": slot, "operand_raw_u32": value,
+                             "operand_signed_i32": operand["value_signed_i32"],
+                             "result_formula": {"set": "operand_raw_u32",
+                                                "subtract": "(previous_raw_u32 - operand_raw_u32) modulo 2^32",
+                                                "add": "(previous_raw_u32 + operand_raw_u32) modulo 2^32"}[operation]}
+            if operation == "set":
+                view["write"]["stored_value_raw_u32"] = value
+            else:
+                view["write"]["previous_value"] = "unknown"
+    return record
+
+
 def decode_record(data, role, offset, index):
     header_size = 14 if role == "condition" else 12
     if len(data) < header_size:
@@ -741,10 +804,10 @@ def decode_record(data, role, offset, index):
         cursor += size
     if cursor != len(data):
         raise project.InputError("event parameter count leaves trailing record bytes")
-    return {"id": index, "role": role, "offset": offset, "bytes": len(data),
+    return annotate_value_table_action({"id": index, "role": role, "offset": offset, "bytes": len(data),
             "object_type": word(data, 2, "<b"), "opcode": word(data, 3, "<b"),
             "object_reference": word(data, 4, "<h"), "meaning": "unknown",
-            "header_hex": data[:header_size].hex(), "parameters": parameters}
+            "header_hex": data[:header_size].hex(), "parameters": parameters})
 
 
 def decode_rows(data):
@@ -939,7 +1002,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 35, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 36, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -969,6 +1032,7 @@ def event_document(reader, raw):
                          "expression_random_closed_argument_inputs": True,
                          "expression_value_table_inputs": True,
                          "expression_value_table_closed_argument_inputs": True,
+                         "value_table_action_inputs": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,
@@ -1008,6 +1072,9 @@ def readable_program(program):
                 # JSON quoting keeps arbitrary original names on one text line.
                 names = json.dumps(annotation["candidates"], ensure_ascii=True, sort_keys=True)
                 lines.append(f"        REFERENCE status={annotation['status']} candidates={names}")
+            if "value_table_action_inputs" in record:
+                lines.append("        VALUE_TABLE_ACTION " + json.dumps(
+                    record["value_table_action_inputs"], ensure_ascii=True, sort_keys=True))
             for parameter in record["parameters"]:
                 lines.append(f"        PARAM {parameter['id']} offset={parameter['offset']} "
                              f"bytes={parameter['bytes']} type={parameter['type']} "

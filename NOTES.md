@@ -3367,3 +3367,61 @@ NOTES only; tested source unchanged. No unfinished work/continuation/new schedul
 release/second slice/hardware claim. Combined exporter/spec stays started/sol:
 live state/caller/opcode/global/selection/placement/arenas/spawns/observed
 behaviour remain open.
+
+2026-10-14: Sol tick t_mv84notqw2ptj, one bounded M0 conditional runtime
+value-table write action slice. Clean main/fetched origin, no open PRs/issues or
+unfinished work at start; direct main follows repository convention.
+event-dump/36 schema36 adds value_table_action_inputs for exact system type-1
+ACTION opcodes3=set,4=subtract,5=add. Original signed dispatch426542/table41b27c
+selects42871e/428738/42872b; the subtract/add order is independently proven,
+not borrowed from a newer SDK. Full helper428745 evaluates index then operand
+through42a417/42a42e, preserving record EDI and advancing by first parameter
+length. Slot=(low16 index-1)&F; same DWORD table41d282 as02FF reads. Operand
+transport is full32bits, updates wrap. Exactly two validated type22 parameters
+supply conditional closed-integer inputs; other layouts/dynamic/string/stop-tail
+forms unresolved. Ordered index/operand CPU faults precede table writes; unknown
+index never certifies an operand fault. Set exports a conditional stored DWORD;
+add/sub retain unknown previous value and no final DWORD. Actual event execution,
+row/disabled flags/live table/ownership/names/gameplay remain unresolved,
+runtime_resolution/general opcode/expression semantics false.
+
+Independent absolute source walk checks all9306 records and62 original actions:
+54 set(42 frame/12 global),four frame subtract,four frame add. All indices are
+literal;45 operands literal,17 frame set operands dynamic. Unmodified original
+FF2xmas.exe SHA256 f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f
+runs197946 complete Unicorn2.1.4 action-dispatch/handler/helper/evaluator paths:
+all65536 index words for each operation,675 boundaries,512 seeded contexts,six
+recursive/wrapping cases,135 byte-exact original closed-action runs under three
+synthetic tables,nine CPU faults and an actual rejected wrong-opcode-order probe.
+All690 synthetic exported views match independent values/slots/faults. Exact
+selected table reads/writes,full mapped PE except expected DWORD,input,normal
+EDI/ESP/EAX/lowDX/EBX/ECX/preserved ESI/EBP/128-byte caller stack checked.
+No instruction/import/callback substitutions or dynamic original/live gameplay
+execution. First oracle reused a CPU after IDIV; the next fault did not raise.
+Fresh CPU for each fault and after it fixes the proof setup; initial diagnostic
+retained before the final complete successful run.
+
+Seven new tests cover exact opcode/type/role/layout,slot aliases/signed/high-word
+bounds/full-DWORD operands,variable lengths/prefix/suffix/recursive wrapping,
+ordered faults/dynamic refusal,frame/global text/raw reconstruction,immutable
+bundle repeats,late actual malformed-expression refusal before output/reporting
+and independent original storage. Initial synthetic project replacement omitted
+container-length/address updates; replaced with complete valid containers, and
+late-refusal tests now assert the intended literal-extent error. Thirteen old
+suite assertions only needed schema/version35->36 updates. All442 local tests
+pass with original/pinned KlikBack6e178b9 enabled after negative-control restore;
+subtract/add swap causes183 intended failures in seven executed cases. Source
+restored byte-exact/compileall-f forced before full final positives. Actual
+agent ./node_modules/.bin/tsc --noEmit passes; no agent source/lockfile changed.
+
+Prior original JSON/text equals e2919ca after stripping only new record views/
+coverage/version; all earlier annotations/raw fields/lines retained. Old643-file
+immutable bundle refused replacement without mutation,preserved before rebuild;
+640 files identical,only events.json/events.txt/manifest.json change. Standalone
+JSON/text/bundle CLI repeats identical,input/project/executable unchanged.
+Project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence/restored source/test/docs/roadmap hashes in agent state
+ data/furries/value-table-actions/. Tested push/exact-head CI verification follow
+within this tick. Exporter/spec remains started/sol:live table/caller/other opcodes/
+global/selection/placement/arenas/spawns/observed behaviour open. No second slice/
+new schedule/continuation/release/hardware claim.

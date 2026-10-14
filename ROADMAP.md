@@ -111,6 +111,8 @@
       stops, first-token return cursors and CPU faults with live values unresolved.
 - [x] Runtime-proven closed integer random argument inputs, retaining recursive
       stops, first-token return cursors and CPU faults with live RNG state unresolved.
+- [x] Runtime-proven conditional value-table set/subtract/add action inputs, with
+      shared indexed storage, ordered faults and unresolved live event/table values.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

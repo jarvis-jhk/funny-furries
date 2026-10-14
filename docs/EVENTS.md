@@ -2011,3 +2011,77 @@ by the existing fixture. Previous original JSON/text fields, getter/token views
 and bundle components are retained; only new coverage
 `expression_random_closed_argument_inputs` and exporter/schema version change.
 Original executable, proof scripts, generated exports and assets stay local.
+
+## Conditional runtime value-table writes (v36)
+
+`event-dump/36`, schema36 adds `value_table_action_inputs` to action records of
+exact signed object type -1 and opcodes 3 (set), 4 (subtract), 5 (add). The order
+comes from the original action dispatch, not a newer SDK: `0x426542` loads the
+signed type/opcode bytes, the type -1 entry at `0x41a168` selects `0x41b27c`, and
+entries 3/4/5 select `0x42871e` / `0x428738` / `0x42872b`. Conditions, other types
+and neighbouring opcodes receive no annotation. Existing raw `meaning` remains
+unknown; broad `opcode_semantics`, expression evaluation and runtime resolution
+remain false. The new coverage flag names this supported subset only.
+
+All three handlers call the complete helper `0x428745`. It evaluates the first
+parameter at record+12 through `0x42a417` / `0x42a42e`, decrements AX, masks to
+four bits and preserves the slot. It advances to the second parameter using
+the first parameter's stored length and evaluates that parameter through the
+same wrapper. Evaluation order is index, operand, write. The wrapper starts at
+parameter header+6 and preserves the record cursor. These handlers bypass
+parameter-type dispatch and do not check the returned operand tags. This slice
+only interprets exactly two validated type22 parameters with closed numeric
+expressions; all other parameter shapes retain unresolved inputs. Prefix and
+opaque suffix bytes do not become operands or change the second parameter's
+record offset.
+
+A proven index gives low16 `index_argument_u16`, slot `(index - 1) & 0xF` and
+DWORD byte offset. Zero selects slot15; 17 aliases1. The same fixed16-slot table
+at `0x41d282` is read by the previously documented02FF expression handler. This
+establishes the shared runtime storage address, not its initialisation, lifetime,
+editor names, ownership or gameplay role. The second expression's complete raw
+DWORD is retained; it is not truncated to a WORD. Set writes it directly;
+subtract/add read the previous DWORD and wrap the result modulo2^32.
+
+`inputs` retains parameter IDs/record-relative offsets and both existing closed
+integer evaluation records. `operand_evaluation_if_index_returns` is conditional:
+an unknown index may fault or take an unsupported path. A proven index CPU fault
+has stage `index`; a proven normal index followed by an operand CPU fault has
+stage `operand`. Both become `cpu_exception_before_write`, with unknown recovery
+and no conditional stored result. Unknown/dynamic/string/incomplete expressions
+keep `write.status` unresolved. A dynamic tail also prevents an apparent earlier
+arithmetic fault from certifying a runtime fault. The current closed evaluator
+refuses top-level stop/tail forms; this slice does not expand expression grammar.
+
+Two proven numeric inputs give `conditional_numeric_write`, retaining the slot,
+raw/signed operand and result formula. Set additionally exposes the conditional
+stored DWORD. Add/subtract retain `previous_value: unknown` and export no final
+DWORD. Every annotation requires reaching this enabled action with supported
+numeric parameters; row conditions, disabled-action flags, actual table contents,
+call order and containing gameplay are not evaluated. No event is claimed to run
+merely because its storage contains a recognised opcode.
+
+Independent absolute source traversal finds62 original actions:54 set (42 frame,
+12 global), four frame subtract and four frame add. All indices are literals;
+45 operands are literal and17 frame set operands are dynamic. All9306 event
+records are traversed independently. Original raw bytes and every earlier
+annotation/text line are preserved; readable output adds one VALUE_TABLE_ACTION
+line per recognised record. Unsupported shapes stay explicit, existing strict
+malformed-input refusal and optional detached private fault reporting unchanged.
+Original assets, executable, generated exports and private proof scripts are
+never committed.
+
+Private Unicorn2.1.4 proof executes197946 complete unmodified original action
+paths: all65536 index words for each operation,675 signed/high-word index and
+DWORD operand boundaries,512 seeded table contexts,six recursive/wrapping
+parameter cases,135 byte-exact runs of all45 original closed actions under three
+synthetic tables, nine ordered IDIV faults and one rejected wrong-opcode-order
+expectation. All690 exported synthetic boundary/recursive/fault views agree
+with the independent oracle. Normal paths include original signed action
+dispatch, both complete expression wrappers, evaluator and final memory write;
+EDI/ESP, EAX/lowDX, EBX/ECX, preserved ESI/EBP,128-byte caller stack, exact table
+reads/writes, unchanged input and complete mapped PE except the expected DWORD
+are checked. Faults occur before any table access; fresh CPUs are used for faults
+and after them. No instruction/import/callback substitutions or dynamic original
+operand, live table, row-condition or gameplay execution. Executable SHA256 is
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`.
