@@ -2878,3 +2878,15 @@ manifest.json change. Old immutable bundle refused replacement without mutation,
 preserved before regeneration. Standalone JSON/text/bundle CLI repeats identical;
 input/executable unchanged,project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
 Saved source/test/docs/roadmap hashes match final restored/tested files.
+
+Delivery: tested source53070c95559b4f089b67aa5b061b661c2e7b4e3c pushed main;
+CI38538911812 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38538911812 . Downloaded
+job115768544593 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and384 tests (336 pass/48 local-original fixtures skipped).
+All384 passed locally with the original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in data/furries/fixed-value-getters/. This delivery edit changes
+NOTES only; tested source unchanged. No unfinished work/continuation/new schedule/
+release/second slice/hardware claim. Combined exporter/spec stays started/sol:
+actual caller/opcode/global/selection semantics,arenas/spawns/observed behaviour open.
