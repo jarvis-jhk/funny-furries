@@ -3129,3 +3129,16 @@ Tested source push/exact-head CI verification follow within this tick.
 Exporter/spec stays started/sol:caller/opcode/global/selection/placement/arena/
 spawn/observed behaviour remain open. No second slice/new schedule/continuation/
 release/hardware claim.
+
+Delivery: tested sourcedb9ab6d85183ebb7cfb30d31f084e44f1eedd596 pushed main;
+CI38561717736 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38561717736 . Downloaded
+job115844156245 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and413 tests (361 pass/52 local-original fixtures skipped).
+All413 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision/commit tree.
+Evidence/CI snapshots/job log in data/furries/expression-random/. This delivery
+edit changes NOTES only; tested source unchanged. No unfinished work/continuation/
+new schedule/release/second slice/hardware claim. Combined exporter/spec stays
+started/sol:live state/caller/opcode/global/selection/placement/arenas/spawns/
+observed behaviour remain open.
