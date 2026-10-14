@@ -2940,3 +2940,15 @@ Saved source/test/docs/roadmap hashes and runtime/negative/compatibility/test/
 typecheck evidence in data/furries/type45-getters/. Tested source push/exact-head
 CI verification follow within this tick; exporter/spec remains started/sol.
 No second slice/new schedule/continuation/release/hardware claim.
+
+Delivery: tested sourcedf37e10b08af17633d24d8712c6b226536439135 pushed main;
+CI38540034751 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38540034751 . Downloaded
+job115772226538 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and393 tests (344 pass/49 local-original fixtures skipped).
+All393 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in data/furries/type45-getters/. This delivery edit changes NOTES
+only; tested source unchanged. No unfinished work/continuation/new schedule/release/
+second slice/hardware claim. Combined exporter/spec stays started/sol:actual caller/
+opcode/global/selection semantics,arenas/spawns/observed behaviour remain open.
