@@ -119,6 +119,8 @@
       opaque headers/unused parameters and unresolved live condition/row results.
 - [x] Runtime-proven conditional group-action row-flag write inputs and signed
       link traversal, preserving stored offsets and unresolved live targets/activation.
+- [x] Runtime-proven conditional group-flag condition inputs and header-bit carry
+      returns, preserving runtime offsets and unresolved live row/group selection.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

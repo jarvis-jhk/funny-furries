@@ -3650,3 +3650,54 @@ edit changes NOTES only; tested source unchanged. No unfinished work/continuatio
 new schedule/release/second slice/hardware claim. Combined exporter/spec stays
 started/sol:live rows/activation/other opcodes/global/selection/placement/arenas/
 spawns/observed behaviour remain open.
+
+2026-10-14: Sol tick t_mv875pfq140poa, one bounded M0 conditional runtime
+ group-flag condition slice. Clean main/fetched origin, no open PRs/issues or
+unfinished work at start; direct main follows repository convention.
+event-dump/40 schema40 adds group_flag_condition_inputs only to exact system
+CONDITION type-1/opcode-12. Original nonzero-ESI signed dispatch4263a7/table
+41b244 selects4287c4:full DWORD condition+18 plus runtime base41c7e6 with32bit
+wrap, then tests bit14 of row+4 WORD. One validated type39 parameter supplies
+the offset; other shapes explicitly unsupported. Action+16 is not this input.
+Editor key/title/suffix are not used. Set bit14 selects428d34:return header+9
+bit0 in carry; clear bit14 selects428d3a:XOR byte1 then SHR, complementing
+that carry. Both conditional returns and raw header byte exported; incoming
+carry irrelevant, no row write/traversal. Actual row/base/flags/carry/condition/
+row result, ESI-zero path, editor selection/activation/loader/gameplay remain
+unknown; runtime_resolution/general opcode/parameter/evaluation semantics false.
+Existing optional private detached unexpected-fault reporter unchanged; ordinary
+malformed inputs still exit2 without output/reporting.
+
+Independent raw source traversal checks9306 records and44 original conditions:
+40 frame/four global, all one type39 parameter. Unmodified original FF2xmas.exe
+SHA256f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f
+executes67249 complete Unicorn2.1.4 dispatch/handler paths:65536 all16bit row
+flags,1024 all header bytes/both bit14 states/both entry carries,512 seeded
+wrapping offsets/editor keys/tails,176 byte-exact original/synthetic-row paths,
+one rejected wrong positive-bit interpretation. Exact reads/writes,full mapped
+PE except supplied runtime base/dispatcher scratch,input,row buffer,144byte
+return stack/registers checked. No instruction/import/callback substitutions,
+live group selection or gameplay proof; original input/executable unchanged.
+
+Seven new cases cover exact signed role/type/opcode gates,all header bytes,
+full DWORD condition offset,unsupported layouts/strict validation,frame/global
+readable lossless reconstruction,immutable/repeat bundles,late malformed refusal
+before output/report and independent original traversal. Swapped conditional-
+carry mutant fails two intended assertions in seven executed cases; restored
+byte-exact and compileall-f forced before final positives. All469 local tests
+pass with original/pinned KlikBack6e178b9 enabled; actual agent
+./node_modules/.bin/tsc --noEmit passes. Nine old test files only update explicit
+schema/version expectations39->40; no agent source/lockfile changed.
+
+Prior original JSON/text equals2da2aa2 after stripping only new record views/
+coverage/version; all previous annotations/raw fields/text lines retained.
+Old643-file immutable bundle refused replacement without mutation,preserved
+before rebuild;640 files identical,only events.json/events.txt/manifest.json
+change. Standalone JSON/text/bundle CLI repeats identical,input unchanged.
+Project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Saved source/test/docs/roadmap hashes,proof/logs in agent state
+ data/furries/group-flag-conditions/. Tested push/exact-head CI verification
+follows within this tick. Combined exporter/spec stays started/sol:live rows/
+activation/other opcodes/global/selection/placement/arenas/spawns/behaviour open.
+No second slice/new schedule/continuation/release/hardware claim; no assets,
+executable,proof scripts,generated data or private endpoint committed/published.

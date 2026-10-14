@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 39 and `exporter` is `event-dump/39`.
+  fingerprints. `schema_version` is 40 and `exporter` is `event-dump/40`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -2254,3 +2254,57 @@ and independent original source traversal. Optional private unexpected-fault
 reporting is unchanged; malformed user inputs still exit2 before output or
 reporting. The original PE, project, media, runtime proof scripts and generated
 exports remain local and uncommitted.
+
+
+## Conditional runtime group-flag condition inputs
+
+`event-dump/40`, schema40 adds `group_flag_condition_inputs` only to exact
+system CONDITION type-1/opcode-12. The coverage flag names this conditional
+handler input contract; general opcode/parameter semantics, global resolution,
+expression evaluation and behaviour remain false.
+
+The original nonzero-ESI signed condition dispatch at `0x4263a7` uses table
+`0x41b244`; entry-12 selects `0x4287c4`. It reads the full DWORD at condition
+record+18 (one type39 parameter's payload+0), adds runtime base DWORD `0x41c7e6`
+with 32-bit wrap, and tests bit14 (`0x4000`) of the target row's WORD at row+4.
+This condition offset differs from the action record+16 offset. Exactly one
+validated type39 parameter exposes the stored offset; other parameter layouts
+have `unsupported_parameter_shape` and no inferred target. The handler does
+not dispatch on the parameter type or read its editor key/opaque suffix.
+Zero offsets are retained; source row offsets and matching editor titles do
+not supply runtime row addresses.
+
+When bit14 is set, `0x428d34` reads header byte+9 and shifts it right by one,
+returning its original bit0 in carry. When bit14 is clear, `0x428d3a` first XORs
+that byte with1, then shifts it right. Thus conditional carry is
+`(not bool(runtime_row_flags_u16 & 0x4000)) xor bool(header_byte_9 & 1)`.
+All other header bits are irrelevant to carry, although AL receives the shifted
+byte; the other EAX bytes retain the dispatcher opcode bits. Both conditional
+branch carries and the original header byte are exported. Incoming carry is
+not preserved. The handler reads one runtime row, writes no row flags, and
+performs no row traversal. The surrounding dispatcher still clears its own
+DWORD `0x41cbbe` and calls through the normal stack.
+
+Actual row/base/flags, return carry, condition/row result, ESI-zero dispatch,
+loader relocation, editor group selection, activation and gameplay remain
+unresolved (`runtime_resolution=false`). The stored header control bit is a
+transport fact; this export does not assert an editor checkbox interpretation.
+Readable events add `GROUP_FLAG_CONDITION` lines while retaining every prior
+record/parameter byte and annotation.
+
+Independent source traversal checks all9306 original records and finds44 exact
+conditions:40 frame/four global, all with one type39 parameter. Local private
+Unicorn proof executes the complete unmodified original dispatcher/handler,
+checking every16bit row flag, every header byte under both bit14 states and
+incoming carries, seeded wrapping offsets/editor keys/opaque tails, and all44
+original byte-exact records against synthetic runtime rows. It checks exact
+reads/writes, full mapped PE apart from supplied runtime base/dispatcher scratch,
+input, runtime rows, stack and registers. There are no instruction/import/
+callback substitutions and no live group selection or gameplay claim. Original
+executable, oracle scripts and generated exports stay local and uncommitted.
+
+Tests cover exact signed role/type/opcode gates, all header bytes, full DWORD
+condition offset, unsupported parameter shapes, strict validation, frame/global
+readable lossless reconstruction, immutable/repeat bundles and late malformed
+input refusal before output or fault reporting. A swapped conditional-carry
+negative control must fail executed assertions before final restoration.

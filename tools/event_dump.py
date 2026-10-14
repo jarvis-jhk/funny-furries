@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/39"
+VERSION = "event-dump/40"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 46, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
@@ -866,6 +866,47 @@ def annotate_group_flag_action(record):
     return record
 
 
+
+def annotate_group_flag_condition(record):
+    # The row offset is runtime-relative. Editor title/key matches cannot supply
+    # its flags; the returned carry also depends on one stored header bit.
+    if (record["role"] != "condition" or record["object_type"] != -1
+            or record["opcode"] != -12):
+        return record
+    header = bytes.fromhex(record["header_hex"])
+    view = {
+        "status": "conditional_runtime_row_flag_test",
+        "runtime_resolution": False,
+        "assumption": "nonzero_esi_system_dispatch_reaches_handler_with_valid_runtime_row",
+        "inputs": {"status": "unsupported_parameter_shape"},
+        "row_flags": {"row_byte_offset": 4, "bits": 16,
+                      "test_mask_raw_u16": 0x4000, "value": "unknown"},
+        "header_control": {"record_byte_offset": 9, "raw_u8": header[9],
+                           "return_control_mask_raw_u8": 1,
+                           "return_control_bit": header[9] & 1},
+        "conditional_return": {
+            "row_bit_14_clear_carry": not bool(header[9] & 1),
+            "row_bit_14_set_carry": bool(header[9] & 1),
+            "formula": "(not bool(runtime_row_flags_u16 & 0x4000)) xor bool(header_byte_9 & 1)",
+            "row_flags_written": False, "runtime_row_traversal": False},
+        "target_row": "unknown", "return_carry": None, "condition_result": None,
+        "row_result": None, "editor_group_selection": "unresolved",
+        "activation_semantics": "unknown",
+        "evidence": "cnc_system_condition_minus_12_row_flag_and_header_bit_handler"}
+    parameters = record["parameters"]
+    if len(parameters) == 1 and parameters[0]["type"] == 39:
+        stored = parameters[0]["group_parameter_storage"]
+        view["inputs"] = {
+            "status": "stored_runtime_offset",
+            "offset_record_byte_offset": 18, "offset_payload_byte_offset": 0,
+            "target_offset_raw_u32": stored["runtime_raw_u32"],
+            "runtime_base": "unknown",
+            "target_address_formula": "(runtime_base + target_offset_raw_u32) modulo 2^32",
+            "editor_key_used_by_handler": False, "parameter_type_dispatch": False}
+    record["group_flag_condition_inputs"] = view
+    return record
+
+
 def decode_record(data, role, offset, index):
     header_size = 14 if role == "condition" else 12
     if len(data) < header_size:
@@ -923,10 +964,10 @@ def decode_record(data, role, offset, index):
         cursor += size
     if cursor != len(data):
         raise project.InputError("event parameter count leaves trailing record bytes")
-    return annotate_group_flag_action(annotate_constant_condition(annotate_value_table_condition(annotate_value_table_action({"id": index, "role": role, "offset": offset, "bytes": len(data),
+    return annotate_group_flag_condition(annotate_group_flag_action(annotate_constant_condition(annotate_value_table_condition(annotate_value_table_action({"id": index, "role": role, "offset": offset, "bytes": len(data),
             "object_type": word(data, 2, "<b"), "opcode": word(data, 3, "<b"),
             "object_reference": word(data, 4, "<h"), "meaning": "unknown",
-            "header_hex": data[:header_size].hex(), "parameters": parameters}))))
+            "header_hex": data[:header_size].hex(), "parameters": parameters})))))
 
 
 def decode_rows(data):
@@ -1121,7 +1162,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 39, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 40, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -1155,6 +1196,7 @@ def event_document(reader, raw):
                          "value_table_condition_inputs": True,
                          "constant_condition_returns": True,
                          "group_flag_action_inputs": True,
+                         "group_flag_condition_inputs": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,
@@ -1203,6 +1245,9 @@ def readable_program(program):
             if "constant_condition_return" in record:
                 lines.append("        CONSTANT_CONDITION_RETURN " + json.dumps(
                     record["constant_condition_return"], ensure_ascii=True, sort_keys=True))
+            if "group_flag_condition_inputs" in record:
+                lines.append("      GROUP_FLAG_CONDITION " + json.dumps(
+                    record["group_flag_condition_inputs"], ensure_ascii=True, sort_keys=True))
             if "group_flag_action_inputs" in record:
                 lines.append("        GROUP_FLAG_ACTION " + json.dumps(
                     record["group_flag_action_inputs"], ensure_ascii=True, sort_keys=True))

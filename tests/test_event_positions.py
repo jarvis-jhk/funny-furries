@@ -131,7 +131,7 @@ class PositionContainerTests(unittest.TestCase):
         lines = [s for s in events.readable(doc).splitlines() if s.startswith('          POSITION_REFERENCES ')]
         self.assertEqual(len(lines), 20)
         self.assertIn('first\\n\\"name\\"', lines[0])
-        self.assertEqual(doc['schema_version'], 39)
+        self.assertEqual(doc['schema_version'], 40)
         self.assertTrue(doc['coverage']['position_reference_storage'])
         self.assertFalse(doc['coverage']['parameter_semantics'])
         self.assertFalse(doc['coverage']['global_reference_resolution'])
