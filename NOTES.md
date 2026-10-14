@@ -1956,3 +1956,15 @@ Evidence: agent state data/furries/backdrop-dimensions/; source delivery/CI foll
 within this tick. Combined exporter/spec stays started/sol: arena geometry/spawns,
 global/actual creation/selection/opcode/observed behaviour remain open.
 No second slice, new schedule/continuation/release or hardware claim.
+
+Delivery: tested source2ad089bc5d84decfad9e95f7a9b612931eb0d2bb pushed main;
+CI38498380080 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38498380080 . Downloaded
+job115639262052 log verifies actual source/pinned-reader checkout outputs,
+Python3.10, compileall and272 tests (238 pass/34 local-original skips).
+All272 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in agent state data/furries/backdrop-dimensions/. This delivery
+edit changes Markdown only; tested source unchanged. No unfinished implementation,
+continuation/new schedule/release/second slice; combined exporter/spec remains
+started/sol, full header selection/arena collision/spawns/observed behaviour open.
