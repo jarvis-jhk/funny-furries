@@ -123,10 +123,20 @@
       returns, preserving runtime offsets and unresolved live row/group selection.
 - [x] Runtime-proven conditional current-row bit test-and-set capability, preserving
       both carries/conditional writes and unresolved live row/bit lifecycle; original instances absent.
-- [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
+- [x] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
+      Closed 2026-10-14 (Jan: the steps were far too small for a simple game). Images, sounds,
+      animations, backdrops and readable events are exported; that is enough to build M1.
+
+**Direction (Jan, 2026-10-14):** no more byte-level reverse engineering for its own sake. No
+emulator-proven slices of single evaluator handlers. Remaining semantics (arena geometry,
+spawns, movement constants, weapons) are worked out on demand while building the engine:
+read the exported events, look at the decompiled project, compare with the running original.
+Work in big steps: one session should move a whole milestone item forward, not one detail.
 
 ## M1 — One arena 1v1
+Done when: one arena plays 1v1 on keyboard + two controllers and feels like the original.
+Aim for this in two or three large sessions.
 - [ ] SDL2 engine plays one arena 1 vs 1 like the original (same jumps, trajectories, weapons),
       fixed tick, deterministic, keyboard + two controllers.
 

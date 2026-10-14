@@ -1,5 +1,13 @@
 # Notes
 
+**2026-10-14 — direction change (Jan, t_mv8apsn318lf2j):** the M0 exporter is closed. ~60 sessions
+went into proving single Click & Create evaluator handlers byte by byte; for a game this simple that
+is overhead, not progress. M0 already gives images, sounds, animations, backdrops and readable
+events — enough for M1. From now on: build the SDL2 engine (M1 1v1 arena) in large steps, and
+answer open behaviour questions (geometry, spawns, physics constants, weapons) only when the engine
+needs them, from the exported events, the decompiled project and the running original. Do not
+add further `Runtime-proven …` exporter slices. The detailed log below is history.
+
 2026-10-13: repo and lane created (JARVIS adhoc, t_mv5tuz6swmao5). Nothing implemented yet.
 
 2026-10-13: Sol tick t_mv69hxqvbzzg5, first bounded M0 slice: project index v1
