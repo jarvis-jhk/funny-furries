@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/34"
+VERSION = "event-dump/35"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 46, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
@@ -172,9 +172,8 @@ def decode_expression(payload):
 
 
 def annotate_random_inputs(tokens):
-    # The helper restores the argument-start cursor. Only the adjacent literal
-    # followed by an evaluator stop has a complete, independently proven view;
-    # neither a flat tail nor a guessed function grammar establishes its input.
+    # A proven argument value supplies the low-word bound, never live RNG state
+    # or the enclosing expression result. Keep the legacy literal view intact.
     for index, token in enumerate(tokens):
         if token["code_raw_u16"] != 0x01FF:
             continue
@@ -202,6 +201,42 @@ def annotate_random_inputs(tokens):
                 "rng_argument_u16": value["value_raw_u32"] & 0xFFFF,
                 "dispatch_return_cursor": "unconsumed_stop_token"}
         token["random_inputs"] = annotation
+        if annotation["argument"]["status"] != "unsupported_shape":
+            continue
+        # The wrapper restores the first argument token, even after evaluating
+        # a longer expression. Preserve that distinct outer-dispatch cursor;
+        # a proven argument value does not evaluate its enclosing expression.
+        depth = 0
+        for cursor in range(index + 1, len(tokens)):
+            code = tokens[cursor]["code_raw_u16"]
+            if code == integer_constants.RECURSIVE:
+                depth += 1
+            elif code in integer_constants.STOPS:
+                if depth:
+                    depth -= 1
+                    continue
+                argument_tokens = tokens[index + 1:cursor]
+                result = integer_constants.evaluate(argument_tokens)
+                if result["status"] not in ("value", "cpu_exception"):
+                    break
+                argument = {
+                    "status": "closed_integer_and_stop" if result["status"] == "value"
+                              else "cpu_exception",
+                    "assumption": "execution_reaches_this_token_as_numeric_operand",
+                    "token_ids": [t["id"] for t in argument_tokens],
+                    "stop_token_id": tokens[cursor]["id"],
+                    "evaluation": result}
+                if result["status"] == "value":
+                    first = argument_tokens[0]
+                    low_word = result["value_raw_u32"] & 0xFFFF
+                    argument.update({
+                        "value_raw_u32": result["value_raw_u32"],
+                        "value_signed_i32": result["value_signed_i32"],
+                        "rng_argument_u16": low_word,
+                        "dispatch_return_cursor": "after_first_argument_token",
+                        "dispatch_return_payload_offset": first["payload_offset"] + first["bytes"]})
+                annotation["argument"] = argument
+                break
 
 
 def annotate_value_table_inputs(tokens):
@@ -904,7 +939,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 34, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 35, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -931,6 +966,7 @@ def event_document(reader, raw):
                          "type45_expression_getter_inputs": True,
                          "type46_expression_getter_inputs": True,
                          "expression_random_inputs": True,
+                         "expression_random_closed_argument_inputs": True,
                          "expression_value_table_inputs": True,
                          "expression_value_table_closed_argument_inputs": True,
                          "expression_evaluation": False,

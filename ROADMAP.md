@@ -109,6 +109,8 @@
       wrapping/conditional slots and unresolved live contents/table meanings.
 - [x] Runtime-proven closed integer value-table argument inputs, retaining recursive
       stops, first-token return cursors and CPU faults with live values unresolved.
+- [x] Runtime-proven closed integer random argument inputs, retaining recursive
+      stops, first-token return cursors and CPU faults with live RNG state unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

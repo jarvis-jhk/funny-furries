@@ -1955,3 +1955,59 @@ behaviour. Previous original annotations/readable lines remain unchanged; only
 coverage `expression_value_table_closed_argument_inputs` and version change.
 Strict malformed-token refusal and detached optional private fault reporting
 are unchanged. No original executable, assets or proof scripts are committed.
+
+## Closed integer random arguments (v35)
+
+`event-dump/35`, schema35 extends `random_inputs.argument` beyond the preserved
+literal+stop view. A stored top-level FEFF/FDFF bounds a closed numeric argument;
+the existing runtime-proven integer evaluator supplies wrapping arithmetic,
+prefix negation and recursive operands. Both recursive stops are supported.
+The first top-level stop ends the argument; following tokens and opaque suffix
+bytes do not supply operands or a missing stop. Dynamic, string, incomplete or
+unsupported forms remain `unsupported_shape`, including a dynamic tail after
+apparently faulting arithmetic. This does not define general function grammar.
+
+A normal `closed_integer_and_stop` view retains argument/stop token IDs, the
+integer evaluation, signed/raw32-bit result and `rng_argument_u16` (low16 bits).
+The original random handler `0x42882a` uses the complete wrapper `0x42a424` /
+evaluator `0x42a42e`, then RNG helper `0x421991`; high argument bits are discarded.
+The previously documented16-bit transition/scaling still applies, including a
+state advance for a computed bound0. Actual state, seeding, call order and the
+random result remain unknown; no result is exported and `runtime_resolution`
+and general `expression_evaluation` remain false.
+
+The wrapper restores argument-start EDI. The outer dispatcher `0x42a474` then
+advances only by that first argument token's extent, even after evaluating a
+longer argument. New views expose `dispatch_return_cursor` as
+`after_first_argument_token` and `dispatch_return_payload_offset`. For `1+16`,
+the cursor points at plus; for a prefix sign or recursive token it advances4
+bytes. This argument view never certifies an enclosing expression's result or
+its full parse cursor. Existing `adjacent_integer_literal_and_stop` views and
+all their fields remain byte-for-byte unchanged.
+
+Proven INT32_MIN divided/remaindered by -1 is `cpu_exception` with its evaluator
+fault record. It has no low-word bound, random result or normal-return cursor.
+Original instruction execution faults before the RNG helper mutates state;
+exception recovery remains unknown. No fault is inferred for an unsupported
+whole argument. Strict malformed-token validation precedes JSON/text/bundle
+output and the existing detached optional private fault reporter is unchanged.
+
+The private Unicorn2.1.4 oracle executes the unmodified original dispatcher,
+argument wrapper/evaluator, arithmetic and RNG helper:1487 independently
+calculated argument cases, both top-level stops, both recursive stops, wrapping/
+priority/association/prefix/nesting boundaries and512 seeded arithmetic pairs.
+2974 exported argument views agree with independent values/bounds/cursors or
+fault-only shapes. 5949 instruction-path executions pass, including eight IDIV
+faults, with fresh CPUs/state contexts. Normal runs check EAX/tag/cursor/ESP,
+EBX/ECX, preserved ESI/EBP and128-byte return stack; all runs check full mapped PE
+with only the expected state WORD changed and unchanged input. RNG writes are
+checked separately and faults leave state unchanged. A wrong full-argument
+cursor expectation is rejected. No instruction/import/callback substitutions,
+actual live RNG state, containing-expression, caller or gameplay execution.
+
+All39 original random references remain literal-only: this expands capability,
+not decoded original gameplay. Independent original traversal remains covered
+by the existing fixture. Previous original JSON/text fields, getter/token views
+and bundle components are retained; only new coverage
+`expression_random_closed_argument_inputs` and exporter/schema version change.
+Original executable, proof scripts, generated exports and assets stay local.

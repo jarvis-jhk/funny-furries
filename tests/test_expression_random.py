@@ -49,10 +49,8 @@ class RandomInputTests(unittest.TestCase):
             with self.assertRaises(project.InputError):
                 events.decode_expression(expression([token(0x1FF, extent)]))
 
-    def test_dynamic_recursive_compound_missing_argument_and_suffix_stay_unresolved(self):
+    def test_dynamic_incomplete_missing_argument_and_suffix_stay_unresolved(self):
         tails = [[], [token(0xFF, bytes(4))], [token(0x3FF, b'x\0'), token(0xFEFF)],
-                 [token(0xFF, bytes(4)), token(0x200), token(0xFF, bytes(4)), token(0xFEFF)],
-                 [token(0xFFFF), token(0xFF, bytes(4)), token(0xFEFF), token(0xFDFF)],
                  [token(0x1FF), token(0xFEFF)]]
         for tail in tails:
             raw = expression([token(0x1FF), *tail], suffix=token(0xFF, bytes(4)) + token(0xFEFF))

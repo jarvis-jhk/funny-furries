@@ -3287,3 +3287,69 @@ changes NOTES only; tested source unchanged. No unfinished work/continuation/new
 schedule/release/second slice/hardware claim. Combined exporter/spec stays
 started/sol:live state/caller/opcode/global/selection/placement/arenas/spawns/
 observed behaviour remain open.
+
+2026-10-14: Sol tick t_mv84atb5uc2e1, one bounded M0 closed integer random
+argument input slice. Clean main/fetched origin, no open PRs/issues or unfinished
+work at start; direct main follows repository convention. event-dump/35 schema35
+extends random_inputs only beyond the preserved adjacent-literal view: closed
+numeric arithmetic/prefix/recursive arguments bounded by stored top-level FEFF/
+FDFF. Existing proven integer evaluation supplies conditional signed/raw32 value,
+low16 RNG bound and token IDs. CPU IDIV faults have no bound/value/normal cursor;
+unsupported/dynamic/string/incomplete arguments remain unresolved, including a
+dynamic tail after apparent faulting arithmetic. Opaque suffix cannot supply a
+stop. Existing whole-expression evaluation still refuses random; actual state,
+seeding/call order/caller/containing expression/gameplay remain unknown and
+runtime_resolution/general expression_evaluation false.
+
+Unmodified dispatcher42a474/handler42882a/wrapper42a424/evaluator42a42e restores
+argument-start EDI then advances only its FIRST token's extent. New normal views
+retain after_first_argument_token/payload offset, not the full argument cursor.
+Helper421991 transports low16 EAX, updates state16 at41c8ce and scales as before;
+computed bound0 still advances state. Existing literal views and earlier table/
+getter/raw/token fields remain unchanged. Strict malformed-token validation and
+optional detached private unexpected-fault reporter preserved; late malformed
+integer extent exits2 before JSON/text/bundle writes/reporting. No assets,
+executable, proof scripts or private endpoint committed/published.
+
+Independent Unicorn2.1.4 proof executes5949 complete unmodified original
+instruction paths against FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+1487 arithmetic/wrapping/priority/association/prefix/recursive/nested cases,
+both top-level/recursive stops and512 seeded arithmetic pairs. All2974 exported
+views match independent values/bounds/cursors or fault shapes. Eight IDIV faults
+occur before RNG state mutation; fresh CPU per run, no recovery claimed. Normal
+EAX/DX/EDI/ESP/EBX/ECX/preserved ESI/EBP/128-byte stack and all-run full PE/input
+checks pass, with only the expected state WORD written. Wrong full-argument
+cursor rejected. No instruction/import/callback substitutions or actual live
+RNG state/containing-expression/gameplay execution. First emulator run copied
+the value-table handler's EBX high-word expectation; corrected to the actual
+random path's zero EBX using original instructions, diagnostic retained before
+final complete proof. Initial parser test used absent build/klikback/src;
+rerun with the actual pinned external reader path succeeds.
+
+Seven new cases cover low-word/wrapping boundaries, recursion/prefix/cursor,
+fault/unsupported shapes, exact legacy preservation, both roles/scopes/all
+expression types, text/lossless reconstruction/bundle repeats and late refusal.
+Existing unsupported random fixtures now exclude newly proven closed forms.
+All435 local tests passed with original/pinned KlikBack6e178b9 enabled before
+negative control. Closed bound FFFF->7FFF control fails nine intended assertions
+in seven executed cases; source restored byte-exact/compileall-f forced before
+final positives. Actual agent ./node_modules/.bin/tsc --noEmit passes; no agent
+source/lockfile changed. Final full positives/compatibility/push/exact-head CI
+verification follow within this tick. Evidence in agent state
+ data/furries/random-arguments/. Exporter/spec remains started/sol:live state,
+caller/opcode/global/selection/placement/arenas/spawns/observed behaviour open.
+No second slice/new schedule/continuation/release/hardware claim.
+
+Final validation: all435 local tests pass with original enabled after source
+restoration; duplicate assertion-key cleanup then passes all seven affected
+cases and forced compileall. Prior original JSON/text equals20f22d3 after
+stripping only new coverage/version; all39 original random references remain
+literal-only, so this is capability expansion. Old643-file immutable bundle
+refused replacement without mutation,preserved before regeneration;640 files
+identical, only events.json/events.txt/manifest.json change. Standalone JSON/
+text/bundle CLI repeats byte-identical,input/executable unchanged. Project SHA256
+remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Saved source/test/docs/roadmap hashes match final tested files. Tested push and
+exact-head CI verification follow within this tick; no second slice/new schedule/
+continuation/release/hardware claim.
