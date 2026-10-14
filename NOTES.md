@@ -2276,3 +2276,16 @@ Evidence: agent state data/furries/quick-fill-inputs/. Source delivery/CI follow
 within this tick. Combined exporter/spec remains started/sol: actual header/image/
 translation/clip selection, fill imports/arenas/spawns/global/opcodes/observed behavior
 remain open. No second slice/new schedule/continuation/release/hardware claim.
+
+Delivery: tested source78323a0f4f364c4cac915f800f987efa16f84091 pushed main;
+CI38502835025 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38502835025 . Downloaded
+job115653522409 log verifies actual source/pinned-reader checkout outputs,
+Python3.10, compileall and312 tests (273 pass/39 local-original fixtures skipped).
+All312 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in agent state data/furries/quick-fill-inputs/. This delivery
+edit changes NOTES only; tested source unchanged. No unfinished implementation,
+continuation/new schedule/release/second slice; combined exporter/spec remains
+started/sol, actual selection/fill imports/arena collision/spawns/global/opcode/
+observed behavior remain open.
