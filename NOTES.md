@@ -2549,3 +2549,15 @@ events.txt/manifest.json change. Standalone JSON/text/bundle CLI repeats identic
 input/executable unchanged. Project SHA256 remains
 98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
 Tested source delivery and exact-head CI verification follow within this tick.
+
+Delivery: tested source4c17fa19051de6ea3008b009e3844a7d5b41fa5d pushed main;
+CI38527462996 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38527462996 . Downloaded
+job115731096381 log verifies actual source/pinned-reader checkout outputs,
+Python3.10, compileall and344 tests (301 pass/43 local-original fixtures skipped).
+All344 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in agent state data/furries/scalar-getters/. This delivery edit
+changes NOTES only; tested source unchanged. No unfinished work/continuation/
+new schedule/release/second slice; combined exporter/spec stays started/sol:
+actual opcode/caller/global semantics, arenas/spawns/observed behaviour open.
