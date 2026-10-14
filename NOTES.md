@@ -2890,3 +2890,53 @@ snapshots/job log in data/furries/fixed-value-getters/. This delivery edit chang
 NOTES only; tested source unchanged. No unfinished work/continuation/new schedule/
 release/second slice/hardware claim. Combined exporter/spec stays started/sol:
 actual caller/opcode/global/selection semantics,arenas/spawns/observed behaviour open.
+
+2026-10-14: Sol tick t_mv7vq3mritw0l, one bounded M0 type45 expression
+parameter-getter slice. Clean main/fetched origin,no open PRs/issues or unfinished
+work at start; direct main follows repository convention. event-dump/29 schema29
+adds exact type45_getter_storage,both roles/scopes. Original dispatch42775f/table
+41af64 entry45 ->427788 calls full wrapper42a417/evaluator42a42e starting at
+parameter6/payload2,ignoring prefix. Normal return EAX/DX=evaluator result/tag,
+BX0/carry0. Exact lone03FF string returns unknown parameter address+10/DX1 with
+bounded literal bytes; no resolved pointer/encoding/filesystem/caller meaning.
+Closed proven integers return EAX/DX0,CPU faults no normal return,recovery unknown.
+Compound/recursive/dynamic strings/empty shapes unresolved. All seven originals
+(five action/two condition,frame-local) independently verified from source bytes;
+all general/live semantics remain false. Type22/23/scalar views unchanged,
+adjacent46 unannotated. Existing strict expression validation/private detached
+unexpected-fault reporter unchanged; invalid storage exits2 before writes/report.
+No original assets/executable/proof scripts/private endpoint committed/published.
+
+Unmodified executable SHA256f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f,
+Unicorn2.1.4:66548 full dispatcher/getter/wrapper/evaluator executions,66112 string/
+434 integer/two divide faults. All65536 prefixes,42 string/27 integer boundaries,
+405 independent numeric pairs,four recursive integer probes,512 seeded byte
+strings,seven original byte-exact parameters under three incoming DX contexts,
+wrong parameter+6 pointer rejected. Full mapped PE/input/128-byte return stack/
+preserved registers and output pointer/bytes/tag/BX/carry checked. Fault recovery
+unexecuted,fresh CPU after faults,no instruction/import/callback substitutions or
+live dynamic/compound-string/caller/event/gameplay execution. Large-string test
+initially exceeded synthetic record WORD extent; kept large decoder/reconstruction
+proof separate from valid record-sized integration before positive verification.
+
+Evidence: agent state data/furries/type45-getters/. Final suite/negative-control/
+compatibility/typecheck/delivery evidence follows within this tick. Combined
+exporter/spec stays started/sol:actual opcode/caller/global/selection/arena/spawn/
+observed behaviour open. No second slice/new schedule/continuation/release/
+hardware claim.
+
+Final local validation: all393 tests pass with original/pinned KlikBack6e178b9
+enabled after pointer-offset+1 control fails two intended assertions in two
+executed cases. Source restored byte-exact/compileall-f forced before final
+positives. Actual agent ./node_modules/.bin/tsc --noEmit passes; no agent source/
+lockfile changed. Prior JSON/text equals61d9fc6 after removing only new type45
+annotations/coverage/version and TYPE45_GETTER lines; every earlier field/line
+preserved. Old643-file immutable bundle refused replacement without mutation,
+preserved before regeneration;640 files identical,only events.json/events.txt/
+manifest.json change. Standalone JSON/text/bundle CLI repeats byte-identical;
+original project/executable unchanged. Project SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Saved source/test/docs/roadmap hashes and runtime/negative/compatibility/test/
+typecheck evidence in data/furries/type45-getters/. Tested source push/exact-head
+CI verification follow within this tick; exporter/spec remains started/sol.
+No second slice/new schedule/continuation/release/hardware claim.

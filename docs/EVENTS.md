@@ -1635,3 +1635,57 @@ original gameplay or live selection is executed. Independent absolute source
 traversal checks all8,160 original parameters and confirms type42 is absent;
 original program reconstruction stays exact. Proof data and original executable/
 project/export bytes remain outside the repository and are never published.
+
+## Type45 expression getter and lone byte-string address (v29)
+
+`event-dump/29`, schema29 adds `type45_getter_storage` only to exact **type45**,
+for either record role and frame/global scope. The original generic dispatcher
+`0x42775f`, table `0x41af64` entry45, reaches `0x427788`; it calls the complete
+expression wrapper `0x42a417`, then clears BX/carry on normal return. The wrapper
+starts at parameter+6/payload+2, ignoring the stored prefix. EAX/DX come from
+expression evaluation; incoming DX is not preserved as a value tag. Existing
+type22/type23/scalar annotations remain unchanged. Adjacent type46 is not
+annotated: this slice does not establish its stored expression layout.
+
+`conditional_lone_string_return` applies only to exactly one `0x03FF` token
+followed by the stored terminator. Its original handler `0x42881b` returns the
+byte address at token+4 with DX1. Therefore EAX is the **unknown runtime parameter
+address plus10**, BX0/carry clear. The annotation exports this relative offset,
+32-bit address wrap contract and literal `bytes_hex`, never a resolved pointer.
+The first bounded NUL determines the bytes; token tail and expression suffix
+remain in their existing lossless views. Empty/high-bit/long byte strings retain
+the same contract. Encoding, ownership, filesystem use and caller meaning stay
+unknown: even the original strings' file-shaped content proves no file operation.
+Compound or recursive strings, dynamic tokens and empty expressions explicitly
+get `unsupported_shape`; no pointer/result/tag is inferred for them.
+
+The getter also transports proven closed integer evaluator results with DX0,
+BX0/carry clear. `conditional_closed_integer_return` reuses the independently
+proven closed integer subset, including wrapping arithmetic/recursive operands.
+CPU divide errors have no normal return and retain unknown recovery. Unsupported
+forms remain unresolved; neither conditional view executes a live expression or
+establishes any containing opcode calls this getter. `runtime_resolution: false`,
+`caller_interpretation: unknown` and false general semantics/behaviour coverage
+remain. All seven original type45 parameters (five actions/two conditions, all
+frame-local) hold the same lone byte-string shape, independently verified directly
+from source program extents. Their raw parameters/program bytes are unchanged.
+
+Coverage adds `type45_expression_getter_inputs`; readable text adds
+`TYPE45_GETTER`. Existing strict expression validation rejects truncated token
+extents and missing bounded string NUL before JSON/text/bundle writes or fault
+reporting. The optional private detached unexpected-fault reporter is unchanged.
+
+Private Unicorn2.1.4 proof runs the unchanged executable SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`
+through the complete original dispatcher/getter/wrapper/evaluator/string or
+integer handlers: **66,548** executions (66,112 string,434 integer,two CPU faults).
+It covers every65,536 prefix WORD,42 byte-string boundaries,27 integer/tag
+boundaries,405 independent arithmetic pairs,four recursive integer cases,512
+seeded byte strings and all seven original parameters under three incoming DX
+contexts. Wrong parameter+6 pointer expectations are rejected against execution.
+Return pointer/pointed bytes/tags/BX/carry/preserved registers,128-byte return
+stack,parameter bytes and entire mapped image are checked. Faults stop before
+recovery; a fresh CPU prevents retained pending exceptions affecting later probes.
+No instruction/import/callback substitutions, dynamic/compound-string/caller/
+event/gameplay execution occur. Original bytes,exports and proof scripts remain
+private outside the repository; no arena/spawn/observed-behaviour claim is made.
