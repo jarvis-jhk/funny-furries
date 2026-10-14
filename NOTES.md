@@ -2682,3 +2682,15 @@ and exact-head CI verification follow within this tick. Combined exporter/spec
 remains started/sol: actual opcode/caller/global/placement selection/arenas/spawns/
 observed behaviour still open. No second slice,new schedule,continuation,release
 or hardware claim.
+
+Delivery: tested sourcee543a998bc75460ed961efff4ccd6b187076505c pushed main;
+CI38531928279 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38531928279 . Downloaded
+job115745587085 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and360 tests (315 pass/45 local-original fixtures skipped).
+All360 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in agent state data/furries/expression-getters/. This delivery
+edit changes NOTES only; tested source unchanged. No unfinished work/continuation/
+new schedule/release/second slice; combined exporter/spec stays started/sol:
+actual opcode/caller/global semantics,arenas/spawns/observed behaviour open.
