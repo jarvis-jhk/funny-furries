@@ -3200,3 +3200,16 @@ Project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e9
 Saved source/test/docs/roadmap hashes match final restored/tested files. Tested
 source push and exact-head CI verification follow within this tick; no second
 slice/new schedule/continuation/release/hardware claim.
+
+Delivery: tested sourcebf95eb813a68b89498aa041150809114859976f7 pushed main;
+CI38564219502 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38564219502 . Downloaded
+job115852680982 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and421 tests (368 pass/53 local-original fixtures skipped).
+All421 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the tested commit tree. Evidence/CI
+snapshots/job log in data/furries/expression-value-table/. This delivery update
+changes NOTES only; tested source unchanged. No unfinished work/continuation/new
+schedule/release/second slice/hardware claim. Combined exporter/spec stays
+started/sol:live state/caller/opcode/global/selection/placement/arenas/spawns/
+observed behaviour remain open.
