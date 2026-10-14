@@ -3772,3 +3772,17 @@ slice/new schedule/continuation/release/hardware claim. Combined exporter/spec
 stays started/sol:live row/bit lifecycle/other opcodes/global/selection/placement/
 arenas/spawns/behaviour open. No original assets/executable/generated output/
 private endpoint/proof scripts committed or published.
+
+Delivery: tested sourcecd0617b095744316202b90a25d9672d6d567f13e pushed main;
+CI38582162638 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38582162638 . Downloaded
+job115914582468 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and476 tests (417 pass/59 local-original fixtures skipped).
+All476 passed locally with original enabled after negative-control restoration.
+Saved source/test/docs/roadmap hashes match working files and CI-tested tree;
+job log SHA256f9a34079f4da27a689ce1fe78a891a70b9ce69ff9460e349bd24b1b8501d4c61.
+Evidence/CI snapshots/job log in data/furries/row-bit-test-set/. This delivery
+edit changes NOTES only; tested source unchanged. No unfinished work/continuation/
+new schedule/release/second slice/hardware claim. Combined exporter/spec stays
+started/sol:live row/bit lifecycle/other opcodes/global/selection/placement/arenas/
+spawns/observed behaviour remain open.
