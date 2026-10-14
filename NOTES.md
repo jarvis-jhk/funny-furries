@@ -2952,3 +2952,53 @@ snapshots/job log in data/furries/type45-getters/. This delivery edit changes NO
 only; tested source unchanged. No unfinished work/continuation/new schedule/release/
 second slice/hardware claim. Combined exporter/spec stays started/sol:actual caller/
 opcode/global/selection semantics,arenas/spawns/observed behaviour remain open.
+
+
+2026-10-14: Sol tick t_mv7w2xebk3f5c, one bounded M0 remaining header-address
+getter slice. Clean main/fetched origin, no open PRs/issues or unfinished work at
+start; direct main follows repository convention. event-dump/30 schema30 extends
+existing address_getter_storage to exact types41/43/44/47/48/49. Original generic
+dispatch42775f/table41af64 through entry49 independently selects427784 for all
+six: unchanged parameter HEADER EAX, BX0/carry0, incoming DX preserved. Adjacent
+46 is a different expression-wrapper entry, remains excluded. Payload not read;
+no object/value/string/player/global/identifier/encoding/caller interpretation
+inferred. Existing coverage/fields/layout validation/private detached optional
+fault reporting preserved, runtime_resolution false. Late malformed type48 exits2
+before JSON/text/bundle writes/report. No original assets/executable/proof scripts/
+private endpoint committed or published. Combined exporter/spec stays started/sol.
+
+Independent absolute program walk traverses all8160 source parameters:20 type48
+instances,6 conditions/14 actions,2 frames/18 globals; other five added types absent.
+All are12-byte parameters with four raw payload WORDs:1009/2040/2002/2031/2032/2042
+followed by three zero WORDs, counts1/3/3/5/5/3 respectively. Initial fixture
+expectation overgeneralised the first instance's role/scope/words; independent
+complete traversal corrected it before final tests/proof. Storage equality is
+not identifier resolution or a scalar return. Unmodified FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f,Unicorn2.1.4:
+3601 complete dispatcher/getter executions,432 Cartesian boundaries,36 minimal
+headers at mapped-region/high-address edges with unmapped bytes after them,3072
+seeded cases,60 byte-exact original runs and wrong payload-pointer rejection.
+Every run checks reads only parameter type/table entry/return address,full mapped
+PE/input/128-byte return stack/EAX/EBX/EDX/ECX/preserved regs/carry. No instruction/
+import/callback substitutions or caller/event/gameplay/live selection execution.
+
+All397 local tests pass with original/pinned KlikBack6e178b9 enabled after a
+type48 header-offset0->4 negative control fails two intended assertions in two
+executed cases. Source restored byte-exact and compileall-f forced before final
+positives. Four new cases cover minimal/opaque payloads,both roles/scopes/text,
+late malformed refusal before output/report and independent original storage;
+existing exact-type/full-range/reconstruction/bundle tests updated for the new
+family. Actual agent ./node_modules/.bin/tsc --noEmit passed before commit; no
+agent source/lockfile changed. Previous JSON/text equals62603f0 after stripping
+only newly supported types' address annotations and version; all prior fields/
+coverage/text retained. Old643-file immutable bundle refused replacement without
+mutation,preserved before regeneration;640 files identical,only events.json/
+events.txt/manifest.json change. Standalone JSON/text/bundle CLI repeats identical;
+original project/executable unchanged. Project SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+
+Evidence/source/docs/test/roadmap hashes in agent state
+data/furries/late-address-getters/. Tested source push and exact-head CI
+verification follow within this tick. Exporter/spec remains started/sol:actual
+caller/opcode/global/selection/placement/arena/spawn/observed behaviour open.
+No second slice/new schedule/continuation/release/hardware claim.

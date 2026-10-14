@@ -14,13 +14,14 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/29"
+VERSION = "event-dump/30"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
 SCALAR_DWORD_TYPES = frozenset({2, 24, 29})
 ADDRESS_HEADER_TYPES = frozenset({6, 7, 8, 9, 11, 13, 18, 19, 20, 21, 25,
-                                  27, 28, 30, 31, 33, 35, 36, 37, 38, 39})
+                                  27, 28, 30, 31, 33, 35, 36, 37, 38, 39,
+                                  41, 43, 44, 47, 48, 49})
 ADDRESS_PAYLOAD_TYPES = frozenset({40})
 
 
@@ -780,7 +781,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 29, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 30, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,

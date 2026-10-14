@@ -1689,3 +1689,56 @@ recovery; a fresh CPU prevents retained pending exceptions affecting later probe
 No instruction/import/callback substitutions, dynamic/compound-string/caller/
 event/gameplay execution occur. Original bytes,exports and proof scripts remain
 private outside the repository; no arena/spawn/observed-behaviour claim is made.
+
+
+## Remaining header-address getter entries (v30)
+
+`event-dump/30`, schema30 extends the existing `address_getter_storage` to
+exact types **41, 43, 44, 47, 48, 49**, for both roles in frame/global programs.
+Independent inspection of the original `0x41af64` table through entry49 shows
+that these six entries select `0x427784`, the same `sub bx,bx; ret` header
+transport as the previously supported family. This supersedes v24's checked
+0..40 range, without extrapolating beyond49. Entry46 selects the expression
+wrapper at `0x427788`, so it remains excluded from the address family; merely
+being adjacent does not establish any shared input layout or caller semantics.
+
+Conditional execution through `0x42775f` returns the unchanged runtime parameter
+**header** address in EAX, BX0, carry clear and incoming DX preserved. No payload
+byte is dereferenced. The same existing annotation records offset0, opaque
+caller meaning, unknown runtime address, and `runtime_resolution: false`.
+`stored_bytes_from_target` is only a count of stored parameter bytes, not live
+pointer validity or a runtime bound. Empty payloads and arbitrary unterminated
+bytes are valid for these paths; no text, object, selector, identifier, units,
+player, global-value or expression interpretation is inferred from the contents.
+No new fields or coverage keys are introduced. Other getter/storage annotations
+and all raw fields remain unchanged; readable events gain the existing
+`ADDRESS_GETTER` line at the 20 newly annotated original parameters.
+
+An independent absolute source-program traversal finds **20 type48** instances:
+6 conditions/14 actions, 2 frame-local/18 global. Each parameter is12 bytes; its
+four payload WORDs are `(1009,0,0,0)` once, `(2040,0,0,0)` three times,
+`(2002,0,0,0)` three times, `(2031,0,0,0)` five times, `(2032,0,0,0)` five times,
+and `(2042,0,0,0)` three times. These are raw storage observations, not proven
+reference mappings or returned scalar values. The other five new types do not
+appear in the original, so they are verified capabilities only. Full source
+program reconstruction and every earlier annotation remain byte-for-byte.
+
+Private Unicorn2.1.4 proof executes the unmodified FF2xmas.exe SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`
+through the complete original dispatcher and handler: **3,601 executions**.
+There are432 empty/arbitrary payload/address/incoming-DX boundary probes,36
+minimal headers ending at a mapped-region boundary or address0xFFFFFFFF,3,072
+seeded probes,60 byte-exact original runs (three DX patterns per parameter),
+and one wrong payload-address expectation rejected. All six new types return
+normally even when bytes immediately after the header are unmapped. Every run
+checks memory reads: only the type WORD, dispatch-table DWORD and stack return
+address are read; the payload is never accessed. Full mapped PE, parameter
+bytes,128-byte return stack, EAX/EBX/EDX/ECX/preserved registers and carry are
+checked. No instruction/import/callback substitution, caller/event/gameplay
+execution or live pointer/content/global resolution is claimed. Proof scripts
+and original assets/executable/exports remain outside the repository.
+
+Strict parameter headers/record extents and previously supported storage
+validation remain in place. A late malformed type48 is refused with exit2
+before JSON/text/bundle writes or fault reporting. Real unexpected faults keep
+the existing detached optional private reporter; no endpoint is committed.

@@ -99,6 +99,8 @@
       opaque intervening bytes and unmasked word wrapping; original instances absent.
 - [x] Runtime-proven type45 expression getter inputs and conditional lone byte-string
       address/closed integer returns, with dynamic forms and caller meanings unresolved.
+- [x] Runtime-proven remaining header-address parameter getter inputs, preserving
+      type48 local/global storage and unproven caller/content semantics.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 
