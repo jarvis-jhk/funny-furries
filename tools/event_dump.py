@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/26"
+VERSION = "event-dump/27"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
@@ -229,6 +229,33 @@ def decode_address_getter(payload, kind):
             "payload_dereferenced_by_getter": False,
             "caller_interpretation": "unknown", "runtime_resolution": False,
             "evidence": "cnc_parameter_address_getters"}
+
+
+def decode_object_getter(payload):
+    # The runtime helper reads the first payload WORD; the editor reference
+    # candidate is a different word. Neither determines live selector state.
+    decode_object_parameter(payload)
+    return {"selection_input_payload_offset": 0,
+            "selection_input_raw_u16": word(payload, 0),
+            "runtime_gate_byte": "unknown",
+            "conditional_inactive_return": {
+                "assumption": "type1_dispatch_and_runtime_gate_byte_zero",
+                "eax": "runtime_parameter_header_address_unknown",
+                "parameter_relative_offset": 0, "bx_raw_u16": 0,
+                "carry": False, "dx": "preserved_incoming_word_not_a_new_value_tag",
+                "payload_dereferenced_by_getter": False},
+            "conditional_active_normal_return": {
+                "assumption": "type1_dispatch_nonzero_gate_and_selection_helper_normal_return",
+                "eax": "selection_helper_return_esi",
+                "helper_carry_set": {"bx_raw_u16": 0, "carry": False},
+                "helper_carry_clear": {"bx": "selection_helper_return_bx", "carry": True},
+                "dx": "selection_helper_return_word_not_a_new_expression_tag",
+                "returned_pointer_validity": "unknown",
+                "selection_helper_side_effects": "live_state_dependent"},
+            "selected_branch": "requires_live_runtime_gate",
+            "resolved_eax": None, "caller_interpretation": "unknown",
+            "runtime_resolution": False,
+            "evidence": "cnc_type1_state_dependent_parameter_getter"}
 
 
 def decode_scalar_getter(payload, kind):
@@ -489,6 +516,7 @@ def decode_record(data, role, offset, index):
             parameters[-1]["group_parameter_storage"] = decode_group_parameter(data[cursor + 4:cursor + size])
         if code == 1:
             parameters[-1]["object_parameter_reference"] = decode_object_parameter(data[cursor + 4:cursor + size])
+            parameters[-1]["object_getter_storage"] = decode_object_getter(data[cursor + 4:cursor + size])
         if code in EXPRESSION_TYPES:
             parameters[-1]["expression_storage"] = decode_expression(data[cursor + 4:cursor + size])
         if code == 22:
@@ -708,7 +736,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 26, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 27, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -730,6 +758,7 @@ def event_document(reader, raw):
                          "parameter_address_getter_inputs": True,
                          "type22_expression_getter_inputs": True,
                          "type16_position_getter_inputs": True,
+                         "type1_object_getter_inputs": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,
@@ -782,6 +811,9 @@ def readable_program(program):
                 if "object_parameter_reference" in parameter:
                     lines.append("          OBJECT_PARAMETER_REFERENCE " + json.dumps(
                         parameter["object_parameter_reference"], ensure_ascii=True, sort_keys=True))
+                if "object_getter_storage" in parameter:
+                    lines.append("          OBJECT_GETTER " + json.dumps(
+                        parameter["object_getter_storage"], ensure_ascii=True, sort_keys=True))
                 if "expression_storage" in parameter:
                     lines.append("          EXPRESSION " + json.dumps(
                         parameter["expression_storage"], ensure_ascii=True, sort_keys=True))

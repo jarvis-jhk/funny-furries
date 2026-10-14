@@ -2764,3 +2764,62 @@ snapshots/job log in agent state data/furries/position-getters/. This delivery
 edit changes NOTES only; tested source unchanged. No unfinished work/continuation/
 new schedule/release/second slice; combined exporter/spec remains started/sol:
 actual opcode/caller/global semantics,selection/arenas/spawns/observed behaviour open.
+
+2026-10-14: Sol tick t_mv7uni35e37bf, one bounded M0 type1 conditional
+object parameter-getter slice. Clean main/fetched origin, no open PRs/issues or
+unfinished work at start; direct main follows repository convention. event-dump/27
+schema27 adds object_getter_storage to exact type1, both roles/frame/global.
+Original dispatch42775f/table41af64 selects42776a, tests byte41c866. Zero gate
+returns HEADER address/BX0/carry0/DX preserved without payload dereference.
+Nonzero gate calls426bcd, reads selection WORD at parameter4/payload0, copies
+helper ESI into EAX on either normal return branch. Helper carry1 -> BX0/carry0;
+helper carry0 -> helper BX retained/carry1. Active DX/helper effects/pointer
+validity depend on live state. Existing editor ref at payload2 remains separate;
+no gate/branch/actual pointer/global/opcode/caller mapping inferred. resolved_eax
+null/runtime_resolution false. Strict type1 six-byte minimum and optional private
+detached fault reporter unchanged; malformed storage exits2 before output/report.
+No original assets/exports/executable bytes/proof scripts/private endpoint committed.
+
+Independent absolute source-program walk verifies all974 original type1 parameters:
+690 condition/284 action,760 frame/214 global; first and second WORD differ in all,
+all first WORDs nonnegative. Unmodified FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f, Unicorn2.1.4:
+73563 complete original dispatcher/getter/helper/cached-selection executions:
+66510 inactive(all65536 first WORDs),3526 cached success,3527 cached failure.
+All255 nonzero gate values with positive/negative selectors,512 seeded payload/
+flag/counter contexts,974 byte-exact original parameters under three explicitly
+supplied synthetic contexts and wrong failure-carry rejection. No original live
+selection/event/caller/gameplay execution, instruction/import/callback substitutions.
+Full return stack/input/image/cache/record bytes and preserved regs checked;
+actual helper flags/counter wrapping included. Initial oracle put record inside
+cache snapshot; separated the supplied regions before final proof. Active FFFF
+special-selector probe changes EDI to426bdd, fails generic preservation expectation;
+diagnostic saved, excluded from successful cached-selection proof. No special
+context/semantics or original selection claim inferred from it.
+
+Eight new tests cover all65536 first WORDs, distinct editor ref,conditional gate/
+helper carry branches,unknown pointer validity,exact type1/both roles/scopes,
+opaque tail/raw reconstruction,existing candidates,strict short input,original
+source words/counts,text/bundle agreement/repeats/immutability and late malformed
+refusal before output/reporting. First full run all376 local tests pass with
+original/pinned reader enabled. WORD0->WORD2 negative control fails three intended
+assertions in three executed cases; restored byte-exact and compileall-f forced.
+Final original-enabled suite/actual agent tsc and compatibility evidence below.
+Evidence: agent state data/furries/object-getters/. Combined exporter/spec remains
+started/sol: live global/opcode/caller/selection/arenas/spawns/observed behaviour
+open. No second slice/new schedule/continuation/release/hardware claim.
+
+Final local validation: all376 tests pass with original/pinned KlikBack6e178b9
+fixtures enabled after byte-exact negative-control restoration; compileall-f and
+actual agent ./node_modules/.bin/tsc --noEmit pass before commit. Previous JSON/
+text equals58deed7 after removing only object_getter_storage/new coverage/version
+and OBJECT_GETTER lines; every prior field/text line remains. Old643-file immutable
+bundle refuses replacement without mutation, preserved before regeneration;640
+files byte-identical, only events.json/events.txt/manifest.json change. Standalone
+JSON/text/bundle CLI repeats byte-identical; original project/executable unchanged.
+Project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Saved source/test/docs/roadmap hashes and private runtime/compatibility/negative/
+test/typecheck evidence in data/furries/object-getters/. No agent source/lockfile
+change. Tested source delivery and exact-head CI verification follow within this
+same tick; exporter/spec remains started/sol. No second slice/new schedule/
+continuation/release/hardware claim.

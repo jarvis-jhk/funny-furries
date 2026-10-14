@@ -1,4 +1,4 @@
-# Event structure export v19
+# Event structure export v27
 
 This bounded M0 slice exports the **structure** of frame and global event programs in
 unprotected CnC projects. It does not decode gameplay opcode or parameter meanings and
@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 21 and `exporter` is `event-dump/21`.
+  fingerprints. `schema_version` is 27 and `exporter` is `event-dump/27`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -1527,3 +1527,63 @@ the initial oracle's reversed assumption was corrected before final evidence.
 No instruction/import/callback substitutions, live caller/event/gameplay execution,
 original object selection mapping, or real arena geometry are claimed. Proof
 scripts/original executable/project/exports stay private outside the repository.
+
+## Type1 state-dependent object parameter getter (v27)
+
+`event-dump/27`, schema27 adds `object_getter_storage` to exact **type1**,
+for both roles in frame/global programs. Original generic dispatch `0x42775f`,
+table `0x41af64`, selects `0x42776a`. It tests a runtime byte at `0x41c866`;
+the project bytes do not establish that byte's value. The exporter therefore
+retains both conditional return contracts and `selected_branch:
+requires_live_runtime_gate`, with `resolved_eax: null` and
+`runtime_resolution: false`.
+
+If the gate byte is zero, execution reaches `sub bx,bx; ret` at `0x427784`:
+EAX remains the runtime parameter **header** address, BX0/carry clear, incoming
+DX preserved. This branch does not dereference the payload. It is a conditional
+address return, not a known object pointer or a new numeric/string value tag.
+
+If the gate byte is nonzero, the getter calls the full selection helper
+`0x426bcd` with EAX still the header. The helper reads the WORD at parameter+4
+(**payload0**) into EDX. `selection_input_raw_u16` exports that word separately
+from the existing editor `object_parameter_reference` at **payload2**. Neither
+word chooses a branch or resolves an object by itself. No selector-offset,
+qualifier, expected type, name or global mapping is inferred.
+
+After a normal helper return, the getter copies helper ESI to EAX and restores
+its saved incoming ESI. If helper carry was set, the final SUB returns BX0 and
+carry clear. If helper carry was clear, STC returns carry set and leaves the
+helper's BX unchanged. The EAX copy occurs in **both** paths; a failed helper
+can yield a non-pointer value. `returned_pointer_validity: unknown` therefore
+remains explicit. Active DX comes from the helper and has no inferred expression
+tag; helper effects depend on live state. The contracts do not prove any containing
+opcode calls this getter, nor that caller code uses the carry as success/failure.
+
+All **974** original type1 parameters (690 conditions/284 actions; 760 frame/
+214 global) retain unresolved runtime gates/EAX. Independent absolute traversal
+checks both WORDs, all payload bytes and program extents: the words differ in
+every original parameter, and all original first WORDs are nonnegative. Existing
+editor candidates and raw record/parameter bytes are preserved. Coverage adds
+`type1_object_getter_inputs`; general parameter/opcode/global semantics remain
+false. Text adds `OBJECT_GETTER`. Existing six-byte minimum type1 payload validation
+remains, including when the hypothetical inactive branch would not read it;
+malformed storage exits2 before output/reporting. The detached optional private
+fault reporter is unchanged.
+
+Private Unicorn2.1.4 proof uses the unchanged original executable SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`,
+executing complete original dispatcher/getter/helper and cached-selector routines.
+Its 73,563 successful executions cover every first WORD with gate zero,
+all255 nonzero gate bytes with
+controlled positive/negative cached selectors, signed boundaries, seeded payloads/
+flags/counter wrapping, and every byte-exact original parameter under explicitly
+supplied inactive/selected/failed contexts. These are not original runtime contexts.
+Successful/failed helper carry is observed before the getter's conditional flag
+handling; full return stack, parameter/image/cache/record bytes and preserved
+registers are checked. Only explicitly supplied runtime data and actual helper
+side effects are allowed; no instruction/import/callback substitutions occur.
+A wrong failed-helper/getter carry expectation is rejected. The active FFFF
+special-selector diagnostic fails the generic preserved-register expectation and
+is excluded from the cached-selector proof; its live context is not inferred.
+No caller/event/gameplay execution, actual object selection, arena or spawn
+resolution is claimed. Proof scripts/original bytes/generated exports stay private.
