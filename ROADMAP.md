@@ -71,6 +71,8 @@
       with signed rectangle arithmetic and ordinary/image/global/collision limits.
 - [x] Ordinary-backdrop image-bank dimension candidates, preserving conflicting
       banks and local/global handles; runtime selection/arena geometry remain open.
+- [x] Runtime-proven complete backdrop header-to-placement refresh inputs, with
+      ordered writes, masked type bits and opaque copied fields; actual selection unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

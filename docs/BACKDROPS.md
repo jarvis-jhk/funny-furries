@@ -1,9 +1,9 @@
-# Backdrop artwork and dimension candidates v3
+# Backdrop artwork and refresh inputs and dimension candidates v4
 
 `tools/backdrop_dump.py` exports the artwork fields stored directly in ordinary
 and quick-backdrop definition headers. It supplies image handles and editor fill
-colors for a later arena decoder. Version 3 adds ordinary-backdrop image-bank dimension candidates alongside the
-runtime-proven quick-backdrop dimension inputs. It does not render
+colors for a later arena decoder. Version 4 adds complete ordered placement-refresh inputs alongside the
+ordinary-image candidates and quick-backdrop dimension inputs. It does not render
 an arena or establish final placement coordinates, shape, collision, spawns or
 runtime behavior. Effective ordinary-backdrop runtime dimensions remain unresolved.
 
@@ -26,7 +26,7 @@ exception messages or original content enters reports or committed source.
 
 ## Contract
 
-- `schema_version` is 3 and `exporter` is `backdrop-dump/3`. All previous raw
+- `schema_version` is 4 and `exporter` is `backdrop-dump/4`. All previous raw
   fields and artwork annotations remain unchanged.
 - Source and reader fingerprints match the project index. Image banks retain
   ordered segment IDs/offsets and occupied slot IDs; gaps, repeated/empty/missing
@@ -151,7 +151,7 @@ source spans; the other 352 ordinary headers retain null dimensions. Synthetic
 checks cover every supported fill, signed boundaries, unused ordinary words,
 local/global differences, repeated/empty banks/lists, immutable standalone and
 bundle repeats and late invalid fills/truncated definitions before output or
-fault reporting. The research bundle records schema/component version 3. An
+fault reporting. The research bundle records schema/component version 4. An
 older different immutable bundle must be preserved before regenerating.
 All original bytes, generated JSON and runtime proof data stay ignored/local.
 
@@ -204,3 +204,57 @@ The original ordinary bound path calls an image-metadata import; this slice does
 not execute or replace it. Stored source metadata and PNG sizes are evidence for
 candidate image dimensions, not a proof of live image selection, effective
 rendering bounds, collision, arena geometry, spawn positions or behavior.
+
+## Complete placement-refresh inputs
+
+Each supported quick/ordinary header adds `placement_refresh_inputs` with
+`meaning: backdrop_placement_refresh_inputs`,
+`evidence: original_runtime_complete_header_refresh_helper`,
+`runtime_resolution: false` and `dispatch_low_byte` (0 or 1). `writes` lists
+conditional inputs in original helper execution order. Each item retains
+`header_offset`, `placement_offset`, `bytes`, `raw_unsigned`, nullable
+`and_mask`, and `written_unsigned`. Values are little-endian bit patterns;
+no signed arithmetic, image-bank selection or collision meanings are added.
+
+The complete original helper 0x40F250 first copies header dword +50 to placement
++12, then masks header word +42 with 0x0FFF and writes placement +6. Dispatch
+uses the **low byte** of the unmasked word, independently of that 12-bit write.
+The retained high-byte bits are opaque; never reduce the refreshed placement
+type word to only its low byte. The meaning of the common dword +50 is unknown.
+
+For quick backdrops it then copies header dwords +24/+28 to placement +16/+20,
+and header words +32/+34/+36 to placement +24/+26/+28. The full +32 word is
+copied, including its opaque high byte; the existing artwork annotation only
+interprets the supported low-byte fill bits. Existing COLORREF and signed
+quick-dimension views are unchanged. Ordinary backdrops skip these five writes.
+Finally both kinds copy header word +54 to placement +8, **even for quick
+solid/gradient fills whose stored image word is unused by the artwork view**.
+An unoccupied unused word is not a missing asset or an invented sentinel.
+
+These writes are conditioned on this stored header being supplied to refresh.
+They do not establish which local/global body is selected, effective live
+placement bytes, draw/collision order, geometry, allocation or actual spawns.
+The exporter leaves unsupported/deleted/non-backdrop definitions null and does
+not apply the writes to stored placement records. Existing fields and scopes
+remain unchanged. `coverage.backdrop_placement_refresh_inputs` is true; all
+runtime rendering/resolution/arena/spawn/behaviour claims remain false.
+
+Evidence uses the same unmodified original executable hash recorded above.
+Independent local Unicorn 2.1.4 runs the **complete** helper, including return,
+for all 65,536 type words, 512 seeded supported headers, all 410 original
+backdrop headers and an incorrect low-byte-only expectation probe. That yields
+66,459 executions; full record byte equality, unchanged headers/instructions,
+return stack and callee-preserved registers are checked. Unsupported dispatch
+branches are executed only as oracle coverage, never promoted to exporter
+support. Synthetic old placement bytes deliberately conflict with the header
+inputs. Applying the exported writes to those supplied records agrees with
+1,435 supported helper executions. No instruction/import/callback replacements
+or original drawing/loading/header-selection/gameplay execution is used.
+
+All original headers are independently checked against absolute source spans.
+Tests cover every high-byte pattern, ordered writes, preserved opaque neighbours,
+full fill words, unused image words, quick/ordinary write sets, differing global
+and local headers, repeated banks, immutable standalone/bundle repeats, and late
+invalid fill refusal before output/reporting. Outputs remain private/ignored;
+existing optional detached fault handling and invalid-input exit codes remain.
+An older immutable research bundle must be preserved before regenerating.

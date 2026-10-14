@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "backdrop-dump/3"
+VERSION = "backdrop-dump/4"
 HEADER_BYTES = 68
 
 
@@ -65,9 +65,28 @@ def decode_header(head):
                       "raw_u16": struct.unpack_from("<H", head, offset)[0],
                       "signed_i16": struct.unpack_from("<h", head, offset)[0]}
                for axis, offset, target in (("width", 34, 26), ("height", 36, 28))}}
+    # The original refresh helper writes these inputs in this order. This is
+    # conditional on the supplied header being selected, not runtime resolution
+    # of the local/global body or an interpretation of opaque type bits.
+    spans = [(50, 12, 4, None), (42, 6, 2, 0x0FFF)]
+    if head[42] == 0:
+        spans += [(24, 16, 4, None), (28, 20, 4, None),
+                  (32, 24, 2, None), (34, 26, 2, None), (36, 28, 2, None)]
+    spans.append((54, 8, 2, None))
+    writes = []
+    for source, target, size, mask in spans:
+        value = int.from_bytes(head[source:source + size], "little")
+        writes.append({"header_offset": source, "placement_offset": target,
+                       "bytes": size, "raw_unsigned": value, "and_mask": mask,
+                       "written_unsigned": value if mask is None else value & mask})
+    refresh = {"meaning": "backdrop_placement_refresh_inputs",
+               "evidence": "original_runtime_complete_header_refresh_helper",
+               "runtime_resolution": False, "dispatch_low_byte": head[42],
+               "writes": writes}
     return {"header_bytes": len(head), "header_sha256": hashlib.sha256(head).hexdigest(),
             "header_hex": head.hex(), "image_word_raw_u16": image, "artwork": artwork,
-            "quick_backdrop_dimension_inputs": dimensions}
+            "quick_backdrop_dimension_inputs": dimensions,
+            "placement_refresh_inputs": refresh}
 
 
 def backdrop_document(reader, raw):
@@ -122,12 +141,13 @@ def backdrop_document(reader, raw):
         {"block_id": j, "frame_offset": b.offset, "objects": objects(b.data)}
         for j, b in enumerate(reader.level_blocks(level.data)[1]) if b.ident == 2]}
         for i, level in enumerate(game.levels())]
-    return {"schema_version": 3, "exporter": VERSION,
+    return {"schema_version": 4, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "image_banks": banks, "global_object_lists": globals_, "frames": frames,
             "coverage": {"backdrop_header_artwork": True, "image_handles": True,
                          "quick_backdrop_dimension_inputs": True,
                          "ordinary_backdrop_image_dimension_candidates": True,
+                         "backdrop_placement_refresh_inputs": True,
                          "runtime_rendering": False, "global_reference_resolution": False,
                          "arena_geometry": False, "spawns": False, "behaviour": False}}
 

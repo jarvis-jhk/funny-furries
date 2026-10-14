@@ -2032,3 +2032,52 @@ delivery edit changes Markdown only; tested source unchanged. No unfinished
 implementation, continuation/new schedule/release/second slice; combined
 exporter/spec remains started/sol, actual image/header selection/arena collision/
 spawns/opcode/observed behaviour still open.
+
+2026-10-14: Sol tick t_mv7h2pznsp0tc, one bounded M0 complete backdrop
+header-to-placement refresh-input slice. Clean main/fetched origin, no open
+PRs/issues or in-flight work at start; direct main follows repo convention.
+backdrop-dump/4 schema4 adds placement_refresh_inputs: ordered conditional writes
+from the supplied header, source/destination offsets/extents/raw/mask/written
+unsigned values, low-byte dispatch and runtime_resolution=false. Common dword50
+copies to placement12; type word42 masked0x0fff copies to6; quick-only colors24/28,
+full fill WORD32 and dimensions34/36 copy to16/20/24/26/28; both backdrop kinds
+copy image word54 to8, even if the quick solid/gradient artwork leaves it unused.
+High type bits/common dword/high fill byte stay opaque. No actual header/global
+selection, effective placement, collision, arena geometry/spawn/behaviour claim.
+Previous header/artwork/quick dimension/ordinary-image candidates unchanged;
+non-backdrop/deleted objects remain null. Existing detached optional private
+fault reporter unchanged; invalid fill/shape exits2 before output/reporting.
+No original instructions/content/assets/exports/private endpoint committed.
+
+Unmodified original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+complete refresh helper0x40f250 executes through return in Unicorn2.1.4 for all
+65536 type words,512 seeded supported headers,all410 original backdrop headers
+and one incorrect low-byte-only expectation:66459 executions. Every record byte,
+unchanged header/instructions, return stack and callee-preserved registers checked.
+Applying exported input writes to synthetic prior records agrees with all1435
+supported helper executions. Unsupported non-backdrop dispatch branches tested
+only by the oracle, not newly exported. Synthetic DATA deliberately conflicts
+with stored header inputs; no instruction/import/callback replacements or full
+loading/header-selection/drawing/gameplay execution. Low-byte-only expected1
+fails actual0xa01 from supplied type0xfa01. All410 original headers independently
+checked against absolute source spans, including raw opaque fields.
+
+Eight new cases and all288 local tests pass with original/pinned KlikBack6e178b9;
+forced compileall-f. Coverage includes every high-byte pattern, ordered writes,
+opaque neighbours, full quick-fill word, unused image copy, ordinary write scope,
+differing local/global headers/repeated banks/empty lists, immutable standalone/
+bundle repeats, original source spans and late invalid fill before output/report.
+Type-mask0xfff->0xff negative control fails513 intended assertions in8 executed
+cases; source restored byte-exact/compileall-f before all288 final positives.
+Actual agent ./node_modules/.bin/tsc --noEmit passes before commit.
+
+Prior document equals4b2a5f0 after stripping only new annotation/coverage/version.
+Previous643-file immutable bundle refuses replacement without mutation and is
+preserved before regeneration;641 other files identical, only backdrops.json/
+manifest.json differ. Standalone/bundle CLIs repeat identically/input unchanged:
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/backdrop-refresh/. Source delivery/CI follows
+within this tick. Combined exporter/spec remains started/sol: actual header/bank
+selection/arena geometry/spawns/global/opcode/observed behaviour still open.
+No second slice, new schedule/continuation, release or hardware claim.
