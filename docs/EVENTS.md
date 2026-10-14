@@ -36,7 +36,7 @@ class; no path, event data or exception text leaves the process.
 ## JSON contract
 
 - `source` and `reader_sha256` retain the project's and reader module's exact
-  fingerprints. `schema_version` is 32 and `exporter` is `event-dump/32`.
+  fingerprints. `schema_version` is 33 and `exporter` is `event-dump/33`.
   Version 4 adds row `event_group_annotation`, program `event_groups` and
   `coverage.editor_group_structure` in frame and global programs. All prior
   raw fields and reference annotations are unchanged. Version 3 added `object_reference_annotation` to frame records and two coverage
@@ -1846,3 +1846,58 @@ containing dynamic expressions, caller opcodes and gameplay are not executed.
 Non-four-byte random tokens now fail with exit2 before JSON/text/bundle output
 or fault reporting. Original files, runtime proof scripts and game content stay
 local/ignored; existing optional detached unexpected-fault reporting is unchanged.
+
+## Indexed runtime value-table expression inputs (v33)
+
+`event-dump/33`, schema33 adds `value_table_inputs` to exact four-byte **0x02FF**
+tokens. Original dispatcher `0x42a474` uses system table `0x41b2b8`, entry2,
+selecting `0x42876c`. The handler advances to token+4 and evaluates its argument
+through the complete wrapper `0x42a424`/evaluator `0x42a42e`. It decrements AX,
+masks AX with0xF, zero-extends it, and loads a DWORD from runtime
+`0x41ce80 + 0x402 + index*4` (`0x41d282 + index*4`). DX becomes0. This proves
+16-slot indexing and raw DWORD transport, including sign-bit-set values; it does
+not prove table initialisation, ownership, units, global-variable names, updates,
+or the value returned during the game.
+
+The view records `slot_formula: (argument_u16 - 1) & 0xF`, `slots: 16`,
+`entry_bytes: 4`, `entry_transport: raw_dword`, low-WORD argument transport,
+numeric return tag0 and unknown live values/table meaning. Argument0 selects
+slot15;1 selects slot0;16 selects slot15;17 aliases1. Negative/high-word inputs
+wrap without a range error or clamp. `runtime_resolution` remains false and
+whole-expression closed-integer evaluation still refuses this dynamic token.
+No actual result or live pointer is exported.
+
+A conditional `argument` view is added only for an adjacent exact integer
+literal followed by FEFF/FDFF. It retains signed/raw32-bit argument, low16 word,
+literal/stop IDs, zero-based `table_slot_index` and `table_byte_offset` relative
+to the table. Its assumption is execution reaching this token as a numeric
+operand. Missing, string, dynamic, compound and recursive arguments remain
+`unsupported_shape`; opaque suffix bytes never supply an argument. The argument
+wrapper restores EDI to its argument start; the outer dispatcher then advances
+past the literal to the **unconsumed stop** for this shape. No general argument
+grammar, nonnumeric conversion or unsupported cursor behaviour is claimed.
+
+An independent absolute source traversal checks all8160 parameters and45 original
+tokens:43 actions/two conditions,41 frame/four global. Every occurrence has the
+four-byte0x02FF,8-byte0x00FF literal and FEFF stop. Literal arguments/counts are
+1(4),2(6),3(4),4(4),5(4),6(4),7(7),9(6),10(6). All raw fields, earlier token/
+getter views and readable lines remain; only the new annotation, coverage flag
+`expression_value_table_inputs` and version change. Readable EXPRESSION lines
+carry the annotation. Research bundles still keep all media/private bytes local.
+
+The private Unicorn2.1.4 oracle executes the unmodified complete dispatcher,
+handler and argument evaluator, then the enclosing lone-operand evaluator.
+It checks all65536 argument words against a distinct16-entry synthetic table,
+300 signed/high-word/return-bit-pattern/stop boundary executions,512 seeded
+arguments and table contexts,270 byte-exact original runs under three synthetic
+tables, and one rejected wrong zero-slot expectation:66619 executions. The oracle
+uses modulo16 arithmetic independently of the exporter's mask. Every execution
+checks the selected DWORD read address/extent, unchanged table/full mapped PE,
+input bytes,128-byte return stack, EAX/EDX/EBX/ECX/cursor/ESP and preserved ESI/EBP.
+No instructions, imports or callbacks are substituted. These supplied runtime
+contexts do not execute game initialisation, original live tables, containing
+dynamic expressions, caller opcodes or gameplay.
+
+Non-four-byte0x02FF storage now exits2 before JSON/text/bundle writes or fault
+reporting. Existing optional detached unexpected-fault reporting stays unchanged.
+Original executable/project/proof scripts remain local and uncommitted.

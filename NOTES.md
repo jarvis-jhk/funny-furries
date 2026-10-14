@@ -3142,3 +3142,61 @@ edit changes NOTES only; tested source unchanged. No unfinished work/continuatio
 new schedule/release/second slice/hardware claim. Combined exporter/spec stays
 started/sol:live state/caller/opcode/global/selection/placement/arenas/spawns/
 observed behaviour remain open.
+
+2026-10-14: Sol tick t_mv82vci2qvtz7, one bounded M0 indexed runtime
+value-table expression input slice. Clean main/fetched origin, no open PRs/issues
+or unfinished work at start; direct main follows repository convention.
+event-dump/33 schema33 adds exact four-byte02FF value_table_inputs. Original
+system dispatcher42a474/table41b2b8 entry2 ->42876c evaluates argument through
+full42a424/42a42e, decrements AX/masks0xF, reads DWORD at41d282+index*4, sets DX0.
+Conditional adjacent literal+FEFF/FDFF retains raw/signed32,low16,index/byte offset
+and unconsumed-stop cursor. Zero selects15,1 selects0,17 aliases1; no clamp.
+Live table contents/initialisation/ownership/global names/caller meanings remain
+unknown/runtime_resolution false; existing whole-expression constant evaluator
+still refuses this dynamic token. Unsupported/string/compound/recursive arguments
+remain explicit. Earlier token/getter/raw fields/text and coverage preserved.
+Existing strict validation/private optional detached unexpected-fault reporter
+unchanged; non-four-byte02FF now exits2 before JSON/text/bundle writes/reporting.
+No original assets/executable/proof scripts/private endpoint committed/published.
+
+Independent absolute source traversal checks all8160 parameters and45 original
+tokens:43 actions/two conditions,41 frame/four global; all literal+FEFF.
+Arguments/counts1(4),2(6),3(4),4(4),5(4),6(4),7(7),9(6),10(6). Eight new tests
+cover slot aliases/signed/high-word boundaries,both stops,exact extent/neighbours,
+unsupported forms,both roles/scopes/all expression types,text/reconstruction,
+immutable bundle repeats,late malformed refusal before writes/report and direct
+original source agreement. All421 local tests pass with original/pinned reader
+6e178b9 enabled after slot-decrement omission control fails89 intended assertions
+in8 executed cases; source restored byte-exact/compileall-f forced. An old random
+neighbour fixture used an oversized02FF; adjusted to its now-supported exact
+four-byte shape. First full run overlapped the negative-control mutation and is
+not accepted as evidence; final full positives ran after restoration separately.
+Actual agent ./node_modules/.bin/tsc --noEmit passes; no agent source/lockfile changed.
+
+Evidence in agent state data/furries/expression-value-table/. Final executable
+proof/compatibility/source push/exact-head CI verification follow within this
+tick. Combined exporter/spec remains started/sol:live state/caller/opcode/global/
+selection/placement/arenas/spawns/observed behaviour open. No second slice/new
+schedule/continuation/release/hardware claim.
+
+Runtime proof: unmodified FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f in Unicorn2.1.4
+executes66619 complete dispatcher/handler/argument/enclosing evaluator paths:
+all65536 argument words,300 boundaries,512 seeded argument/table contexts,270
+byte-exact original runs under three synthetic tables,wrong zero-slot rejected.
+Every execution checks selected DWORD read address/extent,unchanged table/full
+mapped PE,input/128-byte return stack,EAX/EDX/EBX/ECX/cursor/ESP/preserved ESI/EBP.
+The first extended-register proof used an incorrect EBX high-word expectation;
+corrected separately for dispatcher/evaluator, diagnostic retained before the
+final complete positive run. No instruction/import/callback substitutions or
+actual table initialisation/live contents/containing expressions/gameplay.
+
+Compatibility: previous JSON/text equals24d1c38 after stripping only new token
+annotations/coverage/version; all prior fields/lines retained. Old643-file
+immutable bundle refused replacement without mutation,preserved before
+regeneration;640 files identical,only events.json/events.txt/manifest.json change.
+Standalone JSON/text/bundle CLI repeats byte-identical,input/executable unchanged.
+Project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Saved source/test/docs/roadmap hashes match final restored/tested files. Tested
+source push and exact-head CI verification follow within this tick; no second
+slice/new schedule/continuation/release/hardware claim.

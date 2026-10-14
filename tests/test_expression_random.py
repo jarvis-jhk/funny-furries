@@ -43,7 +43,8 @@ class RandomInputTests(unittest.TestCase):
             arg = events.decode_expression(random_expression(value))['tokens'][0]['random_inputs']['argument']
             self.assertEqual(arg['rng_argument_u16'], 65535)
         for code in (0xFF01, 0x2FF, 0x101, 0x11FF):
-            self.assertNotIn('random_inputs', events.decode_expression(expression([token(code, bytes(4))]))['tokens'][0])
+            field = b'' if code == 0x2FF else bytes(4)
+            self.assertNotIn('random_inputs', events.decode_expression(expression([token(code, field)]))['tokens'][0])
         for extent in (b'x', bytes(4), b'opaque' * 8):
             with self.assertRaises(project.InputError):
                 events.decode_expression(expression([token(0x1FF, extent)]))
