@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/21"
+VERSION = "event-dump/22"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 
@@ -205,6 +205,30 @@ def decode_object_parameter(payload):
             "status": "frame_context_unresolved", "candidates": []}
 
 
+def decode_comparison_prefix(payload):
+    # Type23's getter transports the prefix separately from the expression.
+    # Numeric consumers mask it before signed comparison; that path is an
+    # explicit assumption, never a result for the containing event condition.
+    raw = word(payload, 0)
+    index = raw & 0x7FFF
+    operations = ("equal", "not_equal", "less_or_equal", "less",
+                  "greater_or_equal", "greater")
+    return {"payload_offset": 0, "raw_u16": raw,
+            "getter_bx_on_normal_expression_return_raw_u16": (raw + 1) & 0xFFFF,
+            "getter_carry_on_normal_expression_return": False,
+            "conditional_integer_consumer": {
+                "assumption": "execution_reaches_original_signed_integer_comparison_path",
+                "index_mask_raw_u16": 0x7FFF, "index_raw_u16": index,
+                "opaque_high_bit_raw_u16": raw & 0x8000,
+                "status": "table_entry" if index < len(operations) else "outside_proven_table",
+                "operation": operations[index] if index < len(operations) else None,
+                "operand_order": "caller_left_vs_expression_right",
+                "operand_bits": 32, "signed": True,
+                "left_value": None, "condition_result": None},
+            "runtime_resolution": False,
+            "evidence": "cnc_type23_getter_and_signed_comparison_paths"}
+
+
 
 def decode_group_parameter(payload):
     # The independent converter clears this u32 in actions. Its runtime address
@@ -366,6 +390,9 @@ def decode_record(data, role, offset, index):
             parameters[-1]["object_parameter_reference"] = decode_object_parameter(data[cursor + 4:cursor + size])
         if code in EXPRESSION_TYPES:
             parameters[-1]["expression_storage"] = decode_expression(data[cursor + 4:cursor + size])
+        if code == 23:
+            parameters[-1]["comparison_prefix_storage"] = decode_comparison_prefix(
+                data[cursor + 4:cursor + size])
         if code in POSITION_PARAMETER_BYTES:
             parameters[-1]["position_reference_storage"] = decode_position_references(
                 data[cursor + 4:cursor + size], code)
@@ -574,7 +601,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 21, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 22, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -591,6 +618,7 @@ def event_document(reader, raw):
                          "expression_control_tokens": True,
                          "constant_integer_expressions": True,
                          "recursive_integer_constants": True,
+                         "comparison_prefix_inputs": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,
@@ -646,6 +674,9 @@ def readable_program(program):
                 if "expression_storage" in parameter:
                     lines.append("          EXPRESSION " + json.dumps(
                         parameter["expression_storage"], ensure_ascii=True, sort_keys=True))
+                if "comparison_prefix_storage" in parameter:
+                    lines.append("          COMPARISON_PREFIX " + json.dumps(
+                        parameter["comparison_prefix_storage"], ensure_ascii=True, sort_keys=True))
                 if "position_reference_storage" in parameter:
                     lines.append("          POSITION_REFERENCES " + json.dumps(
                         parameter["position_reference_storage"], ensure_ascii=True, sort_keys=True))

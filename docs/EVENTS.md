@@ -1207,3 +1207,75 @@ and unknown position results never invoke the existing optional private fault
 reporter. CI runs synthetic tests with the pinned external reader and skips the
 original-span fixture unless `FF_TEST_PROJECT` is supplied. General placement,
 arena geometry/spawns and observed gameplay remain separate M0 work.
+
+## Type23 comparison-prefix inputs (v22)
+
+`event-dump/22`, schema22 adds `comparison_prefix_storage` only to type23
+parameters, in either record role and both frame/global programs. The unchanged
+expression storage, prefix word, token bytes, suffix, and containing opcode remain
+available. No new inference is made for types15/22/45/52/53 or unknown types.
+
+The original parameter getter dispatch at0x42775f reads the parameter type at+2
+and jumps through table0x41af64. Entry23 selects0x4277ca: it saves the word at
+parameter+4 (payload+0), evaluates from parameter+6 through0x42a417, restores
+that word into BX, increments BX with16-bit wrap, and clears carry. Thus
+`getter_bx_on_normal_expression_return_raw_u16` is `(prefix+1)&0xFFFF` and
+`getter_carry_on_normal_expression_return` is false. These are explicitly normal
+return inputs; they do not promise that a dynamic expression returns or a CPU
+fault recovers. Unknown prefix words, including0xFFFF→BX0, are retained.
+
+`conditional_integer_consumer` assumes execution reaches the original signed
+integer comparison path. At0x4284cf the caller's EAX is saved as the left value,
+the right parameter is evaluated, prefix at parameter+4 is loaded and masked
+with0x7FFF at0x4284d9..0x4284dd, and `cmp ecx,eax` compares left versus right.
+The unmodified table0x41b1f0 maps indices0..5 to:
+
+- 0: equal, handler0x428502 (JE)
+- 1: not_equal, handler0x42850d (JNE)
+- 2: less_or_equal, handler0x4284f7 (JLE)
+- 3: less, handler0x4284ec (JL)
+- 4: greater_or_equal, handler0x428523 (JGE)
+- 5: greater, handler0x428518 (JG)
+
+Ordering is signed32, including overflow-aware x86 comparisons across extreme
+operands; equality uses all32 bits. Prefix bit15 is recorded as
+`opaque_high_bit_raw_u16`: its purpose is unknown even though this consumer masks
+it away. Indices6..32767 have status `outside_proven_table` and null operation.
+They remain valid storage, never guessed aliases or errors. This exporter does
+not execute the original out-of-table dispatch or infer its behavior.
+
+The annotation always has `runtime_resolution: false`, null `left_value` and
+null `condition_result`. Type23 storage alone does not prove that the containing
+opcode uses this particular numeric consumer, that an operand is numeric, that
+a global object resolves, or that an event condition succeeds. The original also
+has a string comparator path; string order, imports, result tags and high-bit
+roles are outside this slice. Even an independently supported closed integer
+right expression is not a whole-condition evaluation.
+
+Readable output adds a separate `COMPARISON_PREFIX` JSON line after the unchanged
+`EXPRESSION` line. Previous lines/raw annotations are preserved. Coverage adds
+`comparison_prefix_inputs: true`; general parameter/opcode semantics and
+expression evaluation remain false. Invalid supported expressions still fail
+before JSON/text/bundle output or fault reporting. Existing unexpected-fault
+reporting is unchanged; no private endpoint or original content is committed.
+
+Independent original source traversal and the pinned reader's token walk verify
+all1400 type23 parameters: all conditions, prefixes0:578/1:60/2:92/3:461/5:209;
+1378 closed integer right expressions and22 dynamic expressions. No prefix4 or
+high-bit case is observed in this project; those remain synthetic capabilities.
+
+Unmodified FF2xmas.exe (SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`)
+in Unicorn2.1.4 executes the complete parameter getter for every65536 prefix
+word and the1378 original constant parameters. Signed consumer execution includes
+588 boundary combinations (six indices, both high-bit values, seven-by-seven
+signed operands),6144 seeded comparisons and seven left probes against each
+of the1378 original closed right expressions. Including an executed wrong
+unsigned expectation,83293 executions verify returned values/tags, BX wrap,
+carry, branch destinations, parameter bytes, return stack, preserved registers
+and unchanged mapped executable bytes. Dynamic original expressions are never
+executed. Getter dispatch and calls/evaluator are original instructions; numeric
+consumer stops before condition bookkeeping at0x4294a2/0x4294b1. No instruction,
+import or callback replacement, caller condition dispatch, string comparison,
+actual left state, event activation or gameplay execution is claimed. Proof and
+original data stay outside the repository in agent state.

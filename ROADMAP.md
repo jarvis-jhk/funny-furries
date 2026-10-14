@@ -83,6 +83,8 @@
       explicit image-bank dimension assumptions and unresolved lookup/live geometry.
 - [x] Runtime-proven conditional backdrop metadata-call argument inputs, preserving
       ordinary origin-word overlap and quick zero extension; callee lookup remains open.
+- [x] Runtime-proven type23 prefix transport and conditional signed comparison inputs,
+      preserving unknown indices/high bits and unevaluated dynamic/event results.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

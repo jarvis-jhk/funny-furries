@@ -2425,3 +2425,57 @@ delivery edit changes NOTES only; tested source unchanged. No unfinished work/
 continuation/new schedule/release/second slice; combined exporter/spec remains
 started/sol, actual metadata callee/selection/arenas/spawns/global/opcodes/
 observed behaviour remain open.
+
+2026-10-14: Sol tick t_mv7r2uwz4gu5o, one bounded M0 type23 comparison-prefix
+input slice. Clean main/fetched origin, no open PRs/issues or unfinished work at
+start; direct main follows repository convention. event-dump/22 schema22 adds
+comparison_prefix_storage to type23 only, both roles/frame/global scope. Original
+parameter dispatch42775f/table41af64 entry23 selects4277ca: prefix at parameter4
+is saved, expression evaluated, restored into BX, incremented with16-bit wrap,
+carry cleared. Exported getter fields apply ONLY on normal expression return.
+Conditional signed integer consumer assumes original path4284cf: caller left
+versus evaluated right, prefix&7FFF selects table41b1f0 indices0..5 = equal,
+not_equal, less_or_equal, less, greater_or_equal, greater. High bit purpose opaque;
+unknown indices retained/null operation. Actual left/condition result remain null,
+runtime_resolution=false; no assumption that every type23 opcode uses this path,
+no dynamic/global/condition/string/gameplay evaluation claim. Previous expression
+fields/raw words/suffixes/text lines preserved; new COMPARISON_PREFIX text line.
+Existing detached optional private fault reporter unchanged; malformed supported
+expressions exit2 before standalone/bundle writes or reporting. No original
+assets/exports/instructions/proof data/private endpoint committed or published.
+
+Independent source traversal/pinned-reader token walks verify all1400 original
+parameters (all conditions): prefixes0:578/1:60/2:92/3:461/5:209,1378 closed integer
+right expressions/22 dynamic. Unmodified FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f, Unicorn2.1.4:
+83293 complete getter/conditional numeric consumer executions. Getter covers all
+65536 stored words (including unknown indices/FFFF wrap) plus1378 originals;
+consumer588 signed boundary/6144 seeded/1378*7 original right expressions plus
+one wrong unsigned expectation (fails). Actual original expressions execute only
+for the prior proven closed integer subset;22 dynamic originals never executed.
+Result/tag/BX/carry/branch/stack/preserved registers/parameter bytes and entire
+mapped executable bytes checked. Original dispatch/calls/evaluator instructions
+unchanged, numeric paths stop before4294a2/4294b1 condition bookkeeping. No
+instructions/imports/callback substitutions or caller dispatch/live state/gameplay.
+Prefix4/high bit remain synthetic capabilities, not original gameplay observations.
+
+Eight new cases/all336 local tests pass with original/pinned KlikBack6e178b9,
+compileall-f; actual agent ./node_modules/.bin/tsc --noEmit passes (locked dev
+compiler restored via npm ci --include=dev --ignore-scripts; no agent code/lockfile
+change). Coverage includes all65536 prefixes, wrap/unknown masks, both roles/all
+parameter types/scopes, dynamic/empty/fault shapes, source reconstruction/readable
+annotations, immutable bundle repeats and late malformed refusal before reporting.
+Initial bundle test used wrong manifest field path instead of file; corrected.
+Initial full run caught13 old schema21 assertions; updated expected version22
+without changing those test contracts. Mask7FFF->FFFF control fails two intended
+assertions in8 executed cases; source restored byte-exact/compileall-f before
+final full336 positives. Previous JSON/text equal3836d27 after removing only new
+annotations/coverage/version. Previous643-file bundle refuses replacement without
+mutation and is preserved before regeneration;640 files identical, only
+ events.json/events.txt/manifest.json change. All JSON/text/bundle CLI repeats
+identical; original project/executable unchanged, project SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/comparison-prefixes/. Source delivery/CI follows
+within this tick. Combined exporter/spec remains started/sol: actual opcode/
+condition/global semantics, placement selection/arenas/spawns/observed behaviour
+remain open. No second slice/new schedule/continuation/release/hardware claim.
