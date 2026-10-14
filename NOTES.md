@@ -3562,3 +3562,17 @@ Saved restored source/test/docs/roadmap hashes and proof/logs in
  data/furries/constant-conditions/. Tested push/exact-head CI verification follow
 within this tick. No assets,executable,proof scripts,generated data or private
 endpoint committed/published. No second slice/new schedule/continuation/release.
+
+Delivery: tested sourcea5f4f9f219f9a2c33b40aca09e30a1c67cd76411 pushed main;
+CI38576168220 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38576168220 . Downloaded
+job115893728830 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and455 tests (399 pass/56 local-original fixtures skipped).
+All455 passed locally with original enabled after negative-control restoration.
+Saved source/test/docs/roadmap hashes match working files and CI-tested tree;
+job log SHA25681d2908d1a8d4a13e22c7b4c6e055d62ae99f7008409f0862207705f8d25bf91.
+Evidence/CI snapshots/job log in data/furries/constant-conditions/. This delivery
+edit changes NOTES only; tested source unchanged. No unfinished work/continuation/
+new schedule/release/second slice/hardware claim. Combined exporter/spec stays
+started/sol:other opcodes/global/selection/placement/arenas/spawns/live behaviour
+remain open.
