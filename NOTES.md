@@ -2343,3 +2343,16 @@ follows within this tick. Combined exporter/spec remains started/sol: actual
 header/image/returned metadata/translation selection, fill imports, arenas/spawns/
 global/opcode/observed behaviour still open. No second slice/new schedule/
 continuation/release/hardware claim.
+
+Delivery: tested source053bb3aaa222f0fd05ae3903d48f28c229b83cec pushed main;
+CI38503743993 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38503743993 . Downloaded
+job115656372828 log verifies actual source/pinned-reader checkout outputs,
+Python3.10, compileall and320 tests (280 pass/40 local-original fixtures skipped).
+All320 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in agent state data/furries/ordinary-rectangle-inputs/. This
+delivery edit changes NOTES only; tested source unchanged. No unfinished work,
+continuation/new schedule/release/second slice; combined exporter/spec remains
+started/sol, actual header/image/returned metadata/translation selection, arenas/
+spawns/global/opcodes/observed behaviour remain open.
