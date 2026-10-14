@@ -2412,3 +2412,16 @@ Evidence: agent state data/furries/image-metadata-call-inputs/. Source delivery/
 follows within this tick. Combined exporter/spec stays started/sol: callee/import
 results, actual selection/arena geometry/spawns/global/opcodes/observed behaviour
 remain open. No second slice/new schedule/continuation/release/hardware claim.
+
+Delivery: tested source18d5ff2652ed392ffc076f7ae3cbcf260028a6d7 pushed main;
+CI38504781947 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38504781947 . Downloaded
+job115659665458 log verifies actual source/pinned-reader checkout outputs,
+Python3.10, compileall and328 tests (287 pass/41 local-original fixtures skipped).
+All328 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in agent state data/furries/image-metadata-call-inputs/. This
+delivery edit changes NOTES only; tested source unchanged. No unfinished work/
+continuation/new schedule/release/second slice; combined exporter/spec remains
+started/sol, actual metadata callee/selection/arenas/spawns/global/opcodes/
+observed behaviour remain open.
