@@ -1968,3 +1968,54 @@ snapshots/job log in agent state data/furries/backdrop-dimensions/. This deliver
 edit changes Markdown only; tested source unchanged. No unfinished implementation,
 continuation/new schedule/release/second slice; combined exporter/spec remains
 started/sol, full header selection/arena collision/spawns/observed behaviour open.
+
+2026-10-14: Sol tick t_mv7gpvrgqf0bt, one bounded M0 ordinary-backdrop
+image-bank dimension-candidate slice. Clean main, fetched origin, no open PRs/
+issues or in-flight work at start; direct main follows repository convention.
+backdrop-dump/3 schema3 adds ordinary_backdrop_image_candidates: header image
+word54 joins application image BANK SLOTS, preserving every matching segment,
+record offset/extent/hash/raw24-byte header and width/height words10/12.
+Single/multiple candidate states explicit; all runtime_resolution=false. Quick
+backdrops have null ordinary candidates and retain their existing dimensions.
+Global-flagged local headers keep their stored handles; conflicting repeated
+banks have no chosen winner. Context-free decode_header remains unchanged.
+No signed live-dimension/origin/hotspot/collision/runtime selection semantics
+inferred. This is stored metadata corroborated by PNG output, not a new execution
+proof of the original imported image-metadata function or actual arena geometry.
+
+Referenced ordinary metadata must have24 header bytes and matching payload
+length at6. Zero/large dimension words and opaque mode/flags stay intact; no
+pixel decoder/limit is borrowed into the header-only view. Unused/mosaic image
+metadata is outside this annotation; complete research bundles still validate
+all supported pixels before writes. Existing optional detached private reporter
+unchanged; malformed metadata exits2 before standalone/bundle output/reporting.
+No original content/assets/instructions/exports/private endpoint committed.
+
+All352 original ordinary references agree with independently read absolute
+source-bank spans, record hashes/header/size words and decoded PNG IHDR/CRC/
+scanline readback; all58 quick headers have null ordinary candidates. Eight new
+cases cover raw asymmetric boundaries/header-only opaque pixel modes, bank-slot
+identity versus internal image words, differing local/global handles/conflicting
+repeated banks, quick/unused metadata scope, immutable standalone/bundle repeats,
+and late short/length-mismatched referenced metadata before outputs/reporting.
+Synthetic backdrop bank fixtures now carry valid own image headers instead of
+one-byte placeholders; earlier source-word/artwork test intent preserved.
+Initial slice tests caught a local variable shadowing the definition-list input;
+corrected before positive validation, and malformed-path tests now also assert
+the intended image-metadata error was reached.
+
+Forced compileall and all280 local tests pass with pinned KlikBack6e178b9 and
+original enabled. Image width-offset10->11 control fails5 intended assertions
+in8 executed cases; source restored byte-exact and compileall-f forced before
+final full positives. Actual agent ./node_modules/.bin/tsc --noEmit passes before
+commit. Prior raw/artwork/quick-dimension fields match8bfd5d8 after stripping
+only additions/coverage/version. Previous643-file immutable bundle refuses
+replacement without mutation and is preserved before regeneration;641 other
+files identical, only backdrops.json/manifest.json change. Standalone/bundle
+CLIs repeat identically, source input unchanged SHA256
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Source delivery/CI follows within this tick.
+Evidence: agent state data/furries/backdrop-image-dimensions/. Combined
+furries-exporter-spec stays started/sol: actual header/bank selection, arena
+geometry/spawns/global/opcode/observed behaviour remain open. No second slice,
+new schedule/continuation, release or hardware claim.

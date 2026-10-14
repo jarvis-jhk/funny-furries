@@ -69,6 +69,8 @@
       size/clipping arithmetic and unresolved arena collision/window semantics.
 - [x] Runtime-proven quick-backdrop dimension inputs from definition headers,
       with signed rectangle arithmetic and ordinary/image/global/collision limits.
+- [x] Ordinary-backdrop image-bank dimension candidates, preserving conflicting
+      banks and local/global handles; runtime selection/arena geometry remain open.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

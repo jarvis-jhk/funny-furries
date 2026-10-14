@@ -1,10 +1,11 @@
-# Backdrop header artwork and quick dimensions v2
+# Backdrop artwork and dimension candidates v3
 
 `tools/backdrop_dump.py` exports the artwork fields stored directly in ordinary
 and quick-backdrop definition headers. It supplies image handles and editor fill
-colors for a later arena decoder. Version 2 adds runtime-proven quick-backdrop dimension inputs. It does not render
+colors for a later arena decoder. Version 3 adds ordinary-backdrop image-bank dimension candidates alongside the
+runtime-proven quick-backdrop dimension inputs. It does not render
 an arena or establish final placement coordinates, shape, collision, spawns or
-runtime behavior. Ordinary-backdrop dimensions remain unresolved.
+runtime behavior. Effective ordinary-backdrop runtime dimensions remain unresolved.
 
 Use Python 3.10+ and the separately supplied KlikBack reader from
 [EXPORTER.md](EXPORTER.md):
@@ -25,7 +26,7 @@ exception messages or original content enters reports or committed source.
 
 ## Contract
 
-- `schema_version` is 2 and `exporter` is `backdrop-dump/2`. All previous raw
+- `schema_version` is 3 and `exporter` is `backdrop-dump/3`. All previous raw
   fields and artwork annotations remain unchanged.
 - Source and reader fingerprints match the project index. Image banks retain
   ordered segment IDs/offsets and occupied slot IDs; gaps, repeated/empty/missing
@@ -61,7 +62,11 @@ exception messages or original content enters reports or committed source.
   a guessed global match based on name or slot.
 - Each decoded header adds nullable `quick_backdrop_dimension_inputs`, described
   below; ordinary backdrops have null rather than guessed image dimensions.
-- `coverage` distinguishes header artwork/image handles/quick dimension inputs from runtime rendering,
+- Ordinary headers additionally receive `ordinary_backdrop_image_candidates`,
+  described below; quick headers have null. The context-free `decode_header`
+  does not add this field because it has no application image banks.
+- `coverage` distinguishes header artwork/image handles/quick dimension inputs
+  and ordinary image dimension candidates from runtime rendering,
   global resolution, geometry, spawns and behavior (all remain false).
 
 ## Evidence and limits
@@ -146,6 +151,56 @@ source spans; the other 352 ordinary headers retain null dimensions. Synthetic
 checks cover every supported fill, signed boundaries, unused ordinary words,
 local/global differences, repeated/empty banks/lists, immutable standalone and
 bundle repeats and late invalid fills/truncated definitions before output or
-fault reporting. The research bundle records schema/component version 2. An
+fault reporting. The research bundle records schema/component version 3. An
 older different immutable bundle must be preserved before regenerating.
 All original bytes, generated JSON and runtime proof data stay ignored/local.
+
+## Ordinary-backdrop image dimension candidates
+
+Each type 1 header in the complete document has
+`ordinary_backdrop_image_candidates`. The existing header word at +54 is joined
+by **bank slot**, never by a word inside the image record. All matching segment
+IDs remain in source order. `status` is `single_bank_candidate` or
+`multiple_bank_candidates`; even one candidate does not prove runtime selection.
+The annotation has `meaning: ordinary_backdrop_image_dimension_candidates`,
+`evidence: stored_image_metadata` and `runtime_resolution: false`.
+
+Each candidate preserves `segment_id`, `image_id` (slot), `bank_offset` (relative
+to bank payload), `record_bytes`, 24-byte `header_hex` and complete
+`record_sha256`. `width` and `height` keep `image_record_offset` (10/12) and
+`raw_u16`. These are the metadata words used by [IMAGES.md](IMAGES.md)'s image
+exporter, independently compared with decoded PNG dimensions. No signed runtime
+interpretation, world bounds, origin, hotspot correction or collision is added.
+The ordinary header's quick-dimension words +34/+36 stay opaque/null.
+
+A referenced ordinary image requires a complete 24-byte header; its u32 length
+at +6 must equal the remaining record length. Zero/large metadata words, mode,
+flags and other bytes are retained without interpreting them here. This is a
+header-only view: it does not validate pixel encoding, enforce PNG pixel limits
+or imply an unsupported image mode is renderable. The complete research bundle
+also runs the existing strict PNG decoder before writing anything.
+
+Metadata is decoded only for ordinary-backdrop references. Unused records and
+quick mosaic images retain the previous artwork/handle contract; they do not
+become ordinary dimension candidates. Missing used handles retain their existing
+strict refusal. Repeated banks with conflicting dimensions keep every candidate;
+global-flagged local definitions keep their own stored handle, even if an
+application-global definition uses a different handle. No winner or fallback is
+selected. Malformed referenced metadata fails with exit 2 before standalone or
+bundle output and is not reported as a runtime fault. Unexpected/write faults
+continue through the optional detached private reporter.
+
+All 352 original ordinary headers have one image-bank candidate. Independent
+absolute source reads verify its complete record/hash/header and width/height
+words; decoded PNG IHDR/CRC/scanline readback agrees for every reference. All 58
+quick headers retain null ordinary candidates. Synthetic checks cover conflicting
+repeated banks, differing local/global handles, bank slots that differ from
+record-internal words, empty bank/list gaps, header-only unsupported pixel modes,
+raw dimension boundaries and late invalid metadata before both outputs/reporting.
+Standalone/bundle repeats agree and an annotation-changing immutable bundle is
+refused without mutation. Original data and generated outputs remain local/ignored.
+
+The original ordinary bound path calls an image-metadata import; this slice does
+not execute or replace it. Stored source metadata and PNG sizes are evidence for
+candidate image dimensions, not a proof of live image selection, effective
+rendering bounds, collision, arena geometry, spawn positions or behavior.

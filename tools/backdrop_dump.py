@@ -13,8 +13,23 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "backdrop-dump/2"
+VERSION = "backdrop-dump/3"
 HEADER_BYTES = 68
+
+
+def image_dimension_candidate(data, segment_id, slot, offset):
+    # Decode only the stored metadata. PNG decoding and runtime bank selection
+    # have their own contracts; neither follows from a matching image handle.
+    if len(data) < 24:
+        raise project.InputError("backdrop image has no complete metadata header")
+    if struct.unpack_from("<I", data, 6)[0] != len(data) - 24:
+        raise project.InputError("backdrop image length disagrees with its bank record")
+    return {"segment_id": segment_id, "image_id": slot, "bank_offset": offset,
+            "record_bytes": len(data), "header_hex": data[:24].hex(),
+            "record_sha256": hashlib.sha256(data).hexdigest(),
+            **{axis: {"image_record_offset": at,
+                      "raw_u16": struct.unpack_from("<H", data, at)[0]}
+               for axis, at in (("width", 10), ("height", 12))}}
 
 
 def decode_header(head):
@@ -58,13 +73,17 @@ def decode_header(head):
 def backdrop_document(reader, raw):
     inventory = project.inventory(reader, raw)
     game = reader.read(raw)
-    banks = [{"segment_id": i, "offset": s.offset,
-              "slots": [slot for slot, _, _ in reader.walk_bank(s.data)]}
-             for i, s in enumerate(game.segments) if s.ident == 10]
-    candidates = {}
-    for bank in banks:
-        for image in bank["slots"]:
-            candidates.setdefault(image, []).append(bank["segment_id"])
+    banks, candidates, records = [], {}, {}
+    for segment_id, segment in enumerate(game.segments):
+        if segment.ident != 10:
+            continue
+        entries = list(reader.walk_bank(segment.data))
+        banks.append({"segment_id": segment_id, "offset": segment.offset,
+                      "slots": [slot for slot, _, _ in entries]})
+        for slot, offset, size in entries:
+            candidates.setdefault(slot, []).append(segment_id)
+            records[segment_id, slot] = (segment.data[offset:offset + size], offset)
+    dimensions = {}
 
     def objects(data, global_list=False):
         result = []
@@ -77,6 +96,21 @@ def backdrop_document(reader, raw):
                 if image is not None and not matches:
                     raise project.InputError("backdrop references an unoccupied image handle")
                 decoded["artwork"]["image_bank_candidates"] = matches
+                decoded["ordinary_backdrop_image_candidates"] = None
+                if obj.object_type == 1:
+                    entries = []
+                    for segment_id in matches:
+                        key = (segment_id, image)
+                        if key not in dimensions:
+                            record_data, offset = records[key]
+                            dimensions[key] = image_dimension_candidate(record_data, segment_id, image, offset)
+                        entries.append(dimensions[key])
+                    decoded["ordinary_backdrop_image_candidates"] = {
+                        "meaning": "ordinary_backdrop_image_dimension_candidates",
+                        "evidence": "stored_image_metadata",
+                        "runtime_resolution": False,
+                        "status": "single_bank_candidate" if len(entries) == 1 else "multiple_bank_candidates",
+                        "candidates": entries}
             result.append({"id": obj.index, "type": obj.object_type, "global": obj.is_global,
                            "deleted": obj.deleted, "object_list_offset": obj.base,
                            "backdrop": decoded})
@@ -88,11 +122,12 @@ def backdrop_document(reader, raw):
         {"block_id": j, "frame_offset": b.offset, "objects": objects(b.data)}
         for j, b in enumerate(reader.level_blocks(level.data)[1]) if b.ident == 2]}
         for i, level in enumerate(game.levels())]
-    return {"schema_version": 2, "exporter": VERSION,
+    return {"schema_version": 3, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "image_banks": banks, "global_object_lists": globals_, "frames": frames,
             "coverage": {"backdrop_header_artwork": True, "image_handles": True,
                          "quick_backdrop_dimension_inputs": True,
+                         "ordinary_backdrop_image_dimension_candidates": True,
                          "runtime_rendering": False, "global_reference_resolution": False,
                          "arena_geometry": False, "spawns": False, "behaviour": False}}
 

@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 from tools import backdrop_dump as backdrop
 from tools import project_index as project
+from test_image_dump import record as image_record
 
 
 def header(kind=0, fill=0, image=65535, flags=0x80):
@@ -20,7 +21,7 @@ def header(kind=0, fill=0, image=65535, flags=0x80):
     return bytes(head)
 
 
-def project_bytes(heads=None, bank_slots=(2, 5), repeated=False):
+def project_bytes(heads=None, bank_slots=(2, 5), repeated=False, image_records=None):
     def block(kind, data):
         return struct.pack("<HI", kind, len(data)) + data
     def definitions(heads, global_list=False):
@@ -45,8 +46,9 @@ def project_bytes(heads=None, bank_slots=(2, 5), repeated=False):
     bank = bytearray(4 + 6 * 8)
     struct.pack_into("<I", bank, 0, 6)
     for slot in bank_slots:
-        struct.pack_into("<II", bank, 4 + slot * 8, len(bank), 1)
-        bank += b"x"
+        data = image_records[slot] if image_records is not None else image_record()
+        struct.pack_into("<II", bank, 4 + slot * 8, len(bank), len(data))
+        bank += data
     banks = block(10 if repeated else 0x800A, bank)
     if repeated:
         banks += block(10, struct.pack("<I", 0)) + block(0x800A, bank)
