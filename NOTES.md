@@ -2694,3 +2694,61 @@ snapshots/job log in agent state data/furries/expression-getters/. This delivery
 edit changes NOTES only; tested source unchanged. No unfinished work/continuation/
 new schedule/release/second slice; combined exporter/spec stays started/sol:
 actual opcode/caller/global semantics,arenas/spawns/observed behaviour open.
+
+2026-10-14: Sol tick t_mv7txs9acwzfp, one bounded M0 type16 packed position
+parameter-getter slice. Clean main/fetched origin, no open PRs/issues or unfinished
+work at start; direct main follows repository convention. event-dump/26 schema26
+adds position_getter_storage to exact type16 only, both roles/frame/global.
+Original dispatch42775f/table41af64 selects4277ac: payload address+4/BX0 calls
+position helper42a2a6, packs returned X into EAX high16/Y low16, clears BX/carry.
+Helper success/failure carry is discarded, not a new getter success indicator;
+failure coordinate values remain unknown. Conditional absolute branch uses stored
+reference sign bit, returns packed raw X/Y/DX0. Nonnegative refs need live object
+state/no inferred result; prior reference candidates/sentinels remain unchanged.
+Caller meanings unknown/runtime_resolution=false; no actual arena/spawn/global/
+opcode/event/gameplay resolution. Existing optional detached private fault reporter
+unchanged; existing strict malformed position refusal precedes all output/reporting.
+No original assets/exports/executable instructions/proof data/endpoint published.
+
+Independent absolute raw-program walk verifies three original action parameters:
+references4023/402B/402A, flags8, stored X/Y0, selector words17DA/0866/0810. All
+three remain live-state unresolved. Unmodified FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f, Unicorn2.1.4:
+34755 complete original dispatcher/getter/helper/cached-selection executions:
+33578 absolute (all32768 sign-bit references included),662 synthetic Cartesian,
+515 failed cached selections. Signed axis/flag boundaries/512 seeded origins,
+three original words under explicitly changed synthetic reference/selector
+contexts plus wrong axis-order rejection. Helper carry1/0 observed before packing;
+all getter normal returns BX0/carry0. EAX/DX where supported,preserved registers/
+return stack/parameter bytes/full image checked,only supplied cache pointers/helper
+one-byte cache flag allowed in relative contexts. Initial oracle wrongly assumed
+X low/Y high; actual execution disproved it and the independent expectation was
+corrected before final proof. No instruction/import/callback substitutions or
+original selection/caller/event/gameplay execution. Original live state unknown.
+
+Eight new tests cover all65536 reference words,signed/raw axis boundaries,
+helper flag-discard contract,unknown failure/live-state values,exact type16/both
+roles/scopes,retained position/raw views,strict full extent,original source spans,
+readable annotations,standalone/bundle equality/repeats/immutable refusal and late
+short-position refusal before any write/report. Old schema25 expectations updated
+26 without other contract changes. First full run: all368 local tests pass with
+original/pinned KlikBack6e178b9 enabled; compileall-f and actual agent
+./node_modules/.bin/tsc --noEmit pass. Source restoration/negative control/bundle
+compatibility and delivery evidence follow below within this tick.
+Evidence: agent state data/furries/position-getters/. Combined exporter/spec
+remains started/sol: actual opcode/caller/global/placement selection/arenas/spawns/
+observed behaviour still open. No second slice/new schedule/continuation/release/
+hardware claim.
+
+Final local validation: reversed X/Y packed-word control fails two intended
+assertions in two executed cases; restored source byte-exact/compileall-f before
+final all368 positives with original/pinned reader enabled. Saved source/test/docs/
+roadmap hashes unchanged after restoration. Previous JSON/text equals f02cde5
+when stripping only position_getter_storage/coverage/version and POSITION_GETTER
+lines; all prior fields/text lines preserved. Previous643-file immutable bundle
+refuses replacement without mutation and is preserved before regeneration;640
+files identical, only events.json/events.txt/manifest.json change. Standalone
+JSON/text/bundle CLI repeats byte-identical, original project/executable unchanged.
+Project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Actual agent tsc gate passed; no agent source/lockfile changed. Tested source
+commit/push and exact-head CI verification follow within this tick.

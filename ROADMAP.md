@@ -91,6 +91,8 @@
       transport from scalar values and preserving unresolved caller content semantics.
 - [x] Runtime-proven type22 expression getter inputs and conditional closed integer
       returns, with dynamic forms/CPU faults separated and caller semantics unresolved.
+- [x] Runtime-proven type16 packed coordinate getter inputs, preserving axis word
+      order and discarded helper carry with live object/failure values unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

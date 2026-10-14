@@ -1469,3 +1469,61 @@ pending exception state and a later divide error can appear as double-fault8.
 No instruction/import/callback substitutions, dynamic/string evaluation, caller/
 event dispatch or gameplay are executed. Proof scripts/original bytes/exports
 stay private outside the repository.
+
+## Type16 position parameter getter (v26)
+
+`event-dump/26`, schema26 adds `position_getter_storage` to **type16 only**,
+for both roles in frame/global programs. The original generic parameter dispatcher
+`0x42775f`, table `0x41af64`, selects `0x4277ac`: advance from parameter header
+by four bytes, clear BX, call the complete position helper `0x42a2a6`, shift EAX
+left16, copy returned BX into AX, and clear BX. Thus on normal helper return,
+**X occupies EAX's high word and Y its low word**, using raw16 coordinate bits.
+DX is the helper's returned word, not a new numeric/string expression tag.
+Caller interpretation and `runtime_resolution` remain unknown/false.
+
+The final SUB clears carry, even if the helper returned carry clear for failure.
+The getter does not preserve the helper's success/failure flag. Failed-helper
+coordinate values remain unknown; no success is inferred from getter carry.
+The general return layout is conditional on reaching this exact dispatch and
+normal helper return, never a result for the containing action/condition.
+
+With incoming helper BX0, a reference word whose **sign bit is set** takes the
+helper's absolute branch: payload X/Y words at4/6 are returned unchanged, DX0,
+then packed into EAX. `conditional_absolute_return` exposes these raw bits with
+BX0/carry false. Flags and opaque tails do not alter this branch. This sign test
+is conditional runtime input behavior, not a replacement for the prior stored
+reference candidate/sentinel annotation or a global object mapping. With a
+nonnegative reference word, the probe says `requires_live_object_state` and
+contains no inferred EAX, coordinates, flags or status. Selected-object,
+hotspot/polar, arena/spawn/caller/opcode semantics remain unresolved.
+
+All three original type16 parameters are actions, with reference words4023,
+402B,402A, flags8 and stored X/Y0. Their selector words at payload18 are17DA,
+0866,0810. All require live object state; **none is evaluated in its original
+context**. Independent raw-program traversal verifies these complete source
+spans and the exporter retains prior reference/coordinate/raw payload views.
+Coverage adds `type16_position_getter_inputs`; general parameter/opcode semantics
+and position resolution remain false. Readable text adds `POSITION_GETTER`.
+Existing strict type16 extent validation and detached optional fault reporter
+remain: malformed storage exits2 before JSON/text/bundle output or reporting.
+
+Private Unicorn2.1.4 proof executes the unmodified original executable SHA256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`
+through the **complete dispatcher, type16 getter, position helper and actual
+cached-selection routines**. 34,755 executions include all32,768 negative
+reference words, signed axis/flag boundaries,512 seeded axis/origin cases,
+synthetic selected Cartesian origins with wrapping16 arithmetic, and failed
+cached selections. Outcomes:33,578 absolute,662 Cartesian,515 failed-selection.
+The three original coordinate/flag words are also exercised under explicitly
+synthetic absolute/selected/failed contexts; their references/selector words
+are changed for those contexts, never presented as original event execution.
+Successful-helper carry1 and failed-helper carry0 are observed before the getter
+packs coordinates; every normal getter return clears carry and BX. Return EAX
+and DX where supported, preserved registers, return stack, parameter bytes and
+the entire mapped image are checked (only supplied cache pointers and the helper's
+one-byte cache flag are permitted changes in controlled relative contexts).
+A deliberately reversed-axis expectation fails against the actual executable;
+the initial oracle's reversed assumption was corrected before final evidence.
+No instruction/import/callback substitutions, live caller/event/gameplay execution,
+original object selection mapping, or real arena geometry are claimed. Proof
+scripts/original executable/project/exports stay private outside the repository.

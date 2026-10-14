@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/25"
+VERSION = "event-dump/26"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
@@ -249,6 +249,34 @@ def decode_scalar_getter(payload, kind):
             "evidence": "cnc_immediate_scalar_parameter_getters"}
 
 
+def decode_position_getter(payload):
+    # Type16 calls the position helper with BX0, then packs its returned words.
+    # The final SUB clears carry even when the helper returned failure; no
+    # live object coordinates or failure-path values can be inferred here.
+    coordinates = decode_position_coordinates(payload, 16)
+    reference = word(payload, 0)
+    probe = {"status": "requires_live_object_state"}
+    if reference & 0x8000:
+        probe = {"status": "value",
+                 "eax_raw_u32": (coordinates["x"]["raw_u16"] << 16) |
+                                coordinates["y"]["raw_u16"],
+                 "dx_raw_u16": 0, "bx_raw_u16": 0, "carry": False}
+    return {"helper_input_payload_offset": 0, "helper_input_bx_raw_u16": 0,
+            "reference_raw_u16": reference,
+            "conditional_normal_return": {
+                "assumption": "type16_dispatch_and_position_helper_normal_return",
+                "eax_high_word": "helper_return_x_raw_u16",
+                "eax_low_word": "helper_return_y_raw_u16",
+                "dx": "helper_return_word_not_a_new_expression_tag",
+                "bx_raw_u16": 0, "carry": False,
+                "helper_carry_preserved": False,
+                "helper_failure_coordinate_values": "unknown"},
+            "conditional_absolute_return": probe,
+            "absolute_branch_test": "reference_word_sign_bit_set",
+            "caller_interpretation": "unknown", "runtime_resolution": False,
+            "evidence": "cnc_type16_position_parameter_getter"}
+
+
 def decode_expression_getter(expression):
     # Only type22's exact dispatch entry is proven here. Reader expression
     # layouts for other types do not imply this runtime getter evaluates them.
@@ -474,6 +502,9 @@ def decode_record(data, role, offset, index):
                 data[cursor + 4:cursor + size], code)
             parameters[-1]["position_coordinate_storage"] = decode_position_coordinates(
                 data[cursor + 4:cursor + size], code)
+        if code == 16:
+            parameters[-1]["position_getter_storage"] = decode_position_getter(
+                data[cursor + 4:cursor + size])
         if code in (6, 7):
             parameters[-1]["audio_reference_storage"] = decode_audio_reference(data[cursor + 4:cursor + size], code)
         cursor += size
@@ -677,7 +708,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 25, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 26, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -698,6 +729,7 @@ def event_document(reader, raw):
                          "immediate_scalar_getter_inputs": True,
                          "parameter_address_getter_inputs": True,
                          "type22_expression_getter_inputs": True,
+                         "type16_position_getter_inputs": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,
@@ -759,6 +791,9 @@ def readable_program(program):
                 if "expression_getter_storage" in parameter:
                     lines.append("          EXPRESSION_GETTER " + json.dumps(
                         parameter["expression_getter_storage"], ensure_ascii=True, sort_keys=True))
+                if "position_getter_storage" in parameter:
+                    lines.append("          POSITION_GETTER " + json.dumps(
+                        parameter["position_getter_storage"], ensure_ascii=True, sort_keys=True))
                 if "address_getter_storage" in parameter:
                     lines.append("          ADDRESS_GETTER " + json.dumps(
                         parameter["address_getter_storage"], ensure_ascii=True, sort_keys=True))
