@@ -3438,3 +3438,61 @@ This delivery update changes NOTES only; tested source unchanged. No unfinished
 work/continuation/new schedule/release/second slice/hardware claim. Combined
 exporter/spec stays started/sol:live table/caller/other opcodes/global/selection/
 placement/arenas/spawns/observed behaviour remain open.
+
+2026-10-14: Sol tick t_mv85ddqmyffco, one bounded M0 conditional runtime
+value-table comparison slice. Clean main/fetched origin, no open PRs/issues or
+unfinished work at start; direct main follows repository convention.
+event-dump/37 schema37 adds value_table_condition_inputs only to exact system
+CONDITION type-1/opcode-8. Original signed dispatch4263a7..4263c7 selects table
+41b244/handler4286e0. It evaluates index then right expression via42a417/42a42e,
+advancing by first parameter extent, then reads the shared DWORD table41d282.
+Slot=(low16 index-1)&F. Stored right prefix is masked7FFF (not generic type23
+getter BX+1); entries0..5 compare signed32 table-left against full32 right:
+equal/not_equal/less_or_equal/less/greater_or_equal/greater, carry true/false.
+Other indices explicitly outside proven table with no return contract; original
+indirect jump has no bounds check. Exactly two validated type22/type23 numeric
+parameters supply conditional inputs; unknown layouts/dynamic/string/tail forms
+unresolved. Index/right CPU faults precede table reads; unknown index cannot
+certify a later fault. Left value, condition/row result, live table/ownership/
+names/row flags/negation/gameplay stay unknown; runtime_resolution/general
+opcode/parameter/expression semantics false. Existing detached optional private
+unexpected-fault reporter and malformed-input refusal preserved.
+
+Independent source traversal visits9306 records and verifies111 original
+conditions:103 frame/eight global; all index/right arguments lone literals,
+103 equal/four less/four greater. Private Unicorn2.1.4 proof executes78577
+complete unmodified original dispatcher/handler/evaluator/comparison paths:
+all65536 index words,12168 signed/boundary/high-prefix cases,512 seeded contexts,
+24 recursive/wrapping/priority cases,333 byte-exact original runs under three
+synthetic tables,three ordered CPU faults and rejected unsigned-comparison probe.
+All13041 exported views agree. Exact selected DWORD reads,full mapped PE/input,
+normal EAX/EBX/ECX/EDX/EDI/ESP/preserved ESI/EBP/128-byte return stack checked;
+only expected dispatcher41cbbe zero write. No instruction/import/callback
+substitutions, out-of-table jump execution or live original gameplay. First
+arithmetic oracle case expected prefix1 but stored default0; fixed the proof
+fixture to store its intended prefix, initial diagnostic retained before final
+complete proof. Original executable SHA256 remains
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f.
+
+Seven new cases cover index aliases/full-DWORD right/all comparison prefixes,
+compound/recursive/prefix/suffix offsets,role/type/opcode/layout exclusions,
+ordered faults/dynamic refusal,frame/global text/raw reconstruction,immutable
+bundle repeats,late malformed refusal before output/report and independent
+original source storage. All449 local tests pass with original/pinned KlikBack
+6e178b9 enabled after omitted-index-decrement control fails1458 intended
+assertions in seven executed cases. Source restored byte-exact/compileall-f
+forced before final full positives; actual agent ./node_modules/.bin/tsc --noEmit
+passes. No agent source/lockfile changed.
+
+Prior original JSON/text equals9801456 after stripping only new record views/
+coverage/version; every prior annotation/raw field/text line retained. Old643-file
+immutable bundle refused replacement without mutation,preserved before rebuild;
+640 files identical,only events.json/events.txt/manifest.json change. Standalone
+JSON/text/bundle CLI repeats identical,input/executable unchanged. Project SHA256
+remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence/restored source/test/docs/roadmap hashes in agent state
+ data/furries/value-table-conditions/. Tested push/exact-head CI verification
+follow within this tick. Combined exporter/spec remains started/sol:live table/
+other opcodes/global/selection/placement/arenas/spawns/observed behaviour open.
+No second slice/new schedule/continuation/release/hardware claim; no assets,
+executable,proof scripts,generated data or private endpoint committed/published.

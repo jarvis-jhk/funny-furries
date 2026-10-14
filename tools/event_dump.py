@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/36"
+VERSION = "event-dump/37"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 46, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
@@ -747,6 +747,67 @@ def annotate_value_table_action(record):
     return record
 
 
+def annotate_value_table_condition(record):
+    # The original -8 handler always compares raw DWORDs, even though the
+    # generic type23 getter has a separate tag/prefix transport contract.
+    if (record["role"] != "condition" or record["object_type"] != -1
+            or record["opcode"] != -8):
+        return record
+    view = {"target": "runtime_value_table", "slots": 16, "entry_bytes": 4,
+            "slot_formula": "(low_word_of_index_eax - 1) & 0xF",
+            "evaluation_order": ["index", "right_operand", "table_read", "signed_comparison"],
+            "expression_wrapper": "parameter_header_plus_6_preserving_record_cursor",
+            "parameter_type_dispatch": False, "operand_tags_checked_by_condition": False,
+            "table_meaning": "unknown", "runtime_values": "unknown",
+            "runtime_resolution": False,
+            "assumption": "execution_reaches_condition_with_supported_numeric_parameters",
+            "inputs": {"status": "unsupported_parameter_shape"},
+            "comparison": {"status": "unresolved"},
+            "evidence": "cnc_runtime_condition_table_and_value_table_comparison_handler"}
+    record["value_table_condition_inputs"] = view
+    parameters = record["parameters"]
+    # The handler ignores stored types. Restrict inference to validated index
+    # and comparison expression storage, retaining all other shapes unchanged.
+    if len(parameters) != 2 or [p["type"] for p in parameters] != [22, 23]:
+        return record
+    index, right = [p["expression_storage"]["constant_integer_evaluation"] for p in parameters]
+    prefix = parameters[1]["comparison_prefix_storage"]
+    consumer = prefix["conditional_integer_consumer"]
+    inputs = {"status": "type22_index_type23_right_operand",
+              "index_parameter_id": parameters[0]["id"],
+              "right_parameter_id": parameters[1]["id"],
+              "index_parameter_record_offset": 14,
+              "right_parameter_record_offset": 14 + parameters[0]["bytes"],
+              "index_evaluation": index, "right_evaluation_if_index_returns": right,
+              "comparison_prefix_raw_u16": prefix["raw_u16"],
+              "comparison_index_raw_u16": consumer["index_raw_u16"],
+              "opaque_high_bit_raw_u16": consumer["opaque_high_bit_raw_u16"]}
+    view["inputs"] = inputs
+    if index["status"] == "cpu_exception":
+        view["comparison"] = {"status": "cpu_exception_before_table_read", "stage": "index",
+                              "exception_recovery": "unknown"}
+    elif index["status"] == "value":
+        slot = (index["value_raw_u32"] - 1) & 0xF
+        inputs.update({"index_argument_u16": index["value_raw_u32"] & 0xFFFF,
+                       "table_slot_index": slot, "table_byte_offset": slot * 4})
+        if right["status"] == "cpu_exception":
+            view["comparison"] = {"status": "cpu_exception_before_table_read", "stage": "right_operand",
+                                  "exception_recovery": "unknown"}
+        elif right["status"] == "value":
+            view["comparison"] = {
+                "status": "conditional_signed_comparison" if consumer["status"] == "table_entry"
+                          else "outside_proven_comparison_table",
+                "operation": consumer["operation"], "table_slot_index": slot,
+                "operand_order": "runtime_table_left_vs_expression_right",
+                "operand_bits": 32, "signed": True,
+                "right_raw_u32": right["value_raw_u32"],
+                "right_signed_i32": right["value_signed_i32"],
+                "left_value": "unknown", "condition_result": None}
+            if consumer["status"] == "table_entry":
+                view["comparison"].update({"true_return_carry": True, "false_return_carry": False})
+    return record
+
+
 def decode_record(data, role, offset, index):
     header_size = 14 if role == "condition" else 12
     if len(data) < header_size:
@@ -804,10 +865,10 @@ def decode_record(data, role, offset, index):
         cursor += size
     if cursor != len(data):
         raise project.InputError("event parameter count leaves trailing record bytes")
-    return annotate_value_table_action({"id": index, "role": role, "offset": offset, "bytes": len(data),
+    return annotate_value_table_condition(annotate_value_table_action({"id": index, "role": role, "offset": offset, "bytes": len(data),
             "object_type": word(data, 2, "<b"), "opcode": word(data, 3, "<b"),
             "object_reference": word(data, 4, "<h"), "meaning": "unknown",
-            "header_hex": data[:header_size].hex(), "parameters": parameters})
+            "header_hex": data[:header_size].hex(), "parameters": parameters}))
 
 
 def decode_rows(data):
@@ -1002,7 +1063,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 36, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 37, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -1033,6 +1094,7 @@ def event_document(reader, raw):
                          "expression_value_table_inputs": True,
                          "expression_value_table_closed_argument_inputs": True,
                          "value_table_action_inputs": True,
+                         "value_table_condition_inputs": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,
@@ -1075,6 +1137,9 @@ def readable_program(program):
             if "value_table_action_inputs" in record:
                 lines.append("        VALUE_TABLE_ACTION " + json.dumps(
                     record["value_table_action_inputs"], ensure_ascii=True, sort_keys=True))
+            if "value_table_condition_inputs" in record:
+                lines.append("        VALUE_TABLE_CONDITION " + json.dumps(
+                    record["value_table_condition_inputs"], ensure_ascii=True, sort_keys=True))
             for parameter in record["parameters"]:
                 lines.append(f"        PARAM {parameter['id']} offset={parameter['offset']} "
                              f"bytes={parameter['bytes']} type={parameter['type']} "

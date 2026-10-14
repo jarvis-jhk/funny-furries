@@ -2085,3 +2085,64 @@ are checked. Faults occur before any table access; fresh CPUs are used for fault
 and after them. No instruction/import/callback substitutions or dynamic original
 operand, live table, row-condition or gameplay execution. Executable SHA256 is
 `f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`.
+
+## Conditional runtime value-table comparisons (v37)
+
+`event-dump/37`, schema37 adds `value_table_condition_inputs` only to conditions
+with exact signed object type -1 and opcode -8. Original signed dispatch
+`0x4263a7..0x4263c7` loads the type/opcode, selects system table `0x41b244`
+through `0x419f4c`, and calls entry -8 at `0x4286e0`. Actions, neighbouring
+opcodes and other types are unchanged. This is a conditional handler input
+contract, not proof that a stored condition runs or that its row succeeds.
+General opcode/parameter semantics, expression evaluation and runtime resolution
+remain false; the new coverage flag describes this subset.
+
+The complete handler evaluates the index at condition record+14 through
+`0x42a417` / `0x42a42e`. It decrements the full EAX and masks four bits;
+`(low_word_of_index_eax - 1) & 0xF` is equivalent. It locates the second parameter
+using the first parameter's stored extent, saves the second parameter's prefix
+WORD at header+4, and evaluates its expression at header+6. It then reads one
+DWORD from the same sixteen-slot table `0x41d282` used by02FF expressions and
+system set/subtract/add actions. Index and right-expression evaluation precede
+the table read. The wrapper preserves the condition record cursor; parameter
+prefix/suffix bytes do not alter the expression value or parameter offsets.
+
+The handler bypasses parameter type dispatch and ignores returned numeric/string
+tags. This exporter only interprets exactly two validated parameters, type22
+index and type23 right operand. Other shapes retain an unresolved input contract.
+Existing expression evaluation records are retained under `index_evaluation` and
+`right_evaluation_if_index_returns`. Dynamic/string/incomplete/top-level-tail
+shapes are unresolved. A proven index CPU exception stops at stage `index`; a
+proven normal index with a right-expression fault stops at `right_operand`.
+Both report `cpu_exception_before_table_read`, without result or recovery claims.
+An unknown index cannot certify a right-expression fault.
+
+Two closed numeric inputs expose the low16 index, conditional slot/byte offset
+and full raw/signed32 right operand. The stored comparison prefix is masked
+with `0x7FFF`, independently of the generic type23 getter's BX+1 transport.
+Indices0..5 select equal, not_equal, less_or_equal, less, greater_or_equal,
+greater in original table `0x41b1f0`. The left operand is the runtime table DWORD,
+compared to the right expression as signed32. The original branches return
+carry set for true and clear for false. Values outside0..5 retain
+`outside_proven_comparison_table`, no operation, and no proven return contract:
+the original indirect jump has no bounds check. No runtime exception or safe
+fallback is inferred for those values.
+
+`left_value` stays unknown and `condition_result` stays null, even when both
+stored arguments are numeric constants. No current table contents, initialisation,
+editor names, ownership, row flags, inversion, live event result or gameplay are
+inferred. In particular, the high prefix bit is retained, not interpreted as row
+negation. Readable events add one VALUE_TABLE_CONDITION line per matching record;
+every older record/token/getter/reference field and text line is retained.
+Strict malformed-input refusal and existing detached optional private fault
+reporting remain unchanged. Generated data and the original executable stay local.
+
+Independent source traversal visits9306 event records and finds111 matching
+conditions:103 frame/eight global. All index and right expressions are lone
+integer literals. Prefix counts are103 equal, four less, four greater; the two
+non-equality groups are frame-local. Private unmodified-instruction Unicorn
+proof tests signed comparison outcomes against synthetic table contexts, exact
+selected DWORD reads, full PE/input preservation, stack/register/cursor returns,
+ordered CPU faults, recursive/wrapping arithmetic, all sixteen-bit index words,
+and byte-exact original records. This proves the conditional handler path under
+those contexts, not original live gameplay or unresolved table contents.
