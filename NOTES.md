@@ -2209,3 +2209,16 @@ Evidence: agent state data/furries/quick-rectangle-inputs/. Source delivery/CI
 follows within this tick. Combined exporter/spec stays started/sol: actual header/
 image/translation selection, arenas/spawns/global/opcode/observed behavior open.
 No second slice/new schedule/continuation/release/hardware claim.
+
+Delivery: tested sourcedb1cb033aab919fc0f5fb6f09761e804260b937a pushed main;
+CI38502034928 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38502034928 . Downloaded
+job115651000773 log verifies actual source/pinned-reader checkout outputs,
+Python3.10, compileall and304 tests (266 pass/38 local-original fixtures skipped).
+All304 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in agent state data/furries/quick-rectangle-inputs/. This delivery
+edit changes NOTES only; tested source unchanged. No unfinished implementation,
+continuation/new schedule/release/second slice; combined exporter/spec remains
+started/sol, actual header/image/translation selection/arena collision/spawns/
+global/opcode/observed behavior still open.
