@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "backdrop-dump/1"
+VERSION = "backdrop-dump/2"
 HEADER_BYTES = 68
 
 
@@ -38,8 +38,21 @@ def decode_header(head):
                    "image_id": image if kind == "mosaic" else None,
                    "gradient_axis": ("horizontal" if fill & 16 else "vertical")
                    if kind == "gradient" else None}
+    # Original header-to-placement refresh copies these quick-backdrop words;
+    # rendering bounds consumers sign-extend them. Ordinary backdrops instead
+    # query image metadata, so their same-offset header words stay opaque.
+    dimensions = None
+    if head[42] == 0:
+        dimensions = {"meaning": "quick_backdrop_dimension_inputs",
+            "evidence": "original_runtime_header_refresh_and_rectangle_paths",
+            "runtime_resolution": False,
+            **{axis: {"header_offset": offset, "placement_offset": target,
+                      "raw_u16": struct.unpack_from("<H", head, offset)[0],
+                      "signed_i16": struct.unpack_from("<h", head, offset)[0]}
+               for axis, offset, target in (("width", 34, 26), ("height", 36, 28))}}
     return {"header_bytes": len(head), "header_sha256": hashlib.sha256(head).hexdigest(),
-            "header_hex": head.hex(), "image_word_raw_u16": image, "artwork": artwork}
+            "header_hex": head.hex(), "image_word_raw_u16": image, "artwork": artwork,
+            "quick_backdrop_dimension_inputs": dimensions}
 
 
 def backdrop_document(reader, raw):
@@ -75,10 +88,11 @@ def backdrop_document(reader, raw):
         {"block_id": j, "frame_offset": b.offset, "objects": objects(b.data)}
         for j, b in enumerate(reader.level_blocks(level.data)[1]) if b.ident == 2]}
         for i, level in enumerate(game.levels())]
-    return {"schema_version": 1, "exporter": VERSION,
+    return {"schema_version": 2, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "image_banks": banks, "global_object_lists": globals_, "frames": frames,
             "coverage": {"backdrop_header_artwork": True, "image_handles": True,
+                         "quick_backdrop_dimension_inputs": True,
                          "runtime_rendering": False, "global_reference_resolution": False,
                          "arena_geometry": False, "spawns": False, "behaviour": False}}
 

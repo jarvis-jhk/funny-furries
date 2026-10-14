@@ -1907,3 +1907,52 @@ snapshots/job log in agent state data/furries/frame-dimensions/. This delivery e
 changes Markdown only; tested source unchanged. No unfinished implementation,
 continuation/new schedule/release/second slice; combined exporter/spec remains
 started/sol, arena collision/spawns/full creation/selection/observed behaviour open.
+
+2026-10-14: Sol tick t_mv7gcz9zmm8iv, one bounded M0 quick-backdrop
+header dimension-input slice. Clean main, fetched origin, no open PRs/issues
+or unfinished work at start; direct main follows repository convention.
+backdrop-dump/2 schema2 adds nullable quick_backdrop_dimension_inputs: type0
+width at header34/height36, raw-u16 and signed-i16 views, placement destinations
+26/28. Ordinary type1 stays null: its bounds use image metadata, not those
+header words. All58 original quick headers/352 ordinary headers checked against
+independently walked absolute source spans. Raw headers/artwork/image-bank
+candidates unchanged; global-flagged local headers remain stored local inputs,
+not a selected global runtime body. Every annotation runtime_resolution=false.
+Existing optional detached private fault reporting unchanged; malformed inputs
+exit2 before standalone/bundle output/reporting. No original code/instructions,
+assets/exports/proof data or private endpoint committed/published.
+
+Unmodified original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+complete helper0x40f250 copies quick header34/36 to placement26/28, overwriting
+old placement dimensions. Rectangle branch0x405886..0x4058c8 sign-extends and
+adds origins; fill prologue0x4054b0..0x4054e3 sign-extends, adds origins minus1
+and applies signed clip minima. Independent Unicorn2.1.4 executes2310 paths:
+1070 complete helper calls,620 of each rectangle path; seven word boundaries,
+ordinary/non-backdrop branches,512 seeded header/origin/clip contexts and all410
+original headers. Destination/untouched bytes, stack/helper-preserved registers
+checked; unsigned65529 expectation fails actual signed-negative7. Headers and
+records are supplied DATA, with deliberately conflicting old dimensions; no
+instruction/import/callback replacement. Loader0x402638 calls the helper but
+full loading/global selection/culling/drawing/gameplay are not executed/proven.
+Collision, actual arena bounds/spawns and ordinary image metadata remain open.
+
+Eight new cases/all272 local tests pass with original/pinned KlikBack6e178b9;
+compileall-f forced. Coverage: all supported fills/asymmetric signed boundaries,
+zero/negative/sentinel-looking bits, opaque ordinary words/neighbours, differing
+local/global headers/repeated/empty banks/lists, standalone/bundle immutable
+repeats, original absolute source spans and late bad fills/truncated definitions
+before either output/reporting. Width-offset34->35 negative control fails199
+intended assertions in8 executed cases; source restored byte-exact and forced
+compileall-f before all272 final positives. Actual agent
+./node_modules/.bin/tsc --noEmit passes before commit.
+
+Prior document equals3d858c7 after stripping only new dimensions/coverage/version.
+Previous643-file immutable bundle refuses replacement without mutation and is
+preserved before regeneration;641 other files identical, only backdrops.json/
+manifest.json differ. Standalone/bundle CLIs repeat identically/input unchanged:
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/backdrop-dimensions/; source delivery/CI follows
+within this tick. Combined exporter/spec stays started/sol: arena geometry/spawns,
+global/actual creation/selection/opcode/observed behaviour remain open.
+No second slice, new schedule/continuation/release or hardware claim.

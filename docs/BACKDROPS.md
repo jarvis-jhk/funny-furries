@@ -1,9 +1,10 @@
-# Backdrop header artwork v1
+# Backdrop header artwork and quick dimensions v2
 
 `tools/backdrop_dump.py` exports the artwork fields stored directly in ordinary
 and quick-backdrop definition headers. It supplies image handles and editor fill
-colors for a later arena decoder. It does not render an arena or establish
-placement coordinates, dimensions, shape, collision, spawns or runtime behavior.
+colors for a later arena decoder. Version 2 adds runtime-proven quick-backdrop dimension inputs. It does not render
+an arena or establish final placement coordinates, shape, collision, spawns or
+runtime behavior. Ordinary-backdrop dimensions remain unresolved.
 
 Use Python 3.10+ and the separately supplied KlikBack reader from
 [EXPORTER.md](EXPORTER.md):
@@ -24,6 +25,8 @@ exception messages or original content enters reports or committed source.
 
 ## Contract
 
+- `schema_version` is 2 and `exporter` is `backdrop-dump/2`. All previous raw
+  fields and artwork annotations remain unchanged.
 - Source and reader fingerprints match the project index. Image banks retain
   ordered segment IDs/offsets and occupied slot IDs; gaps, repeated/empty/missing
   banks remain distinct. Image IDs correspond to [IMAGES.md](IMAGES.md)'s PNG slots.
@@ -56,7 +59,9 @@ exception messages or original content enters reports or committed source.
   are exported from those bytes. No global/local definition resolution is made:
   the local image word can differ from the global one. Do not replace it with
   a guessed global match based on name or slot.
-- `coverage` distinguishes header artwork/image handles from runtime rendering,
+- Each decoded header adds nullable `quick_backdrop_dimension_inputs`, described
+  below; ordinary backdrops have null rather than guessed image dimensions.
+- `coverage` distinguishes header artwork/image handles/quick dimension inputs from runtime rendering,
   global resolution, geometry, spawns and behavior (all remain false).
 
 ## Evidence and limits
@@ -87,3 +92,60 @@ Remaining M0 work includes display/text/extension artwork, global reference
 resolution, event semantics, placement/arena geometry and spawns, and an
 observation-backed behavior specification. Header artwork is one prerequisite,
 not a playable engine or original-runtime/Windows/Deck proof.
+
+## Quick-backdrop dimension inputs
+
+Only type 0 headers receive `quick_backdrop_dimension_inputs`. `width` reads
+the little-endian word at header offset 34; `height` reads offset 36. Each
+retains `header_offset`, `placement_offset` (26/28), `raw_u16` and a reversible
+`signed_i16` view. Zero, negative and sentinel-looking words are preserved: no
+minimum, validity constraint or absent-dimension rule is invented. Neighbour
+bytes, fill/image/color fields and raw headers stay unchanged.
+
+The annotation says `meaning: quick_backdrop_dimension_inputs`,
+`evidence: original_runtime_header_refresh_and_rectangle_paths`, and
+`runtime_resolution: false`. `coverage.quick_backdrop_dimension_inputs` is true;
+rendering/global resolution/arena geometry/spawns/behaviour stay false. The
+context-free header decoder reads its supplied bytes without selecting an
+application-global definition, live placement or effective runtime header.
+A global-flagged local header can be replaced by runtime loading; this export
+continues to describe that stored local header, not the selected global one.
+
+Evidence is the local original FF2xmas executable SHA-256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`. Complete
+helper 0x40F250 refreshes a placement from a supplied definition header. Its
+type-0 branch copies header words +34/+36 to placement +26/+28 at
+0x40F291..0x40F29D. Other fields are copied independently; the stored placement's
+old dimension words are overwritten. Type 1 skips these dimension writes.
+Loader 0x402638 invokes this helper after reading 32-byte placement records;
+full file loading and global-definition selection are outside this proof.
+
+The type-0 rendering-bounds path 0x405886..0x4058C8 sign-extends placement
++26/+28 and adds supplied left/top origins to form exclusive right/bottom
+inputs. Quick fill function 0x4054B0..0x4054E3 sign-extends the same words,
+adds supplied origins, subtracts one and takes signed minima with supplied
+clip limits to form inclusive bounds. These arithmetic paths do not prove
+that a backdrop passes culling, is painted or has rectangular collision.
+Type-1 bounds instead call an image-metadata routine at 0x4058A9; the same
+header offsets cannot establish ordinary-backdrop dimensions.
+
+Independent local Unicorn 2.1.4 executes the complete unmodified refresh
+helper followed by both unmodified arithmetic paths, with no instruction,
+callback or import replacement. Seven asymmetric word boundaries, quick and
+ordinary/non-backdrop helper branches, 512 seeded headers/origin/clip contexts
+and all 410 original backdrop headers yield 2,310 executions: 1,070 helper
+calls and 620 executions of each rectangle path. Destination bytes, untouched
+header/record bytes, stack and preserved helper registers are checked; an
+incorrect unsigned-65,529 expectation fails after executing signed-negative-7.
+Runtime headers/placements/origins are supplied data, deliberately including
+conflicting old placement dimensions. No drawing/import, actual header
+selection, original gameplay or hardware execution is claimed.
+
+All 58 original quick headers' words match independently walked absolute
+source spans; the other 352 ordinary headers retain null dimensions. Synthetic
+checks cover every supported fill, signed boundaries, unused ordinary words,
+local/global differences, repeated/empty banks/lists, immutable standalone and
+bundle repeats and late invalid fills/truncated definitions before output or
+fault reporting. The research bundle records schema/component version 2. An
+older different immutable bundle must be preserved before regenerating.
+All original bytes, generated JSON and runtime proof data stay ignored/local.
