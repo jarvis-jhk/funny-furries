@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import frame_layout
 
-VERSION = "backdrop-dump/7"
+VERSION = "backdrop-dump/8"
 HEADER_BYTES = 68
 
 
@@ -145,7 +145,7 @@ def backdrop_document(reader, raw):
     for level, frame in zip(game.levels(), frames):
         frame["placement_refresh_probes"] = placement_refresh_probes(
             reader.level_blocks(level.data)[1], frame["object_lists"])
-    return {"schema_version": 7, "exporter": VERSION,
+    return {"schema_version": 8, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "image_banks": banks, "global_object_lists": globals_, "frames": frames,
             "coverage": {"backdrop_header_artwork": True, "image_handles": True,
@@ -155,6 +155,7 @@ def backdrop_document(reader, raw):
                          "local_placement_refresh_probes": True,
                          "conditional_quick_rectangle_inputs": True,
                          "conditional_quick_fill_inputs": True,
+                         "conditional_ordinary_rectangle_inputs": True,
                          "runtime_rendering": False, "global_reference_resolution": False,
                          "arena_geometry": False, "spawns": False, "behaviour": False}}
 
@@ -180,6 +181,7 @@ def placement_refresh_probes(blocks, object_lists):
                 preview = None
                 rectangle = None
                 fill = None
+                ordinary_rectangle = None
                 decoded = obj["backdrop"]
                 if decoded is not None and not obj["deleted"]:
                     preview = bytearray(raw)
@@ -189,6 +191,9 @@ def placement_refresh_probes(blocks, object_lists):
                     if obj["type"] == 0:
                         rectangle = quick_rectangle_inputs(preview)
                         fill = quick_fill_inputs(preview)
+                    else:
+                        ordinary_rectangle = ordinary_rectangle_inputs(
+                            preview, decoded["ordinary_backdrop_image_candidates"])
                     preview = preview.hex()
                 candidates.append({"definition_block_id": definition_block,
                     **{key: obj[key] for key in
@@ -199,7 +204,8 @@ def placement_refresh_probes(blocks, object_lists):
                     "header_sha256": decoded["header_sha256"] if decoded is not None else None,
                     "conditional_record_hex": preview,
                     "conditional_quick_rectangle_inputs": rectangle,
-                    "conditional_quick_fill_inputs": fill})
+                    "conditional_quick_fill_inputs": fill,
+                    "conditional_ordinary_rectangle_inputs": ordinary_rectangle})
             records.append({"id": record["id"], "offset": record["offset"],
                 "raw_hex": record["raw_hex"], "object_word_raw_u16": word,
                 "status": "missing_local_slot" if not candidates else
@@ -276,6 +282,47 @@ def quick_fill_inputs(record):
             "inclusive_endpoint_rule": "signed_min(origin + signed_refreshed_dimension - 1, clip)",
             "arithmetic": "x86_32bit_wrap_before_signed_min",
             "drawing_performed": False}
+
+
+def ordinary_rectangle_inputs(record, images):
+    if len(record) != frame_layout.RECORD_BYTES:
+        raise project.InputError("ordinary rectangle requires a complete placement record")
+    # The original post-lookup path sign-extends returned metadata words. Stored
+    # image words are hypothetical inputs only: neither the lookup nor equality
+    # between its result and this bank record has been established.
+    coordinates = {axis: {"record_offset": at,
+                          "raw_u16": struct.unpack_from("<H", record, at)[0],
+                          "signed_i16": struct.unpack_from("<h", record, at)[0]}
+                   for axis, at in (("x", 2), ("y", 4))}
+    x, y = (coordinates[axis]["signed_i16"] for axis in ("x", "y"))
+    candidates = []
+    for image in images["candidates"]:
+        fields = {axis: {**image[axis],
+                         "signed_i16": struct.unpack("<h", image[axis]["raw_u16"].to_bytes(2, "little"))[0]}
+                  for axis in ("width", "height")}
+        candidates.append({**{key: image[key] for key in
+                              ("segment_id", "image_id", "bank_offset", "record_sha256")},
+                           "fields": fields,
+                           "zero_translation_candidate_edges": {
+                               "left": x, "top": y,
+                               "right_exclusive": x + fields["width"]["signed_i16"],
+                               "bottom_exclusive": y + fields["height"]["signed_i16"]}})
+    return {"meaning": "conditional_ordinary_rectangle_inputs",
+            "evidence": "original_runtime_origin_and_post_metadata_rectangle_paths",
+            "runtime_resolution": False, "metadata_lookup_performed": False,
+            "coordinates": coordinates,
+            "image_word": {"record_offset": 8,
+                           "raw_u16": struct.unpack_from("<H", record, 8)[0]},
+            "translation_inputs": {
+                axis: {"runtime_word_address": address, "signed_i16": None}
+                for axis, address in (("x", "0x41d662"), ("y", "0x41d664"))},
+            "metadata_result_inputs": {
+                axis: {"returned_buffer_offset": at, "signed_i16": None}
+                for axis, at in (("width", 10), ("height", 12))},
+            "origin_rule": "signed_record_coordinate - signed_runtime_translation",
+            "exclusive_endpoint_rule": "origin + signed_returned_metadata_dimension",
+            "candidate_assumption": "returned_dimension_words_equal_this_stored_image_candidate",
+            "status": images["status"], "dimension_candidates": candidates}
 
 
 def save_backdrops(document, repo=project.REPO):

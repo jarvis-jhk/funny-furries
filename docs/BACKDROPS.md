@@ -1,10 +1,11 @@
-# Backdrop artwork, refresh inputs and placement probes v7
+# Backdrop artwork, refresh inputs and placement probes v8
 
 `tools/backdrop_dump.py` exports the artwork fields stored directly in ordinary
 and quick-backdrop definition headers. It supplies image handles and editor fill
-colors for a later arena decoder. Version 7 adds conditional quick-backdrop
-fill dispatch and call inputs to frame-local placement candidates, alongside
-rectangle inputs, refreshed record bytes, artwork and dimension candidates.
+colors for a later arena decoder. Version 8 adds conditional ordinary-backdrop
+rectangle inputs and explicit stored-image dimension probes to frame-local
+placement candidates, alongside quick fill/rectangle inputs, refreshed record
+bytes, artwork and dimension candidates.
 It does not render an arena or establish final placement coordinates, shape,
 collision, spawns or runtime behavior. Effective ordinary-backdrop runtime
 dimensions remain unresolved.
@@ -28,7 +29,7 @@ exception messages or original content enters reports or committed source.
 
 ## Contract
 
-- `schema_version` is 7 and `exporter` is `backdrop-dump/7`. All previous raw
+- `schema_version` is 8 and `exporter` is `backdrop-dump/8`. All previous raw
   fields and artwork annotations remain unchanged.
 - Source and reader fingerprints match the project index. Image banks retain
   ordered segment IDs/offsets and occupied slot IDs; gaps, repeated/empty/missing
@@ -298,7 +299,7 @@ selects the local header, calls this helper for that placement, preserves these
 coordinates until drawing, or creates a collision object. Global header selection,
 ordinary image metadata lookup, collision, arena geometry and spawns remain open.
 `coverage.local_placement_refresh_probes` is true; existing unsupported coverage
-fields remain false. Schema 7 propagates into the immutable research bundle;
+fields remain false. Schema 8 propagates into the immutable research bundle;
 move an existing different bundle aside before regeneration.
 
 Independent original-source traversal checks all 7,968 stored records, every
@@ -353,7 +354,7 @@ is true; arena geometry, runtime rendering, globals, spawns and behavior remain
 false. These are conditional drawing inputs, not effective arena bounds: header
 selection, record mutation until rendering, translation state, render gates,
 collision and spawns remain unresolved. Previous artwork, records and refresh
-annotations remain byte-for-byte unchanged. The bundle component schema follows version 7.
+annotations remain byte-for-byte unchanged. The bundle component schema follows version 8.
 
 Independent source-span traversal verifies every one of the original's 69 quick
 placement candidates; other candidate types retain null. Local Unicorn 2.1.4
@@ -425,7 +426,7 @@ translation selection and all fill/metadata imports remain unresolved.
 and `drawing_performed` are false. `coverage.conditional_quick_fill_inputs` is
 true; rendering, arena geometry, global resolution, spawns and behavior remain
 false. This supplies a later renderer/spec with proven inputs, not a drawn arena.
-The immutable research bundle records component schema 7; move a different old
+The immutable research bundle records component schema 8; move a different old
 bundle aside before regeneration. Invalid input still exits 2 before either
 output/reporting; existing detached optional private fault reporting is unchanged.
 
@@ -451,3 +452,77 @@ claimed as observed original gameplay. Eight new tests also cover other candidat
 types, ambiguity, opaque neighbors, alias/reversed/gapped slots, absent/empty/
 repeated blocks, strict late malformed refusal, bundle/standalone equality and
 immutable repeats. No original assets, instructions, proof data or exports are committed.
+
+
+## Conditional ordinary-backdrop rectangle inputs
+
+Schema 8 adds nullable `conditional_ordinary_rectangle_inputs` to live ordinary
+backdrop placement candidates (type 1). Quick/deleted/non-backdrop definitions
+retain null; missing slots remain absent. Every ambiguous local definition and
+image-bank match is retained separately. Neither a global flag, incoming record
+type nor matching bank slot selects a runtime winner. Previous annotations and
+raw fields are unchanged.
+
+`coordinates.x/y` retain signed i16/raw u16 values from conditional record +2/+4.
+`image_word` retains the refreshed u16 at +8. Ordinary refresh does not write
+record +26/+28; those bytes and header +34/+36 are **not** dimension inputs here.
+The original consumer subtracts signed runtime words 0x41d662/64 from X/Y and
+adds signed words at +10/+12 of a returned metadata buffer to form exclusive
+endpoints. `translation_inputs` and `metadata_result_inputs` retain those source
+locations with null signed values. The exported rules are
+`origin_rule: signed_record_coordinate - signed_runtime_translation` and
+`exclusive_endpoint_rule: origin + signed_returned_metadata_dimension`.
+
+The metadata lookup has not been executed or resolved. In particular, offsets
++10/+12 in a stored image record do **not** establish that an import returns
+those same words. `candidate_assumption` explicitly says
+`returned_dimension_words_equal_this_stored_image_candidate`. Under only that
+assumption, `dimension_candidates` supplies each earlier stored image-bank
+candidate's `segment_id`, `image_id`, `bank_offset`, `record_sha256`, raw/signed
+width and height in `fields`, and `zero_translation_candidate_edges`. These
+exclusive edge probes additionally assume both translation words are zero.
+`status` preserves single/multiple bank candidate status. No lookup, winner,
+returned buffer value, image hotspot correction or effective arena geometry is
+claimed, even for a single matching bank.
+
+Zero, negative and asymmetric dimensions/coordinates are preserved without
+normalization, clamping, rejection or 16-bit endpoint wrapping. Signed word
+origin differences plus signed word dimensions fit int32. Image metadata's
+existing unsigned header view and PNG dimensions remain unchanged; the signed
+view is explicitly conditional on supplying those words to the proven runtime
+consumer. Stored record dimension words do not affect these candidate probes.
+No full dword metadata-call image argument is inferred from its low image word.
+
+`meaning` is `conditional_ordinary_rectangle_inputs`, `evidence` is
+`original_runtime_origin_and_post_metadata_rectangle_paths` and
+`runtime_resolution` and `metadata_lookup_performed` are false.
+`coverage.conditional_ordinary_rectangle_inputs` is true; runtime rendering,
+global resolution, arena geometry, spawns and behaviour remain false. Malformed
+storage and referenced metadata still fail before standalone/bundle writes or
+fault reporting. Existing detached optional private fault reporter is unchanged.
+Move a different immutable research bundle aside before regeneration.
+
+Independent absolute project-byte traversal checks all 5,021 original ordinary
+placement candidates, their local image words, every matched image bank/hash and
+all stored coordinate/dimension words. Unicorn 2.1.4 executes the unmodified
+complete refresh helper 0x40f250 and **two separate consumer spans**:
+0x4057db..0x405804 (origin subtraction), then 0x4058ae..0x4058c8 (post-metadata
+exclusive endpoints). The latter starts after the metadata call; it consumes a
+supplied buffer as DATA. No call/import/instruction/callback is executed as a
+substitute for the unresolved lookup. Original origin outputs feed the endpoint
+span unchanged. This is neither full renderer nor real caller/lookup execution.
+
+36,003 contexts / 108,009 original path executions cover 343 signed-boundary
+contexts, 512 seeded contexts, every original candidate with seven asymmetric
+translation pairs (35,147), and one wrong unsigned metadata expectation that
+fails. Full record/header/instruction bytes, all 128 stack bytes, callee-preserved
+registers and supplied translations are checked. The returned-buffer words may
+be synthetic or source candidates; their live relationship to the image bank
+remains unproven. The unchanged executable hash is recorded above. All original
+content, generated exports and executable proof data remain private/untracked.
+
+Eight tests cover signed/zero/negative boundaries, conflicting repeated image
+banks, local/global differences, ambiguous/all-type definitions, opaque stored
+dimensions, missing/unsigned slots, aliases/reversed/gapped pointer order, absent/
+empty/repeated blocks, strict late invalid refusal, independent original spans,
+standalone/bundle equality, repeats and previous immutable bundle refusal.

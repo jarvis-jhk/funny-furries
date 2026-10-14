@@ -2289,3 +2289,57 @@ edit changes NOTES only; tested source unchanged. No unfinished implementation,
 continuation/new schedule/release/second slice; combined exporter/spec remains
 started/sol, actual selection/fill imports/arena collision/spawns/global/opcode/
 observed behavior remain open.
+
+2026-10-14: Sol tick t_mv7ii6pr10w6ze, one bounded M0 conditional ordinary
+backdrop rectangle-input slice. Clean main/fetched origin, no open PRs/issues or
+unfinished work at start; direct main follows repo convention. backdrop-dump/8
+schema8 adds conditional_ordinary_rectangle_inputs to live ordinary placement
+header candidates only; other types null, ambiguous/local-global-flagged matches
+retained. Signed record X/Y2/4 survive refresh; original origin subtracts signed
+runtime words0x41d662/64. Post-lookup endpoints add signed returned-buffer words
+10/12. Live translations/returned dimensions remain null, lookup not performed.
+Each local header's stored image-bank candidate adds raw/signed dimension words
+and zero-translation hypothetical edges under EXPLICIT returned-words-equal-this-
+stored-candidate assumption. No effective arena geometry/winner/global fallback/
+metadata import result/hotspot/collision/spawn/observed behaviour claim, even with
+one bank match. Stored record26/28/header34/36 never supply ordinary dimensions.
+Existing artwork/refresh/quick annotations unchanged; detached optional private
+fault reporter unchanged, malformed storage/metadata exits2 before writes/reporting.
+No original content/assets/instructions/proof data/exports/private endpoint committed.
+
+Independent absolute-source traversal verifies all5021 original ordinary placement
+candidates, local header handles and image-bank offsets/hash/words. Unmodified
+original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f in Unicorn2.1.4:
+complete refresh helper0x40f250 plus TWO SEPARATE renderer consumer spans
+4057db..405804 (origin) and4058ae..4058c8 (post-metadata exclusive endpoints).
+36003 contexts/108009 original path executions:343 boundary,512 seeded,all5021
+originals*7 asymmetric translations and one wrong unsigned-metadata expectation
+(which fails). Actual origin outputs feed the second span unchanged; supplied
+buffer is DATA. Full records/headers/instruction spans/all128 stack bytes/preserved
+registers/translations checked. No metadata call/import/instruction/callback
+substitutions or full renderer/lookup/live selection/collision/gameplay execution.
+No claim that returned metadata actually equals source bank words.
+
+Eight new cases/all320 local tests pass with original/pinned KlikBack6e178b9,
+compileall-f. Coverage includes signed/zero/negative dimensions/asymmetry, conflicting
+repeated banks, local/global differences/all-type ambiguity/missing u16 slots,
+opaque stored dimensions, alias/reversed/gapped slots/absent/empty/repeated blocks,
+standalone/bundle repeats/previous immutable refusal, independent original spans
+and late invalid refusal before outputs/reports. The repeated-bank test initially
+compared cached pre-mutation bytes, corrected by parsing the final fixture before
+positives. Signed metadata view <h-><H negative control fails50 intended assertions
+in8 executed cases; source restored byte-exact and compileall-f before final full
+320 positives. Actual agent ./node_modules/.bin/tsc --noEmit passes before commit.
+
+Previous document equals3467705 after removing only new candidate annotation/
+coverage/version. Previous643-file immutable bundle refuses replacement without
+mutation and is preserved before regeneration;641 files unchanged, only
+backdrops.json/manifest.json change. Standalone/bundle CLI repeats identical,
+input/executable unchanged, project SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/ordinary-rectangle-inputs/. Source delivery/CI
+follows within this tick. Combined exporter/spec remains started/sol: actual
+header/image/returned metadata/translation selection, fill imports, arenas/spawns/
+global/opcode/observed behaviour still open. No second slice/new schedule/
+continuation/release/hardware claim.

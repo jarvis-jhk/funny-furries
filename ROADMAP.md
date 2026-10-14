@@ -79,6 +79,8 @@
       runtime translation rules and explicit zero-translation previews; live bounds unresolved.
 - [x] Runtime-proven conditional quick-backdrop fill dispatch and call inputs,
       preserving mosaic-zero fallback, gradient swap/flags and unresolved clipping/drawing.
+- [x] Runtime-proven conditional ordinary-backdrop rectangle consumer inputs, with
+      explicit image-bank dimension assumptions and unresolved lookup/live geometry.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

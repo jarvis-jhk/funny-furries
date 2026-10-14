@@ -95,7 +95,7 @@ class ImageDimensionContainerTests(unittest.TestCase):
         doc = backdrop.backdrop_document(self.reader, raw)
         manifest, files = bundle.research_bundle(self.reader, raw)
         self.assertEqual(json.loads(files['backdrops.json']), doc)
-        self.assertEqual(manifest['components']['backdrops.json'], {'exporter': 'backdrop-dump/7', 'schema_version': 7})
+        self.assertEqual(manifest['components']['backdrops.json'], {'exporter': 'backdrop-dump/8', 'schema_version': 8})
         ann = doc['frames'][1]['object_lists'][0]['objects'][1]['backdrop']['ordinary_backdrop_image_candidates']
         candidate = ann['candidates'][0]
         png = files[f"image-{candidate['segment_id']}-{candidate['image_id']}.png"]
