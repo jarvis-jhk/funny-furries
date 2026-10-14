@@ -2019,3 +2019,16 @@ Evidence: agent state data/furries/backdrop-image-dimensions/. Combined
 furries-exporter-spec stays started/sol: actual header/bank selection, arena
 geometry/spawns/global/opcode/observed behaviour remain open. No second slice,
 new schedule/continuation, release or hardware claim.
+
+Delivery: tested source88ed676b49f6acca49ede986a13e6e625ba0bc17 pushed main;
+CI38499341870 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38499341870 . Downloaded
+job115642314933 log verifies actual source/pinned-reader checkout outputs,
+Python3.10, compileall and280 tests (245 pass/35 local-original skips).
+All280 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in agent state data/furries/backdrop-image-dimensions/. This
+delivery edit changes Markdown only; tested source unchanged. No unfinished
+implementation, continuation/new schedule/release/second slice; combined
+exporter/spec remains started/sol, actual image/header selection/arena collision/
+spawns/opcode/observed behaviour still open.
