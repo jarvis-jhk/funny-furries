@@ -75,6 +75,8 @@
       ordered writes, masked type bits and opaque copied fields; actual selection unresolved.
 - [x] Frame-local backdrop placement probes and conditional refreshed record bytes,
       preserving ambiguous/global-flagged candidates and unsupported live selection.
+- [x] Runtime-proven conditional quick-backdrop rectangle inputs, with signed
+      runtime translation rules and explicit zero-translation previews; live bounds unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

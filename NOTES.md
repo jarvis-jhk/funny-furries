@@ -2156,3 +2156,56 @@ delivery edit changes NOTES only; tested source unchanged. No unfinished work/
 continuation/new schedule/release/second slice; combined exporter/spec remains
 started/sol, actual header/image selection/arena collision/spawns/opcode/observed
 behaviour still open.
+
+2026-10-14: Sol tick t_mv7hsghlw3g5y, one bounded M0 conditional quick-backdrop
+rectangle-input slice. Clean main/fetched origin, no open PRs/issues or unfinished
+work at start; direct main follows repository convention. backdrop-dump/6 schema6
+adds nullable conditional_quick_rectangle_inputs to local placement candidates:
+live quick headers only, all ambiguous/local-global-flagged candidates preserved,
+ordinary/deleted/non-backdrop null and missing definitions remain absent. Signed
+X/Y at record2/4 survive conditional refresh; width/height at26/28 come from the
+supplied header34/36. Original origin rule subtracts signed runtime words at
+0x41d662/64; endpoint adds signed refreshed size. Live translation values remain
+null, their state meaning/initialization unknown; explicit zero_translation_edges
+are hypothetical exclusive bounds, never selected runtime/arena geometry. Zero/
+negative/asymmetric values remain intact without normalization or 16-bit wrapping.
+Incoming creation type never filters header candidates; globals remain unresolved.
+Existing detached optional private fault reporter unchanged; malformed inputs
+exit2 before either standalone/bundle output/reporting. No original content,
+assets/exports/instructions/proof data or private endpoint committed/published.
+
+Independent absolute-source traversal checks all69 original quick placement
+candidates; other types null. Unmodified original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f in Unicorn2.1.4:
+complete helper0x40f250, TWO SEPARATE renderer paths0x4057db..0x405804 and
+0x405886..0x4058c8 execute1339 contexts/4017 paths:343 boundaries,512 seeded,
+69 original candidates*7 translation pairs and one wrong unsigned expectation
+(which fails). Actual origin outputs feed endpoint path unchanged. Every refreshed
+byte, header, return/path stack, preserved registers and instruction span checked.
+Supplied translation words/headers/records are DATA, no instructions/imports/
+callbacks replaced. Intervening gates/full renderer/header selection/culling/
+clipping/drawing/collision/gameplay NOT executed or claimed. Actual arena bounds,
+spawns/record mutations until drawing and observed behavior remain open.
+
+Eight new cases/all304 local tests pass with original/pinned KlikBack6e178b9.
+Coverage: signed/asymmetric boundaries/negative/zero dimensions, opaque neighbors,
+old record type/dimensions versus refreshed headers, all fill kinds, ambiguous
+local/global flags and all other candidate types, aliases/reversed/gapped slots,
+absent/empty/repeated blocks, bundle/standalone equality/immutable repeats and
+late invalid header before output/reporting. Initial immutable-bundle test forgot
+to update the old component manifest, caught inventory validation instead of
+replacement refusal; corrected manifest hashes/version before positives.
+X-offset2->3 control fails54 intended assertions (including49 boundary subtests)
+in8 executed cases; source restored byte-exact and compileall-f forced before
+final full304 positives. Actual agent ./node_modules/.bin/tsc --noEmit passes.
+
+Previous document equals762faa8 after stripping only new candidate annotations/
+coverage/version. Previous643-file immutable bundle refuses replacement without
+mutation and is preserved before regeneration;641 unrelated files identical,
+only backdrops.json/manifest.json change. Standalone/bundle CLI repeats identical,
+input/executable unchanged; project SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/quick-rectangle-inputs/. Source delivery/CI
+follows within this tick. Combined exporter/spec stays started/sol: actual header/
+image/translation selection, arenas/spawns/global/opcode/observed behavior open.
+No second slice/new schedule/continuation/release/hardware claim.

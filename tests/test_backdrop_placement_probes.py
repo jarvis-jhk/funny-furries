@@ -139,7 +139,7 @@ class PlacementRefreshProbeTests(unittest.TestCase):
         doc = backdrop.backdrop_document(self.reader, raw)
         manifest, files = bundle.research_bundle(self.reader, raw)
         self.assertEqual(json.loads(files['backdrops.json']), doc)
-        self.assertEqual(manifest['components']['backdrops.json'], {'exporter':'backdrop-dump/5','schema_version':5})
+        self.assertEqual(manifest['components']['backdrops.json'], {'exporter':'backdrop-dump/6','schema_version':6})
         (project.REPO/'build').mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=project.REPO/'build') as scratch:
             repo = Path(scratch)

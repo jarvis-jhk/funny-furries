@@ -1,9 +1,10 @@
-# Backdrop artwork, refresh inputs and placement probes v5
+# Backdrop artwork, refresh inputs and placement probes v6
 
 `tools/backdrop_dump.py` exports the artwork fields stored directly in ordinary
 and quick-backdrop definition headers. It supplies image handles and editor fill
-colors for a later arena decoder. Version 5 adds frame-local placement probes and conditional refreshed record
-bytes alongside the existing artwork, refresh inputs and dimension candidates. It does not render
+colors for a later arena decoder. Version 6 adds conditional quick-backdrop
+rectangle inputs to frame-local placement probes and conditional refreshed
+record bytes alongside artwork, refresh inputs and dimension candidates. It does not render
 an arena or establish final placement coordinates, shape, collision, spawns or
 runtime behavior. Effective ordinary-backdrop runtime dimensions remain unresolved.
 
@@ -26,7 +27,7 @@ exception messages or original content enters reports or committed source.
 
 ## Contract
 
-- `schema_version` is 5 and `exporter` is `backdrop-dump/5`. All previous raw
+- `schema_version` is 6 and `exporter` is `backdrop-dump/6`. All previous raw
   fields and artwork annotations remain unchanged.
 - Source and reader fingerprints match the project index. Image banks retain
   ordered segment IDs/offsets and occupied slot IDs; gaps, repeated/empty/missing
@@ -296,7 +297,7 @@ selects the local header, calls this helper for that placement, preserves these
 coordinates until drawing, or creates a collision object. Global header selection,
 ordinary image metadata lookup, collision, arena geometry and spawns remain open.
 `coverage.local_placement_refresh_probes` is true; existing unsupported coverage
-fields remain false. Schema 5 propagates into the immutable research bundle;
+fields remain false. Schema 6 propagates into the immutable research bundle;
 move an existing different bundle aside before regeneration.
 
 Independent original-source traversal checks all 7,968 stored records, every
@@ -315,3 +316,62 @@ lists, all candidate types, missing slots/unsigned boundaries, inconsistent
 stored type bits, opaque fill/type bytes, aliases/gaps/reversed pointer order,
 absent/empty/repeated blocks, strict late input refusal without writing/reporting,
 standalone/bundle equality, repeat output and immutable bundle refusal.
+
+## Conditional quick-backdrop rectangle inputs
+
+Each placement candidate adds nullable `conditional_quick_rectangle_inputs`.
+Only a live quick-backdrop definition (type 0) receives this annotation. Ordinary,
+non-backdrop and deleted definitions have null; missing definitions remain absent.
+Every ambiguous quick candidate has its own rectangle inputs. No incoming record
+creation type, application-global definition or another frame selects a winner.
+The context-free header/placement decoders retain their existing contracts.
+
+The annotation contains `fields.x/y/width/height`, with `record_offset`, raw u16
+and signed i16 values read from the candidate's conditional refreshed record.
+X/Y are at 2/4 (untouched by refresh); width/height are at 26/28 (copied from the
+supplied local header's 34/36). It exports the original renderer's two rules:
+
+- Origin = signed record coordinate minus signed runtime translation word.
+- Exclusive endpoint = origin plus signed refreshed dimension word.
+
+`translation_inputs.x/y` identifies the two runtime word addresses, 0x41d662 /
+0x41d664, with `signed_i16: null`. Their live values, initialization and meaning
+are unavailable here; the export does not call them a camera or scroll position.
+`zero_translation_edges` gives left/top/right_exclusive/bottom_exclusive only
+under the explicit hypothetical assumption both runtime translation words are
+zero. It never normalizes, clamps, rejects or substitutes zero/negative dimensions,
+never wraps endpoints back to 16 bits, and never assigns a stored sentinel meaning.
+The signed word arithmetic fits int32 even at the extreme differences/endpoints.
+This is an exclusive arithmetic rectangle, before culling, clipping or drawing;
+it does not prove a pixel was drawn or describe the inclusive fill clip path.
+
+`meaning` is `conditional_quick_rectangle_inputs`, `evidence` is
+`original_runtime_origin_subtraction_and_quick_rectangle_paths`, and
+`runtime_resolution` is false. `coverage.conditional_quick_rectangle_inputs`
+is true; arena geometry, runtime rendering, globals, spawns and behavior remain
+false. These are conditional drawing inputs, not effective arena bounds: header
+selection, record mutation until rendering, translation state, render gates,
+collision and spawns remain unresolved. Previous artwork, records and refresh
+annotations remain byte-for-byte unchanged. The bundle component schema follows version 6.
+
+Independent source-span traversal verifies every one of the original's 69 quick
+placement candidates; other candidate types retain null. Local Unicorn 2.1.4
+executes the unmodified complete refresh helper 0x40f250 and two separate renderer
+instruction paths: origin subtraction 0x4057db..0x405804, and quick exclusive
+endpoints 0x405886..0x4058c8. Actual origin outputs are passed unchanged to the
+endpoint path. This is not execution of the intervening renderer gates or a full
+renderer call. Supplied runtime words, records and headers are DATA; no instruction,
+import or callback is replaced. All 69 source candidates run seven asymmetric
+translation pairs, plus 343 signed-boundary and 512 seeded contexts and one wrong
+unsigned expectation (which fails): 1,339 contexts / 4,017 path executions.
+Every refreshed byte, source header, stack, preserved registers and instruction
+span is checked. Source/project/executable bytes remain unchanged and private.
+
+Eight tests cover signed boundaries, asymmetry, zero/negative dimensions, opaque
+neighbors, old record fields differing from headers, all fill kinds, ambiguous
+local/global-flagged headers, ordinary/deleted/missing scope, alias/reversed/gapped
+slot pointers, absent/empty/repeated placement blocks, bundle/standalone equality,
+immutable refusal/repeats, original absolute spans and late invalid headers before
+any output or optional fault report. Existing detached optional private fault
+reporting is unchanged; no translation state, original content or endpoint enters
+reports. Original executable proof and generated exports remain ignored/private.

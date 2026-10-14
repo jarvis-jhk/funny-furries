@@ -66,7 +66,7 @@ class DimensionContainerTests(unittest.TestCase):
         local = sized_header(width=23, height=65529, fill=1, image=2)
         raw = project_bytes([local, sized_header(1, 32768, 65535, image=5), header(255)], repeated=True)
         doc = backdrop.backdrop_document(self.reader, raw)
-        self.assertEqual((doc['schema_version'], doc['exporter']), (5, 'backdrop-dump/5'))
+        self.assertEqual((doc['schema_version'], doc['exporter']), (6, 'backdrop-dump/6'))
         self.assertTrue(doc['coverage']['quick_backdrop_dimension_inputs'])
         for key in ('runtime_rendering', 'global_reference_resolution', 'arena_geometry', 'spawns', 'behaviour'):
             self.assertFalse(doc['coverage'][key])
@@ -88,7 +88,7 @@ class DimensionContainerTests(unittest.TestCase):
         raw = combined_project()[0].replace(header(1, image=5), sized_header(width=65529, height=32768, fill=1, image=5))
         doc = backdrop.backdrop_document(self.reader, raw)
         manifest, files = bundle.research_bundle(self.reader, raw)
-        self.assertEqual(manifest['components']['backdrops.json'], {'exporter': 'backdrop-dump/5', 'schema_version': 5})
+        self.assertEqual(manifest['components']['backdrops.json'], {'exporter': 'backdrop-dump/6', 'schema_version': 6})
         self.assertEqual(json.loads(files['backdrops.json']), doc)
         (project.REPO / 'build').mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=project.REPO / 'build') as scratch:

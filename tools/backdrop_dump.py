@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import frame_layout
 
-VERSION = "backdrop-dump/5"
+VERSION = "backdrop-dump/6"
 HEADER_BYTES = 68
 
 
@@ -145,7 +145,7 @@ def backdrop_document(reader, raw):
     for level, frame in zip(game.levels(), frames):
         frame["placement_refresh_probes"] = placement_refresh_probes(
             reader.level_blocks(level.data)[1], frame["object_lists"])
-    return {"schema_version": 5, "exporter": VERSION,
+    return {"schema_version": 6, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "image_banks": banks, "global_object_lists": globals_, "frames": frames,
             "coverage": {"backdrop_header_artwork": True, "image_handles": True,
@@ -153,6 +153,7 @@ def backdrop_document(reader, raw):
                          "ordinary_backdrop_image_dimension_candidates": True,
                          "backdrop_placement_refresh_inputs": True,
                          "local_placement_refresh_probes": True,
+                         "conditional_quick_rectangle_inputs": True,
                          "runtime_rendering": False, "global_reference_resolution": False,
                          "arena_geometry": False, "spawns": False, "behaviour": False}}
 
@@ -176,12 +177,15 @@ def placement_refresh_probes(blocks, object_lists):
             candidates = []
             for definition_block, obj in definitions.get(word, []):
                 preview = None
+                rectangle = None
                 decoded = obj["backdrop"]
                 if decoded is not None and not obj["deleted"]:
                     preview = bytearray(raw)
                     for write in decoded["placement_refresh_inputs"]["writes"]:
                         at, size = write["placement_offset"], write["bytes"]
                         preview[at:at + size] = write["written_unsigned"].to_bytes(size, "little")
+                    if obj["type"] == 0:
+                        rectangle = quick_rectangle_inputs(preview)
                     preview = preview.hex()
                 candidates.append({"definition_block_id": definition_block,
                     **{key: obj[key] for key in
@@ -190,7 +194,8 @@ def placement_refresh_probes(blocks, object_lists):
                               "conditional_backdrop_refresh" if decoded is not None else
                               "non_backdrop_definition",
                     "header_sha256": decoded["header_sha256"] if decoded is not None else None,
-                    "conditional_record_hex": preview})
+                    "conditional_record_hex": preview,
+                    "conditional_quick_rectangle_inputs": rectangle})
             records.append({"id": record["id"], "offset": record["offset"],
                 "raw_hex": record["raw_hex"], "object_word_raw_u16": word,
                 "status": "missing_local_slot" if not candidates else
@@ -203,6 +208,31 @@ def placement_refresh_probes(blocks, object_lists):
                        "placement_sha256": stored["sha256"],
                        "slots": stored["slots"], "records": records})
     return result
+
+
+def quick_rectangle_inputs(record):
+    if len(record) != frame_layout.RECORD_BYTES:
+        raise project.InputError("quick rectangle requires a complete placement record")
+    # Drawing subtracts two signed runtime words from the stored coordinates.
+    # Their live values and header selection are unavailable in a project file;
+    # expose the rule and a clearly conditional zero-translation calculation.
+    fields = {name: {"record_offset": at,
+                     "raw_u16": struct.unpack_from("<H", record, at)[0],
+                     "signed_i16": struct.unpack_from("<h", record, at)[0]}
+              for name, at in (("x", 2), ("y", 4), ("width", 26), ("height", 28))}
+    x, y, width, height = (fields[name]["signed_i16"] for name in
+                           ("x", "y", "width", "height"))
+    return {"meaning": "conditional_quick_rectangle_inputs",
+            "evidence": "original_runtime_origin_subtraction_and_quick_rectangle_paths",
+            "runtime_resolution": False, "fields": fields,
+            "translation_inputs": {
+                axis: {"runtime_word_address": address, "signed_i16": None}
+                for axis, address in (("x", "0x41d662"), ("y", "0x41d664"))},
+            "origin_rule": "signed_record_coordinate - signed_runtime_translation",
+            "exclusive_endpoint_rule": "origin + signed_refreshed_dimension",
+            "zero_translation_edges": {"left": x, "top": y,
+                                       "right_exclusive": x + width,
+                                       "bottom_exclusive": y + height}}
 
 
 def save_backdrops(document, repo=project.REPO):
