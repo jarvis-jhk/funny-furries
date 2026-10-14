@@ -87,6 +87,8 @@
       preserving unknown indices/high bits and unevaluated dynamic/event results.
 - [x] Runtime-proven immediate scalar parameter getter inputs, with exact type
       dispatch, WORD zero extension and DWORD transport; caller meanings unresolved.
+- [x] Runtime-proven parameter address getter inputs, distinguishing header/payload
+      transport from scalar values and preserving unresolved caller content semantics.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

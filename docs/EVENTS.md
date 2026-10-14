@@ -1345,3 +1345,70 @@ bytes and entire mapped executable bytes. A wrong sign-extension expectation
 fails on actual EAX0x0000FFFF. No instructions/imports/callbacks are substituted;
 no parameter caller, live event dispatch or gameplay is executed. Proof scripts,
 original bytes and exports stay private/ignored outside the repository.
+
+## Parameter address getter inputs (v24)
+
+`event-dump/24`, schema24 adds `address_getter_storage` for exact original
+dispatch entries, in both frame/global programs and condition/action records.
+This documents a generic getter's conditional address return, not the containing
+opcode's meaning or its eventual use of that address.
+
+In original FF2xmas.exe, dispatch `0x42775f` zero-extends parameter WORD+2 into
+EBX and jumps through `0x41af64`:
+
+- Types **6, 7, 8, 9, 11, 13, 18, 19, 20, 21, 25, 27, 28, 30, 31, 33, 35,
+  36, 37, 38, 39** select `0x427784`: `sub bx,bx; ret`. EAX still points to
+  the **parameter header**, including its size/type words, not to payload+0.
+- Type **40** selects `0x427791`, verifies EBX==40, then executes
+  `lea eax,[eax+4]; sub bx,bx; ret`. EAX points to the **payload**, with ordinary
+  32-bit wrapping address arithmetic. It does not dereference or search it.
+
+`conditional_getter_return` explicitly assumes execution reaches this original
+parameter-getter dispatch. It records `parameter_relative_offset` 0 or 4, target
+`parameter_header` or `parameter_payload`, and the unknown runtime EAX address.
+No executable/host address is invented from a source-file offset. BX is zero,
+carry clear and DX preserves incoming data, not a newly created numeric/string
+tag. `stored_bytes_from_target` counts bytes retained in this one stored
+parameter from that offset; it is **not** a runtime memory accessibility bound
+or a guarantee that the caller reads only those bytes. For an empty type40
+payload it is zero, while address transport still succeeds.
+
+The getter itself does not load an audio handle, resolve an object, extract
+coordinates, activate a group, parse text, check a NUL terminator or evaluate an
+expression. Existing audio/position/group storage annotations coexist unchanged;
+those identify separate stored fields, not EAX scalar returns. Type40 is not
+assigned string content/encoding/lifetime semantics merely because its target
+is the payload. Type1 has a state-dependent handler and is excluded; type16
+calls another helper and is excluded. No entries beyond the checked table range
+0..40 are extrapolated. Unknown types retain their raw storage.
+
+`caller_interpretation: unknown`, `payload_dereferenced_by_getter: false` and
+`runtime_resolution: false` remain explicit. The coverage key
+`parameter_address_getter_inputs` is true, but general parameter/opcode semantics
+and dynamic expression evaluation remain false. Readable output adds
+`ADDRESS_GETTER` after prior PARAM/annotation lines. The original payload and
+all prior JSON fields/text lines remain unchanged. No new minimum payload length
+is inferred: these paths inspect only the already-validated parameter header.
+Existing independently supported audio/position/etc. layouts still require their
+own extents. Malformed storage remains exit2 before JSON/text/bundle writes or
+fault reporting; unexpected faults retain the existing detached optional reporter.
+
+Independent absolute source traversal verifies all **2,502** original parameters:
+types6:870, 7:21, 9:1150, 13:122, 18:110, 19:29, 38:41, 39:159. All header sizes,
+types, payload bytes and row/record/program reconstruction agree. Type40 and the
+other absent types are synthetic capabilities, not original gameplay observations.
+
+Private runtime proof executes the unmodified FF2xmas.exe SHA-256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`
+in Unicorn2.1.4 through the complete dispatcher/getters. Exact table entries
+0..40 are independently inspected. The 20,421 executions cover 1,584 cases of
+22 types/six empty or arbitrary payloads/four aligned and unaligned addresses/
+three incoming DX patterns, 66 address-wrap cases, 11,264 seeded cases and every
+original parameter with three incoming DX patterns (7,506 runs), plus one wrong
+payload-pointer expectation that fails. The wrapped type40 result is an unmapped
+zero address, demonstrating address transport without payload dereference.
+Checks cover EAX/full EBX/EDX/ECX/callee-preserved registers, carry, full128-byte
+stack/return, parameter bytes and entire mapped executable bytes. Original
+instructions are unchanged; no imports/instructions/callbacks are substituted.
+No caller/event/gameplay execution or runtime pointer resolution is claimed.
+Proof scripts, executable bytes and generated exports stay private outside the repo.

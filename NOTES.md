@@ -2561,3 +2561,56 @@ snapshots/job log in agent state data/furries/scalar-getters/. This delivery edi
 changes NOTES only; tested source unchanged. No unfinished work/continuation/
 new schedule/release/second slice; combined exporter/spec stays started/sol:
 actual opcode/caller/global semantics, arenas/spawns/observed behaviour open.
+
+2026-10-14: Sol tick t_mv7sibf38fv5k, one bounded M0 parameter-address
+getter input slice. Clean main/fetched origin, no open PRs/issues or unfinished
+work at start; direct main follows repository convention. event-dump/24 schema24
+adds address_getter_storage for exact generic getter table entries: header-address
+types6/7/8/9/11/13/18/19/20/21/25/27/28/30/31/33/35/36/37/38/39 select427784;
+type40 selects427791 and returns payload address+4. Dispatcher42775f/table41af64
+returns BX0/carry clear, preserves incoming DX; no numeric/string tag invented.
+Relative offsets0/4 are conditional on reaching that dispatch, never runtime
+addresses derived from source offsets. Stored byte count is not a runtime memory
+bound. Payload not dereferenced, caller interpretation unknown/runtime_resolution
+false; audio/position/group views retained separately. State-dependent type1 and
+helper-calling type16 excluded; no extrapolated table beyond0..40, text/NUL/encoding/
+caller/event/global/condition/gameplay semantics. No new payload minimum invented;
+previous audio/position/etc. strict checks remain. Existing detached optional
+private fault reporter unchanged; malformed storage exits2 before JSON/text/bundle
+writing or reporting. No original content/assets/exports/instructions/proof data/
+private endpoint committed/published.
+
+Independent absolute source traversal verifies all2502 original parameter headers/
+spans: types6:870/7:21/9:1150/13:122/18:110/19:29/38:41/39:159. Type40 and other
+absent supported types remain synthetic capabilities. Unmodified FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f, Unicorn2.1.4:
+20421 complete original dispatcher/getter executions. Exact0..40 table entries,
+1584 boundary/address/payload/DX cases,66 final-page/wrapped-address cases,11264
+seeded cases,all2502 originals*3 incoming DX values,one wrong header->payload
+expectation (fails). Type40 wrapsFFFFFFFC+4 to unmapped zero without dereference.
+EAX/full EBX/EDX/ECX/preserved registers/carry/128-byte stack/parameter bytes/entire
+mapped executable verified; no instruction/import/callback substitutions or
+caller/event/gameplay execution. Private proof reads original bytes only.
+
+Eight new cases cover exact types/full unknown-u16 exclusion, header versus payload
+address, empty/arbitrary/non-NUL storage, both roles/scopes, retained audio/position/
+group fields/raw reconstruction, source spans/counts, text/bundle equality/repeats/
+immutable refusal and late broken header refusal before writes/reporting. Initial
+original test omitted its expected-count constant; added independently traversed
+counts before final positives. Old schema23 expectations updated24 without other
+contract changes. Header offset0->2 negative control fails two intended assertions
+in two executed cases; source restored byte-exact and compileall-f forced. All352
+local tests pass with original/pinned KlikBack6e178b9 enabled; compileall-f and
+actual agent ./node_modules/.bin/tsc --noEmit pass before commit.
+
+Previous JSON/text equals21896fa after stripping only address annotations/coverage/
+version; old fields/text lines unchanged. Previous643-file bundle refuses replacement
+without mutation and is preserved before regeneration;640 files identical, only
+ events.json/events.txt/manifest.json change. Standalone JSON/text/bundle CLI repeats
+identical,input/executable unchanged, project SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/address-getters/. Tested source delivery and
+exact-head CI verification follow within this tick. Combined exporter/spec remains
+started/sol: actual opcode/caller/global semantics, placement selection/arenas/spawns/
+observed behaviour still open. No second slice/new schedule/continuation/release/
+hardware claim.

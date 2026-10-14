@@ -14,11 +14,14 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/23"
+VERSION = "event-dump/24"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
 SCALAR_DWORD_TYPES = frozenset({2, 24, 29})
+ADDRESS_HEADER_TYPES = frozenset({6, 7, 8, 9, 11, 13, 18, 19, 20, 21, 25,
+                                  27, 28, 30, 31, 33, 35, 36, 37, 38, 39})
+ADDRESS_PAYLOAD_TYPES = frozenset({40})
 
 
 def word(data, offset, form="<H"):
@@ -205,6 +208,27 @@ def decode_object_parameter(payload):
         raise project.InputError("object parameter is shorter than its supported layout")
     return {"payload_offset": 2, "reference_raw_u16": word(payload, 2),
             "status": "frame_context_unresolved", "candidates": []}
+
+
+def decode_address_getter(payload, kind):
+    # Exact dispatch entries return the parameter address unchanged, or +4 for
+    # type40. Nothing here proves what the eventual caller reads through it.
+    if kind not in ADDRESS_HEADER_TYPES | ADDRESS_PAYLOAD_TYPES:
+        raise project.InputError("parameter type has no supported address getter")
+    offset = 0 if kind in ADDRESS_HEADER_TYPES else 4
+    return {"conditional_getter_return": {
+                "assumption": "execution_reaches_original_parameter_getter_dispatch",
+                "eax": "runtime_parameter_address_unknown",
+                "parameter_relative_offset": offset,
+                "address_arithmetic_bits": 32,
+                "address_overflow": "wrap_modulo_2_to_32",
+                "target": "parameter_header" if offset == 0 else "parameter_payload",
+                "bx_raw_u16": 0, "carry": False,
+                "dx": "preserved_incoming_word_not_a_new_value_tag"},
+            "stored_bytes_from_target": len(payload) + 4 - offset,
+            "payload_dereferenced_by_getter": False,
+            "caller_interpretation": "unknown", "runtime_resolution": False,
+            "evidence": "cnc_parameter_address_getters"}
 
 
 def decode_scalar_getter(payload, kind):
@@ -402,6 +426,9 @@ def decode_record(data, role, offset, index):
         parameters.append({"id": number, "offset": offset + cursor, "bytes": size,
                            "type": code, "meaning": "unknown",
                            "payload_hex": data[cursor + 4:cursor + size].hex()})
+        if code in ADDRESS_HEADER_TYPES | ADDRESS_PAYLOAD_TYPES:
+            parameters[-1]["address_getter_storage"] = decode_address_getter(
+                data[cursor + 4:cursor + size], code)
         if code in SCALAR_WORD_TYPES | SCALAR_DWORD_TYPES:
             parameters[-1]["scalar_getter_storage"] = decode_scalar_getter(
                 data[cursor + 4:cursor + size], code)
@@ -624,7 +651,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 23, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 24, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -643,6 +670,7 @@ def event_document(reader, raw):
                          "recursive_integer_constants": True,
                          "comparison_prefix_inputs": True,
                          "immediate_scalar_getter_inputs": True,
+                         "parameter_address_getter_inputs": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,
@@ -701,6 +729,9 @@ def readable_program(program):
                 if "comparison_prefix_storage" in parameter:
                     lines.append("          COMPARISON_PREFIX " + json.dumps(
                         parameter["comparison_prefix_storage"], ensure_ascii=True, sort_keys=True))
+                if "address_getter_storage" in parameter:
+                    lines.append("          ADDRESS_GETTER " + json.dumps(
+                        parameter["address_getter_storage"], ensure_ascii=True, sort_keys=True))
                 if "scalar_getter_storage" in parameter:
                     lines.append("          SCALAR_GETTER " + json.dumps(
                         parameter["scalar_getter_storage"], ensure_ascii=True, sort_keys=True))
