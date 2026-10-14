@@ -29,7 +29,7 @@ exception messages or original content enters reports or committed source.
 
 ## Contract
 
-- `schema_version` is 8 and `exporter` is `backdrop-dump/8`. All previous raw
+- `schema_version` is 9 and `exporter` is `backdrop-dump/9`. All previous raw
   fields and artwork annotations remain unchanged.
 - Source and reader fingerprints match the project index. Image banks retain
   ordered segment IDs/offsets and occupied slot IDs; gaps, repeated/empty/missing
@@ -526,3 +526,75 @@ banks, local/global differences, ambiguous/all-type definitions, opaque stored
 dimensions, missing/unsigned slots, aliases/reversed/gapped pointer order, absent/
 empty/repeated blocks, strict late invalid refusal, independent original spans,
 standalone/bundle equality, repeats and previous immutable bundle refusal.
+
+## Conditional image-metadata call inputs
+
+Schema 9 adds nullable `conditional_image_metadata_call_inputs` to each placement
+header candidate. Live ordinary headers have an `ordinary` path; quick headers
+have a `quick_mosaic` path only when the refreshed fill word's low nibble is 1
+and refreshed image word +8 is nonzero. Solid/gradient, mosaic image zero,
+deleted/non-backdrop definitions retain null. Ordinary image zero and 0xFFFF
+remain argument words, with no invented sentinel. The existing editor artwork
+validation still requires its referenced bank slot; this does not resolve a call.
+All ambiguous/global-flagged local candidates remain separate.
+
+Both paths assemble three arguments, listed in **stack order before CALL**:
+`runtime_context`, `image_argument`, `output_buffer`. The context is a dword
+loaded at 0x41d4e4, whose exported live value remains null. The output buffer is
+caller stack storage, with no exported runtime address. Calls at 0x405528
+(quick mosaic) and 0x4058a9 (ordinary) target thunk 0x414186. The unchanged
+executable's thunk jumps through IAT slot 0x41e5d8, CNCS32.dll ordinal 109.
+Neither that thunk/import nor the lookup is executed by this proof. The callee's
+interpretation of arguments, bank selection, returned bytes and error behaviour
+remain unresolved.
+
+Quick fill clears EAX, then loads AX from placement +8 before pushing EAX.
+Its `image_argument` has `low_u16` equal to that word, `high_u16: 0`,
+`raw_u32` equal to the word and `rule: zero_extended_image_word`. Incoming EAX,
+record +10 and high fill bytes cannot supply the pushed upper half.
+
+The ordinary renderer writes AX from placement +8 at its stack +18, then
+loads a **dword** at +18. Its upper half overlaps the low word of translated
+origin X stored at stack +20. It does **not** come from record +10. Under the
+supplied-record/no-intervening-mutation assumption, the full argument rule is
+`((translated_origin_x & 0xFFFF) << 16) | image_word`, with
+`translated_origin_x = signed_record_x - signed_runtime_translation_x`.
+`origin_x_input` retains record +2 signed/raw words and runtime translation word
+0x41d662; live translation, argument `high_u16` and full `raw_u32` remain null.
+`zero_translation_argument_raw_u32` is an explicitly hypothetical argument,
+assuming translation zero. This is only a call-input rule, not a resolved image
+handle, metadata output, arena boundary or evidence that the callee consumes the
+upper half. The ordinary path can pass a nonzero upper half even when image is 0.
+
+The annotation's `runtime_resolution`, `metadata_lookup_performed` and
+`drawing_performed` stay false; `callee_argument_interpretation` is `unresolved`.
+Coverage adds `conditional_image_metadata_call_inputs: true`; all runtime/global/
+arena/spawn/behaviour coverage stays false. Prior fields remain unchanged.
+Invalid storage still exits 2 before standalone/bundle writes or fault reporting;
+existing detached optional private fault reporting remains unchanged. A different
+old immutable research bundle must be moved aside before regeneration.
+
+Independent absolute source traversal checks 5,021 ordinary candidates, 45
+mosaic calls and 24 gradient no-call cases. Unmodified original FF2xmas.exe
+(hash above), Unicorn 2.1.4: complete refresh helper 0x40f250, then ordinary
+**two separate spans** 0x4057db..0x405804 and 0x405846..0x4058a9. The origin
+span's real outputs feed the argument span unchanged. Intervening culling/global
+refresh gates are not executed; runtime branch EBX=1 is supplied as data/state,
+not inferred from a stored header. Quick fill executes its complete prologue/
+dispatch/assembly from 0x4054b0 to its first call, stopping before metadata,
+solid or gradient CALL instructions. No instructions/imports/callbacks are
+replaced. Full record/header bytes, ordinary 256-byte stack spans, quick entry
+arguments/saved registers, assembled call inputs and instruction bytes are checked.
+No full renderer, actual caller/header selection, metadata callee, collision,
+spawns or gameplay execution is claimed.
+
+The local proof executes 43,485 contexts / 122,973 original paths: 686 signed
+boundary contexts, 6,144 high-fill-byte/fill/image contexts, 1,024 seeded contexts,
+all 5,090 original candidates with seven asymmetric translation pairs (35,630),
+and one incorrect zero-extension expectation. An incorrect zero-extended ordinary argument
+expectation fails on actual 0xFFF60005 (X=-7, translation=3, image=5).
+Eight tests cover original absolute spans, fill dispatch, full unsigned handles,
+coordinate probes, opaque neighbors, ambiguity/global flags/other types,
+aliased/reversed/gapped placement slots, absent/empty/repeated blocks, strict
+late invalid refusal and standalone/bundle equality/repeats/immutable refusal.
+Original data, executable instructions and generated exports stay private/untracked.

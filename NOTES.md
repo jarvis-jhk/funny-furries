@@ -2356,3 +2356,59 @@ delivery edit changes NOTES only; tested source unchanged. No unfinished work,
 continuation/new schedule/release/second slice; combined exporter/spec remains
 started/sol, actual header/image/returned metadata/translation selection, arenas/
 spawns/global/opcodes/observed behaviour remain open.
+
+2026-10-14: Sol tick t_mv7iv3dg14eula, one bounded M0 conditional backdrop
+image-metadata call-input slice. Clean main/fetched origin, no open PRs/issues or
+unfinished work at start; direct main follows repository convention.
+backdrop-dump/9 schema9 adds conditional_image_metadata_call_inputs to live
+ordinary and nonzero-image quick-mosaic placement candidates; solid/gradient/
+zero-image mosaic/deleted/non-backdrop null. All local/global-flagged ambiguity
+retained. Both paths push runtime context0x41d4e4, image argument and caller-stack
+output pointer; live context/pointer and callee interpretation unresolved.
+Quick mosaic clears EAX then loads AX: argument is zero-extended image word8.
+Ordinary writes only WORD stack18 then reads DWORD18 overlapping translated
+origin X at stack20. Its full rule is ((origin_x&0xFFFF)<<16)|image_word, with
+origin signed record X2 minus signed runtime translation0x41d662. Live translation/
+high-half/full argument null; zero_translation_argument_raw_u32 is hypothetical.
+Record10 is not an input; no invented0/0xFFFF ordinary sentinel or claim that
+callee uses the upper half. No actual metadata return/bank/winner/arena geometry
+or behaviour inferred. Prior annotations unchanged, all runtime_resolution/
+metadata_lookup_performed/drawing_performed false. Existing detached optional
+private fault reporter unchanged; malformed storage exits2 before standalone/
+bundle output/reporting. No original content/assets/exports/instructions/proof
+data or private endpoint committed/published.
+
+Independent absolute project traversal verifies all5021 ordinary candidates,
+45 mosaic call cases and24 gradient no-call cases. Unmodified FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f,
+Unicorn2.1.4:43485 contexts/122973 original path executions. Complete refresh
+helper40f250; ordinary TWO SEPARATE spans4057db..405804 and405846..4058a9;
+real origin outputs feed call assembly unchanged. Intervening culling/global
+refresh gates skipped, runtime EBX1 supplied explicitly, not inferred. Quick
+complete fill prologue/dispatch/assembly4054b0 stops BEFORE its first CALL.
+686 signed-boundary/6144 all-high-fill-byte*fills*handles/1024 seeded contexts,
+all5090 original candidates*7 asymmetric translations and one incorrect
+zero-extended ordinary expectation (fails on actual0xFFF60005). Full record/
+header bytes, ordinary256-byte stacks, quick saved registers/entry arguments,
+call inputs/instructions checked. Original thunk414186/IAT41e5d8/ordinal109
+verified from executable bytes but never called. No import/instruction/callback
+substitutions, metadata lookup/full renderer/actual selection/collision/spawns/
+gameplay executed or claimed.
+
+Eight new cases/all328 local tests pass with original/pinned KlikBack6e178b9,
+compileall-f. Signed/raw probes/full u16 handles/opaque neighbors/quick dispatch,
+local-global ambiguity/all types/missing definitions, aliases/reversed/gapped
+slots/absent/empty/repeated blocks, source spans, bundle/standalone equality/
+repeats/old immutable refusal and late malformed refusal all covered.
+Zero-translation argument shift16->15 control fails33 intended assertions in8
+executed cases; source restored byte-exact/compileall-f before final full328
+positives. Actual agent ./node_modules/.bin/tsc --noEmit passes before commit.
+Previous document equalsfa77b7d after stripping only new annotations/coverage/
+version. Previous643-file bundle refuses replacement without mutation and is
+preserved before regeneration;641 files unchanged, only backdrops.json and
+manifest.json change. Standalone/bundle CLI repeats identical/input/exe unchanged;
+project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/image-metadata-call-inputs/. Source delivery/CI
+follows within this tick. Combined exporter/spec stays started/sol: callee/import
+results, actual selection/arena geometry/spawns/global/opcodes/observed behaviour
+remain open. No second slice/new schedule/continuation/release/hardware claim.

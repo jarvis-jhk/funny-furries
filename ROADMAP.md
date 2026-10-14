@@ -81,6 +81,8 @@
       preserving mosaic-zero fallback, gradient swap/flags and unresolved clipping/drawing.
 - [x] Runtime-proven conditional ordinary-backdrop rectangle consumer inputs, with
       explicit image-bank dimension assumptions and unresolved lookup/live geometry.
+- [x] Runtime-proven conditional backdrop metadata-call argument inputs, preserving
+      ordinary origin-word overlap and quick zero extension; callee lookup remains open.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

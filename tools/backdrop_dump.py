@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import frame_layout
 
-VERSION = "backdrop-dump/8"
+VERSION = "backdrop-dump/9"
 HEADER_BYTES = 68
 
 
@@ -145,7 +145,7 @@ def backdrop_document(reader, raw):
     for level, frame in zip(game.levels(), frames):
         frame["placement_refresh_probes"] = placement_refresh_probes(
             reader.level_blocks(level.data)[1], frame["object_lists"])
-    return {"schema_version": 8, "exporter": VERSION,
+    return {"schema_version": 9, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "image_banks": banks, "global_object_lists": globals_, "frames": frames,
             "coverage": {"backdrop_header_artwork": True, "image_handles": True,
@@ -156,6 +156,7 @@ def backdrop_document(reader, raw):
                          "conditional_quick_rectangle_inputs": True,
                          "conditional_quick_fill_inputs": True,
                          "conditional_ordinary_rectangle_inputs": True,
+                         "conditional_image_metadata_call_inputs": True,
                          "runtime_rendering": False, "global_reference_resolution": False,
                          "arena_geometry": False, "spawns": False, "behaviour": False}}
 
@@ -182,6 +183,7 @@ def placement_refresh_probes(blocks, object_lists):
                 rectangle = None
                 fill = None
                 ordinary_rectangle = None
+                metadata_call = None
                 decoded = obj["backdrop"]
                 if decoded is not None and not obj["deleted"]:
                     preview = bytearray(raw)
@@ -194,6 +196,7 @@ def placement_refresh_probes(blocks, object_lists):
                     else:
                         ordinary_rectangle = ordinary_rectangle_inputs(
                             preview, decoded["ordinary_backdrop_image_candidates"])
+                    metadata_call = image_metadata_call_inputs(preview, obj["type"])
                     preview = preview.hex()
                 candidates.append({"definition_block_id": definition_block,
                     **{key: obj[key] for key in
@@ -205,7 +208,8 @@ def placement_refresh_probes(blocks, object_lists):
                     "conditional_record_hex": preview,
                     "conditional_quick_rectangle_inputs": rectangle,
                     "conditional_quick_fill_inputs": fill,
-                    "conditional_ordinary_rectangle_inputs": ordinary_rectangle})
+                    "conditional_ordinary_rectangle_inputs": ordinary_rectangle,
+                    "conditional_image_metadata_call_inputs": metadata_call})
             records.append({"id": record["id"], "offset": record["offset"],
                 "raw_hex": record["raw_hex"], "object_word_raw_u16": word,
                 "status": "missing_local_slot" if not candidates else
@@ -323,6 +327,50 @@ def ordinary_rectangle_inputs(record, images):
             "exclusive_endpoint_rule": "origin + signed_returned_metadata_dimension",
             "candidate_assumption": "returned_dimension_words_equal_this_stored_image_candidate",
             "status": images["status"], "dimension_candidates": candidates}
+
+
+def image_metadata_call_inputs(record, kind):
+    if len(record) != frame_layout.RECORD_BYTES:
+        raise project.InputError("image metadata call requires a complete placement record")
+    image = struct.unpack_from("<H", record, 8)[0]
+    if kind == 0:
+        fill = struct.unpack_from("<H", record, 24)[0] & 15
+        if fill not in (0, 1, 2):
+            raise project.InputError("unsupported quick fill dispatch nibble")
+        if fill != 1 or image == 0:
+            return None
+        path = "quick_mosaic"
+        argument = {"low_u16": image, "high_u16": 0, "raw_u32": image,
+                    "rule": "zero_extended_image_word"}
+        call = "0x405528"
+    elif kind == 1:
+        # The ordinary caller stores only AX at stack+18, then reads a dword.
+        # Its upper half overlaps the LOW word of the translated left edge at
+        # stack+20; it is not the neighbouring placement word or a cleared half.
+        x = struct.unpack_from("<h", record, 2)[0]
+        path = "ordinary"
+        argument = {"low_u16": image, "high_u16": None, "raw_u32": None,
+                    "rule": "((translated_origin_x & 0xFFFF) << 16) | image_word",
+                    "origin_x_input": {
+                        "record_offset": 2, "raw_u16": struct.unpack_from("<H", record, 2)[0],
+                        "signed_i16": x, "runtime_translation_word_address": "0x41d662",
+                        "runtime_translation_signed_i16": None,
+                        "rule": "signed_record_x - signed_runtime_translation_x"},
+                    "zero_translation_argument_raw_u32": ((x & 0xFFFF) << 16) | image}
+        call = "0x4058a9"
+    else:
+        return None
+    return {"meaning": "conditional_image_metadata_call_inputs",
+            "evidence": "original_runtime_metadata_call_argument_paths",
+            "path": path, "call_instruction_address": call,
+            "callee_thunk_address": "0x414186", "runtime_resolution": False,
+            "metadata_lookup_performed": False, "drawing_performed": False,
+            "image_word": {"record_offset": 8, "raw_u16": image},
+            "arguments_in_stack_order": ["runtime_context", "image_argument", "output_buffer"],
+            "runtime_context_input": {"runtime_dword_address": "0x41d4e4", "raw_u32": None},
+            "image_argument": argument,
+            "output_buffer_input": {"storage": "caller_stack", "runtime_address": None},
+            "callee_argument_interpretation": "unresolved"}
 
 
 def save_backdrops(document, repo=project.REPO):

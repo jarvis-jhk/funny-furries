@@ -89,7 +89,7 @@ class RefreshContainerTests(unittest.TestCase):
 
     def test_local_global_differences_empty_lists_repeated_banks_remain_unresolved(self):
         doc = backdrop.backdrop_document(self.reader, project_bytes([refresh_header(1, 255), refresh_header(), header(255)], repeated=True))
-        self.assertEqual((doc['schema_version'], doc['exporter']), (8, 'backdrop-dump/8'))
+        self.assertEqual((doc['schema_version'], doc['exporter']), (9, 'backdrop-dump/9'))
         self.assertTrue(doc['coverage']['backdrop_placement_refresh_inputs'])
         for field in ('runtime_rendering', 'global_reference_resolution', 'arena_geometry', 'spawns', 'behaviour'):
             self.assertFalse(doc['coverage'][field])
@@ -108,7 +108,7 @@ class RefreshContainerTests(unittest.TestCase):
         raw = combined_project()[0].replace(header(1, image=5), refresh_header(1, high=255))
         doc = backdrop.backdrop_document(self.reader, raw)
         manifest, files = bundle.research_bundle(self.reader, raw)
-        self.assertEqual(manifest['components']['backdrops.json'], {'exporter': 'backdrop-dump/8', 'schema_version': 8})
+        self.assertEqual(manifest['components']['backdrops.json'], {'exporter': 'backdrop-dump/9', 'schema_version': 9})
         self.assertEqual(json.loads(files['backdrops.json']), doc)
         (project.REPO/'build').mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=project.REPO/'build') as scratch:

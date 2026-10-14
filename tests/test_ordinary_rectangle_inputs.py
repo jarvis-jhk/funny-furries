@@ -136,7 +136,7 @@ class OrdinaryRectangleContainerTests(unittest.TestCase):
         raw=self.make([[],[(2,definitions([refresh_header(1)])),(3,placement_block([0],coordinates()))]])
         doc=backdrop.backdrop_document(self.reader,raw);manifest,files=bundle.research_bundle(self.reader,raw)
         self.assertEqual(json.loads(files['backdrops.json']),doc)
-        self.assertEqual(manifest['components']['backdrops.json'],{'exporter':'backdrop-dump/8','schema_version':8})
+        self.assertEqual(manifest['components']['backdrops.json'],{'exporter':'backdrop-dump/9','schema_version':9})
         (project.REPO/'build').mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=project.REPO/'build') as scratch:
             repo=Path(scratch);target=bundle.save_bundle(manifest,files,repo)
