@@ -13,7 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import project_index as project
 
-VERSION = "frame-layout/4"
+VERSION = "frame-layout/5"
 UNUSED = 0xFFFFFFFF
 RECORD_BYTES = 32
 
@@ -66,16 +66,33 @@ def layout_document(reader, raw):
         annotate_creation_types(placements)
         frames.append({"id": frame_id, "offset": level.offset,
                        "header_bytes": start, "header_meaning": "unknown",
-                       "header_hex": level.data[:start].hex(), "placements": placements})
-    return {"schema_version": 4, "exporter": VERSION,
+                       "header_hex": level.data[:start].hex(),
+                       "dimension_inputs": decode_dimension_inputs(level.data[:start]),
+                       "placements": placements})
+    return {"schema_version": 5, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "frames": frames,
             "coverage": {"frame_headers": True, "placement_storage": True,
+                         "frame_dimension_inputs": True,
                          "placement_object_slot_probes": True,
                          "placement_coordinate_inputs": True,
                          "placement_creation_type_inputs": True,
                          "placement_semantics": False, "arena_geometry": False,
                          "spawns": False, "behaviour": False}}
+
+
+def decode_dimension_inputs(header):
+    if len(header) not in (0x78, 0xB8):
+        raise project.InputError("unsupported frame header extent")
+    # Original consumers sign-extend these words for size/clipping arithmetic.
+    # They do not establish arena collision bounds or a successful frame load.
+    return {"meaning": "frame_dimension_inputs",
+            "evidence": "original_runtime_frame_size_and_clipping_paths",
+            "runtime_resolution": False,
+            **{axis: {"header_offset": offset,
+                      "raw_u16": struct.unpack_from("<H", header, offset)[0],
+                      "signed_i16": struct.unpack_from("<h", header, offset)[0]}
+               for axis, offset in (("width", 4), ("height", 6))}}
 
 
 def annotate_creation_types(placements):

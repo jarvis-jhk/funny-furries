@@ -76,7 +76,7 @@ class CoordinateContainerTests(unittest.TestCase):
     def test_both_frame_header_shapes_missing_empty_and_repeated_blocks(self):
         raw = synthetic_layout()
         doc = layout.layout_document(self.reader, raw)
-        self.assertEqual((doc['schema_version'], doc['exporter']), (4, 'frame-layout/4'))
+        self.assertEqual((doc['schema_version'], doc['exporter']), (5, 'frame-layout/5'))
         self.assertTrue(doc['coverage']['placement_coordinate_inputs'])
         for key in ('placement_semantics', 'arena_geometry', 'spawns', 'behaviour'):
             self.assertFalse(doc['coverage'][key])
@@ -109,7 +109,7 @@ class CoordinateContainerTests(unittest.TestCase):
     def test_bundle_component_and_immutable_repeats(self):
         raw, _ = synthetic_probes()
         manifest, files = bundle.research_bundle(self.reader, raw)
-        self.assertEqual(manifest['components']['frame-layout.json'], {'exporter': 'frame-layout/4', 'schema_version': 4})
+        self.assertEqual(manifest['components']['frame-layout.json'], {'exporter': 'frame-layout/5', 'schema_version': 5})
         self.assertEqual(json.loads(files['frame-layout.json']), layout.layout_document(self.reader, raw))
         self.assertFalse(manifest['coverage']['arena_geometry'])
         (project.REPO / 'build').mkdir(exist_ok=True)

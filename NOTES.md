@@ -1851,3 +1851,47 @@ snapshots/job log in agent state data/furries/placement-types/. This delivery ed
 changes Markdown only; tested source unchanged. No unfinished implementation,
 continuation/new schedule/release/second slice; combined exporter/spec remains
 started/sol, full creation/selection/arena geometry/spawn/observed behaviour open.
+
+2026-10-14: Sol tick t_mv7g07dwkqfpm, one bounded M0 frame dimension-input
+slice. Clean main, fetched origin, no open PRs/issues or in-flight work at start;
+direct main follows repository convention. frame-layout/5/schema5 adds per-frame
+`dimension_inputs`: width at header4/height6, raw-u16 and signed-i16 views, both
+0x78/0xB8 extents. Zero/negative/sentinel-looking bits preserved, other header
+words remain opaque; raw placement fields/probes/type/coordinate inputs unchanged.
+Every annotation runtime_resolution=false; arena collision/spawn/window/gameplay
+semantics remain open. Existing optional detached private fault reporter unchanged;
+invalid inputs fail before standalone/bundle writes/reporting. No original code,
+assets/exports/proof data/private endpoint committed or published.
+
+Original FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f:
+loader0x401e4f prepares 0x78/0xb8 read into0x41d662 (stopped before import);
+size/centering0x404486..0x4044ef and clipping0x40567f paths execute unmodified
+in Unicorn2.1.4. Seven word boundaries/both axes/extents,512 seeded header/app
+pairs, both application-size selection contexts and13 original dimension pairs:
+1249 cases/2496 instruction-path executions pass. Signed loads, independent size
+selection/minima/centering/clipping branch, stack/registers and unchanged effective
+header bytes checked; unsigned65529 expectation fails actual signed-negative7.
+Header data/selection bit deliberately varied in synthetic contexts; file-read
+import/full frame loading/drawing/gameplay never executed or stubbed. All13
+protected/decompiled dimension byte pairs equal:350x150 then12*800x600; dimensions
+alone do not identify playable arenas or collision boundaries.
+
+Eight new cases and all264 local tests pass with original/pinned KlikBack6e178b9.
+Signed/raw/asymmetric boundaries, opaque neighbours/both extents, zero/negative
+preservation, unsupported header shapes, empty/repeated placement blocks/prior
+annotations, original absolute source reads, immutable bundles/repeats and late
+malformed placement/decoder extent before outputs/reporting covered. Width-offset
+4->5 control fails101 intended assertions (98 boundary subtests) in8 executed
+cases; restored byte-exact and compileall-f before all264 final positives.
+Actual agent ./node_modules/.bin/tsc --noEmit passes before commit.
+
+Prior document matches c250755 after removing only dimension_inputs/coverage/
+version. Previous643-file immutable bundle refuses replacement without mutation
+and is preserved before regeneration;641 files unchanged, only frame-layout.json/
+manifest.json differ. Standalone/bundle CLIs repeat identically/input unchanged:
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Evidence: agent state data/furries/frame-dimensions/; source delivery/CI follows
+within this tick. Combined exporter/spec stays started/sol: arena geometry/spawns,
+full creation/selection/global/opcode/observed behaviour remain open. No second
+slice, new schedule/continuation/release or hardware claim.

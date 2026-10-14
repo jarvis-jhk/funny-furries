@@ -1,11 +1,11 @@
-# Frame layout structure v4
+# Frame layout structure v5
 
 This M0 research slice exports frame headers and object-placement **storage**
 as local JSON. It supplies the lossless placement tables needed for a later
-arena decoder. Version 4 adds runtime-proven creation type inputs beside the existing
-coordinate inputs and first-word/local-object-slot equality probes. It does not yet establish runtime
-object references, final positions,
-collision geometry, player spawns, drawing order or playable arenas.
+arena decoder. Version 5 adds runtime-proven frame dimension inputs beside the
+existing creation type, coordinate inputs and first-word/local-object-slot
+equality probes. It does not yet establish runtime object references, final
+positions, collision geometry, player spawns, drawing order or playable arenas.
 
 Use the Python 3.10+ and externally supplied KlikBack reader from
 [EXPORTER.md](EXPORTER.md):
@@ -26,11 +26,11 @@ endpoint, paths, exception text or original data enters fault reports.
 ## Contract
 
 - Source and external reader fingerprints match the project index.
-- `schema_version` is 4 and `exporter` is `frame-layout/4`. Existing raw fields,
+- `schema_version` is 5 and `exporter` is `frame-layout/5`. Existing raw fields,
   record/slot order, pointer aliases and header bytes are unchanged.
 - Every frame retains its zero-based storage ID, absolute segment-header
   offset, and exact pre-block header as `header_hex`. The reader establishes
-  header sizes 0xB8 or 0x78; header field meanings remain unknown.
+  header sizes 0xB8 or 0x78; header fields remain opaque except for the dimension inputs described below.
 - `placements` lists every block of kind 3 in frame order. `block_id` is its
   index among all frame blocks; `frame_offset` is its block-header offset
   relative to the frame payload. A missing block is distinct from a present
@@ -112,7 +112,7 @@ No editor/runtime instructions were executed for this claim.
 `arena_geometry`, `spawns` and `behaviour` remain false. Raw record/header bytes
 and complete placement reconstruction remain lossless. Pointer aliases keep
 one stored record and one probe, rather than multiplying presumed instances.
-The research bundle automatically includes schema 4 and its component version;
+The research bundle automatically includes schema 5 and its component version;
 an existing different immutable bundle must be moved aside before regenerating.
 
 Synthetic tests cover differing frame scopes, actual block identities, missing,
@@ -240,3 +240,55 @@ pointers, both frame headers, empty/repeated blocks, lossless source bytes and
 standalone/bundle immutable repeats. Late malformed placement storage fails
 before output or fault reporting. Original-file tests separately verify every
 word/header comparison; CI skips only that fixture without local game content.
+
+## Frame dimension inputs
+
+Schema 5 adds `dimension_inputs` to each frame beside its complete unchanged
+`header_hex`. `width` and `height` retain `header_offset` (4 and 6), `raw_u16`
+and `signed_i16` of those little-endian words. Both supported header extents
+(0x78 and 0xB8) share these offsets. Zero, negative values, 0x8000 and 0xFFFF
+are preserved without sentinel rules or invented positivity constraints.
+Other header words remain opaque; the general `header_meaning` stays unknown.
+Unsupported header extents fail before output. No raw placement field changes.
+
+The annotation has `meaning: frame_dimension_inputs`,
+`evidence: original_runtime_frame_size_and_clipping_paths` and
+`runtime_resolution: false`. `coverage.frame_dimension_inputs` is true;
+`arena_geometry`, `spawns`, `placement_semantics` and `behaviour` remain false.
+These are frame size inputs to the original's size/centering and view clipping
+paths, not proven collision boundaries, a framebuffer size for every flag/mode,
+physical window resolution, a completed frame load or arena identification.
+Application settings can replace selected size inputs; the exporter does not
+calculate context-dependent final window/surface dimensions.
+
+Evidence is the original FF2xmas executable (SHA-256
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`).
+Loader branch 0x401E4F prepares a read of 0x78 or 0xB8 bytes into 0x41D662;
+thus header+4/+6 map to 0x41D666/0x41D668. Its genuine instructions were
+executed in local Unicorn 2.1.4 and stopped **before** the actual file-read
+import at 0x401E69/0x401E8D. The file import was neither executed nor replaced.
+Independently executing 0x404486..0x4044EF with header bytes as runtime data
+proves signed16 size loads, selection against separate application inputs,
+centering offsets and signed minima. The 0x40567F clipping branch compares
+scroll origins against these same signed dimension words. No original
+instruction, import or callback was patched or replaced by a stub.
+
+The local probe runs seven word boundaries on both axes/both header extents,
+512 seeded headers/application input pairs, with and without the application
+size selection bit, and all thirteen original header dimension pairs. The
+selection bit is deliberately varied in synthetic runtime data; these are
+partial arithmetic paths, not actual original loaded-game contexts. There are
+1,249 cases / 2,496 instruction-path executions, including two loader argument
+paths. Register values, signed minima/centering/clipping branch, stack and
+unchanged effective header data are checked. A deliberately wrong unsigned
+65,529 expectation fails after executing the original signed-negative-seven
+load. All thirteen protected and decompiled dimension word pairs agree:
+frame0 stores 350x150; the other twelve store 800x600. These values alone do
+not distinguish menus from playable arenas or establish any gameplay result.
+
+Tests independently read the original absolute source spans and preserve full
+headers and placement reconstruction. Synthetic coverage includes asymmetric
+signed/raw boundaries, both extents, empty/repeated placement blocks, existing
+annotations, immutable research bundles, repeated standalone JSON, unsupported
+header shapes and late malformed placement/extent refusal before output and
+fault reporting. All original/runtime proof data stays local and untracked.

@@ -99,7 +99,7 @@ class TypeContainerTests(unittest.TestCase):
     def test_frame_scope_candidates_header_shapes_and_existing_fields(self):
         raw, original_block = synthetic_probes()
         doc = layout.layout_document(self.reader, raw)
-        self.assertEqual((doc['schema_version'], doc['exporter']), (4, 'frame-layout/4'))
+        self.assertEqual((doc['schema_version'], doc['exporter']), (5, 'frame-layout/5'))
         self.assertTrue(doc['coverage']['placement_creation_type_inputs'])
         for key in ('placement_semantics', 'arena_geometry', 'spawns', 'behaviour'):
             self.assertFalse(doc['coverage'][key])
@@ -123,7 +123,7 @@ class TypeContainerTests(unittest.TestCase):
         raw, _ = synthetic_probes()
         doc = layout.layout_document(self.reader, raw)
         manifest, files = bundle.research_bundle(self.reader, raw)
-        self.assertEqual(manifest['components']['frame-layout.json'], {'exporter': 'frame-layout/4', 'schema_version': 4})
+        self.assertEqual(manifest['components']['frame-layout.json'], {'exporter': 'frame-layout/5', 'schema_version': 5})
         self.assertEqual(json.loads(files['frame-layout.json']), doc)
         self.assertFalse(manifest['coverage']['arena_geometry'])
         (project.REPO / 'build').mkdir(exist_ok=True)

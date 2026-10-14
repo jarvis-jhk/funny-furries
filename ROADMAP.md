@@ -65,6 +65,8 @@
       words and independent override rules; final positions/arena geometry stay open.
 - [x] Runtime-proven placement creation type inputs, preserving opaque high bytes
       and all local-header comparisons; allocation/global/arena semantics stay open.
+- [x] Runtime-proven frame dimension inputs from both header extents, with signed
+      size/clipping arithmetic and unresolved arena collision/window semantics.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 
