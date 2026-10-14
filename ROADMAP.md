@@ -85,6 +85,8 @@
       ordinary origin-word overlap and quick zero extension; callee lookup remains open.
 - [x] Runtime-proven type23 prefix transport and conditional signed comparison inputs,
       preserving unknown indices/high bits and unevaluated dynamic/event results.
+- [x] Runtime-proven immediate scalar parameter getter inputs, with exact type
+      dispatch, WORD zero extension and DWORD transport; caller meanings unresolved.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

@@ -1279,3 +1279,69 @@ consumer stops before condition bookkeeping at0x4294a2/0x4294b1. No instruction,
 import or callback replacement, caller condition dispatch, string comparison,
 actual left state, event activation or gameplay execution is claimed. Proof and
 original data stay outside the repository in agent state.
+
+## Immediate scalar parameter getter inputs (v23)
+
+`event-dump/23`, schema23 adds `scalar_getter_storage` only for the exact
+parameter types below. These are conditional inputs/returns of the original
+runtime's generic parameter getter, not inferred meanings of event opcodes.
+Both frame/global programs and condition/action records receive the annotation.
+
+The original FF2xmas.exe dispatch at `0x42775f` zero-extends parameter WORD+2
+(the type) into EBX and jumps through table `0x41af64`:
+
+- Types **3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34** select `0x42779d`, which
+  executes `movzx eax, WORD [eax+4]; sub bx,bx; ret`.
+- Types **2, 24, 29** select `0x4277a5`, which executes
+  `mov eax, DWORD [eax+4]; sub bx,bx; ret`.
+
+`payload_offset: 0`, `stored_bits` and `stored_raw_unsigned` expose exactly
+that WORD/DWORD at parameter+4. `opaque_suffix_hex` preserves every following
+payload byte; the complete prior `payload_hex` remains unchanged. The WORD
+case returns EAX in 0..65535, including 0xFFFF as 65535, without sign extension.
+The DWORD case transports all 32 bits unchanged. Neither path establishes the
+caller's signedness, units, flags, player/index meanings or sentinel conventions.
+
+`conditional_getter_return` explicitly assumes execution reaches the original
+parameter-getter dispatcher. Under that assumption `eax_raw_u32` is the stored
+value, `extension` is `zero_extend` or `none`, BX is zero and carry is clear.
+DX is **preserved incoming data**, not a newly supplied numeric/string value
+tag: unlike the expression-literal handlers, these getters do not write EDX.
+`caller_interpretation: unknown` and `runtime_resolution: false` apply even to
+single literal-looking values. There is no caller/opcode selection or condition
+result, allocation, timer, player/global or gameplay execution.
+
+Type26 action frame-target storage coexists unchanged with this annotation;
+WORD transport does not resolve its CnC runtime destination. The pinned external
+reader classifies type15 as expression storage. That prior token view is retained,
+but the actual original **generic getter** table entry for type15 transports
+only its prefix WORD. The views have separate assumptions: the token view must
+not be promoted to proof that this getter evaluates type15's expression. No
+original type15 occurs in this project. The other unobserved types likewise
+represent synthetic runtime capabilities only. No newer Clickteam table is used.
+
+A supported scalar with fewer than two/four payload bytes fails with InputError
+before standalone JSON/text or bundle output; malformed input is exit2 and
+never fault-reported. Existing expression and other parameter checks remain.
+Unknown types retain their opaque payloads and receive no getter annotation.
+Readable text adds `SCALAR_GETTER` after the unchanged PARAM and existing
+annotation lines. Coverage adds `immediate_scalar_getter_inputs: true`; general
+parameter/opcode semantics and dynamic expression evaluation remain false.
+
+Independent absolute source traversal verifies all **793** original parameters:
+types2:7, 10:197, 14:16, 17:246, 26:2, 29:307, 32:18. Every exported stored value,
+suffix and existing row/record/parameter byte reconstructs exactly. No other
+types are silently assigned this getter behavior.
+
+Local private execution evidence uses the unmodified original executable
+SHA-256 `f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`
+in Unicorn2.1.4. All65536 WORD values execute through the real dispatch/shared
+WORD handler. Every exact table entry additionally runs unsigned bit boundaries
+with three distinct incoming DX values, 512 seeded values per type, and every
+original parameter runs with all three incoming DX values: 75,420 complete
+dispatch/getter executions in total. Checks cover EAX,
+full EBX/EDX, carry, ECX/callee-preserved registers, return/stack, complete input
+bytes and entire mapped executable bytes. A wrong sign-extension expectation
+fails on actual EAX0x0000FFFF. No instructions/imports/callbacks are substituted;
+no parameter caller, live event dispatch or gameplay is executed. Proof scripts,
+original bytes and exports stay private/ignored outside the repository.

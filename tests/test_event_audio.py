@@ -63,7 +63,8 @@ class AudioReferenceTests(unittest.TestCase):
                 with self.assertRaises(project.InputError):
                     events.decode_rows(audio_program([(kind, payload)]))
         for kind in (0, 5, 8, 999):
-            param = events.decode_rows(audio_program([(kind, b'')]))[0]['records'][0]['parameters'][0]
+            payload = bytes(2) if kind == 5 else b''
+            param = events.decode_rows(audio_program([(kind, payload)]))[0]['records'][0]['parameters'][0]
             self.assertNotIn('audio_reference_storage', param)
 
 
@@ -95,8 +96,8 @@ class AudioReferenceContainerTests(unittest.TestCase):
                         self.assertEqual(c[key], entry[key])
         self.assertTrue(document['coverage']['audio_bank_reference_candidates'])
         self.assertFalse(document['coverage']['opcode_semantics'])
-        self.assertEqual(document['schema_version'], 22)
-        self.assertEqual(document['exporter'], 'event-dump/22')
+        self.assertEqual(document['schema_version'], 23)
+        self.assertEqual(document['exporter'], 'event-dump/23')
         text = events.readable(document)
         self.assertEqual(text.count('          AUDIO_REFERENCE '), 24)
         self.assertEqual(events.event_document(self.reader, raw), document)

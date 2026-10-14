@@ -54,14 +54,16 @@ class FrameTargetTests(unittest.TestCase):
                     'runtime_resolution': 'unknown'})
                 self.assertNotIn('frame_target_storage', unknown)
 
-    def test_short_action_refused_condition_remains_unknown(self):
+    def test_short_scalar_both_roles_refused_condition_has_no_frame_target(self):
         for payload in (b'', b'\xff'):
             with self.assertRaises(project.InputError):
                 events.decode_rows(target_program([(26, payload)]))
             source = row([record('condition', -3, -1, 0, [(26, payload)])], []) + bytes(2)
-            out = events.decode_rows(source)
-            self.assertEqual(out[0]['records'][0]['parameters'][0]['payload_hex'], payload.hex())
-            self.assertNotIn('frame_target_storage', out[0]['records'][0]['parameters'][0])
+            with self.assertRaises(project.InputError):
+                events.decode_rows(source)
+        source = row([record('condition', -3, -1, 0, [(26, bytes(2))])], []) + bytes(2)
+        out = events.decode_rows(source)
+        self.assertNotIn('frame_target_storage', out[0]['records'][0]['parameters'][0])
 
 
 @unittest.skipUnless(os.environ.get('FF_KLIKBACK_SRC'), 'set FF_KLIKBACK_SRC for parser tests')
@@ -75,7 +77,7 @@ class FrameTargetContainerTests(unittest.TestCase):
         raw, source = target_project([(26, target_payload(0)), (26, target_payload(1)),
                                       (26, target_payload(3)), (26, target_payload(4))], [data])
         doc = events.event_document(self.reader, raw)
-        self.assertEqual(doc['schema_version'], 22)
+        self.assertEqual(doc['schema_version'], 23)
         self.assertTrue(doc['coverage']['frame_target_storage'])
         self.assertFalse(doc['coverage']['frame_target_resolution'])
         self.assertFalse(doc['coverage']['parameter_semantics'])
@@ -164,7 +166,7 @@ class FrameTargetContainerTests(unittest.TestCase):
         self.assertEqual(files['events.json'], export_project.json_bytes(events.event_document(self.reader, raw)))
         self.assertIn(b'FRAME_TARGET ', files['events.txt'])
         self.assertIn(b'LEVEL_NUMBER_STORAGE ', files['events.txt'])
-        self.assertEqual(manifest['components']['events.json'], {'exporter': 'event-dump/22', 'schema_version': 22})
+        self.assertEqual(manifest['components']['events.json'], {'exporter': 'event-dump/23', 'schema_version': 23})
         with tempfile.TemporaryDirectory(dir=project.REPO / 'build') as scratch:
             target = export_project.save_bundle(manifest, files, Path(scratch))
             self.assertEqual(export_project.save_bundle(manifest, files, Path(scratch)), target)

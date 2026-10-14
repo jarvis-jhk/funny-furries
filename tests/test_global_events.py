@@ -104,8 +104,8 @@ class GlobalContainerTests(unittest.TestCase):
         payloads = [global_block(sample_program()), global_block(bytes(2), b'')]
         raw = project_globals(self.reader, payloads)
         doc = events.event_document(self.reader, raw)
-        self.assertEqual(doc['schema_version'], 22)
-        self.assertEqual(doc['exporter'], 'event-dump/22')
+        self.assertEqual(doc['schema_version'], 23)
+        self.assertEqual(doc['exporter'], 'event-dump/23')
         segments = [(i, s) for i, s in enumerate(self.reader.read(raw).segments) if s.ident == 3]
         self.assertEqual(len(doc['global_events']), 2)
         for out, (i, source), payload in zip(doc['global_events'], segments, payloads):

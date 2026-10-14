@@ -59,7 +59,7 @@ class ObjectParameterContainerTests(unittest.TestCase):
     def test_frame_context_missing_ambiguous_global_unresolved_and_escaped_text(self):
         raw, source = position_project([(1, payload())])
         doc = events.event_document(self.reader, raw)
-        self.assertEqual(doc['schema_version'], 22)
+        self.assertEqual(doc['schema_version'], 23)
         self.assertTrue(doc['coverage']['object_parameter_reference_candidates'])
         self.assertFalse(doc['coverage']['parameter_semantics'])
         self.assertFalse(doc['coverage']['global_reference_resolution'])
@@ -135,7 +135,7 @@ class ObjectParameterContainerTests(unittest.TestCase):
         manifest, files = export_project.research_bundle(self.reader, raw)
         self.assertEqual(files['events.json'], export_project.json_bytes(events.event_document(self.reader, raw)))
         self.assertIn(b'OBJECT_PARAMETER_REFERENCE', files['events.txt'])
-        self.assertEqual(manifest['components']['events.json'], {'exporter': 'event-dump/22', 'schema_version': 22})
+        self.assertEqual(manifest['components']['events.json'], {'exporter': 'event-dump/23', 'schema_version': 23})
         self.assertEqual(export_project.research_bundle(self.reader, raw), (manifest, files))
 
     @unittest.skipUnless(os.environ.get('FF_TEST_PROJECT'), 'set FF_TEST_PROJECT for original verification')

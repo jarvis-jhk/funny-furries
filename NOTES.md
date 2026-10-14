@@ -2491,3 +2491,61 @@ snapshots/job log in agent state data/furries/comparison-prefixes/. This deliver
 edit changes NOTES only; tested source unchanged. No unfinished work/continuation/
 new schedule/release/second slice; combined exporter/spec remains started/sol:
 actual opcode/condition/global semantics, arenas/spawns/observed behaviour open.
+
+2026-10-14: Sol tick t_mv7rskov6dkuy, one bounded M0 immediate scalar
+parameter-getter input slice. Clean main/fetched origin, no open PRs/issues or
+unfinished work at start; direct main follows repository convention.
+event-dump/23 schema23 adds scalar_getter_storage for exact WORD types
+3/4/5/10/12/14/15/17/26/32/34 and DWORD types2/24/29, both roles/frame/global.
+Original generic dispatch42775f/table41af64 selects42779d (WORD MOVZX) or4277a5
+(DWORD MOV). At payload0, stored raw unsigned bits and all opaque suffix bytes
+are retained. Conditional EAX transport zero-extends WORD or preserves DWORD;
+BX0/carry clear, incoming DX preserved rather than a new expression value tag.
+Caller units/signedness/flags/sentinels/opcode/global meanings stay unknown,
+runtime_resolution=false. Prior type26 action frame-target annotation unchanged;
+prior pinned-reader type15 expression token view coexists but does NOT prove this
+generic getter evaluates it (actual getter transports its prefix WORD). No original
+type15 or other unobserved supported types promoted to gameplay observations.
+Existing private optional detached fault reporter unchanged; truncated supported
+scalars exit2 before JSON/text/bundle output or reporting. No original assets/
+exports/executable instructions/proof data/private endpoint committed or published.
+
+Independent absolute project traversal verifies all793 originals: types2:7,
+10:197,14:16,17:246,26:2,29:307,32:18. Unmodified FF2xmas.exe SHA256
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f in Unicorn2.1.4:
+75420 complete dispatcher/getter executions. All65536 WORD values through shared
+handler;336 exact-type bit boundaries/three incoming DX patterns;7168 seeded cases;
+all793 original parameter spans*three incoming DX values;one wrong sign-extension
+expectation (fails on actual EAX0000FFFF). EAX/full EBX/EDX/carry/ECX/callee-preserved
+registers, entire128-byte stack/input bytes/mapped executable checked. No
+instruction/import/callback substitutions or live caller/event/gameplay execution.
+Initial private source walker used wrong reader attribute/raw block identifier and
+row header extent; corrected to ident4/header14 against independent raw spans
+before final proof. Full original/source counts agree with the exporter.
+
+Eight new cases cover every WORD value for every exact supported type, DWORD
+bit boundaries/suffixes, other types/both roles/type15 dual view/type26 coexistence,
+strict truncated shapes, all scopes/readable text/raw reconstruction, standalone/
+bundle byte equality/repeats/immutable refusal and late bad scalar refusal before
+writing/reporting. Initial test used wrong frame-target field name; corrected.
+Two old tests intentionally updated for newly supported scalar validation: audio
+non-audio type5 fixture now supplies its required WORD; truncated condition type26
+now refuses just as actions do, while valid conditions retain no frame-target
+annotation. Schema expectations updated22->23 without other contract changes.
+WORD EAX bit15-toggle control fails two intended assertions in two executed cases;
+source restored byte-exact/compileall-f before final positives. Local final test/
+TypeScript checks and delivery evidence follow below within this tick.
+Evidence: agent state data/furries/scalar-getters/. Combined exporter/spec stays
+started/sol: actual opcode/caller/global/placement selection/arenas/spawns/observed
+behaviour still open. No second slice/new schedule/continuation/release/hardware claim.
+
+Final local validation: compileall-f and all344 tests pass with original/pinned
+KlikBack6e178b9 enabled after negative-control restoration. Actual agent
+./node_modules/.bin/tsc --noEmit passes. Previous JSON/text equals ec34199 after
+stripping only scalar annotation/coverage/version; all old fields and text lines
+preserved. Previous643-file bundle refuses replacement without mutation and
+is preserved before regeneration;640 files identical, only events.json/
+events.txt/manifest.json change. Standalone JSON/text/bundle CLI repeats identical,
+input/executable unchanged. Project SHA256 remains
+98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Tested source delivery and exact-head CI verification follow within this tick.
