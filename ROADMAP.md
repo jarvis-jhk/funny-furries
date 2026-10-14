@@ -115,6 +115,8 @@
       shared indexed storage, ordered faults and unresolved live event/table values.
 - [x] Runtime-proven conditional value-table comparison inputs, with signed
       prefix dispatch, ordered faults and unresolved live table/condition results.
+- [x] Runtime-proven fixed carry returns for two system conditions, preserving
+      opaque headers/unused parameters and unresolved live condition/row results.
 - [ ] Exporter from the decompiled project: events as readable text, images/sounds as files,
       arenas as JSON. This doubles as the behaviour spec. Nothing exported is committed.
 

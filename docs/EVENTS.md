@@ -2146,3 +2146,50 @@ selected DWORD reads, full PE/input preservation, stack/register/cursor returns,
 ordered CPU faults, recursive/wrapping arithmetic, all sixteen-bit index words,
 and byte-exact original records. This proves the conditional handler path under
 those contexts, not original live gameplay or unresolved table contents.
+
+## Fixed system-condition handler returns (v38)
+
+`event-dump/38`, schema38 adds `constant_condition_return` only to CONDITION
+records with signed object type -1 and opcode -1 or -2. The new
+`constant_condition_returns` coverage flag covers this subset. General opcode
+semantics, expression evaluation and global/runtime resolution remain false.
+Raw header/parameter bytes, older annotations and text lines are unchanged;
+readable events add one CONSTANT_CONDITION_RETURN line per matching record.
+
+The original nonzero-ESI signed dispatch at `0x4263a7..0x4263c7` obtains the
+system table `0x41b244` from `0x419f4c`. Entry -1 points directly to STC/RET at
+`0x4294a2`; entry -2 points directly to CLC/RET at `0x4294b1`. These handlers
+always return carry set and clear respectively, independent of incoming carry,
+other registers, record reference/header flags or parameter contents. Neither
+handler reads parameters or runtime state. The dispatcher itself reads the
+type/opcode/table/return stack and zeroes `0x41cbbe`; the no-state-access claim
+applies to the selected handler, not the surrounding dispatcher.
+
+The annotation assumes execution reaches that nonzero-ESI system dispatch and
+selected handler. The ESI-zero dispatch path, earlier/later row processing,
+negation, disabled flags, event activation and action execution are not proven.
+`condition_result` and `row_result` stay null and `runtime_resolution` stays
+false. These are fixed handler returns, not a claim that any stored event runs,
+always succeeds or never succeeds. Other entries that happen to share the clear
+carry address are deliberately outside this subset; no group-marker/placeholder
+runtime meaning is inferred from an address alias.
+
+Unused parameters still pass the same strict storage validation. A valid closed
+expression with a hypothetical CPU exception does not change this handler's
+fixed return, because it is not evaluated by the handler. Malformed record or
+expression storage still exits2 before JSON/text/bundle output or reporting.
+Existing detached optional private unexpected-fault reporting is unchanged.
+
+Independent source traversal visits all9306 records and finds six matching
+originals: one frame and five global opcode-1 conditions, all without parameters;
+opcode-2 support is tested capability, absent from this original project.
+Private Unicorn2.1.4 executes1561 complete unmodified dispatcher/handler paths:
+all256 tested header-flag byte values under both incoming carry values for both
+opcodes,512 seeded opaque-parameter/register contexts,24 byte-exact original
+runs and one rejected inherited-carry expectation. Exact complete memory reads
+and writes, full mapped PE except the dispatcher zero write, input,144-byte
+stack including its one call write, normal registers/cursor and return are
+checked. No instruction/import/callback substitutions or live gameplay
+execution. Original executable SHA256 remains
+`f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f`.
+The executable, private proof scripts and generated exports are never committed.

@@ -3510,3 +3510,55 @@ edit changes NOTES only; tested source unchanged. No unfinished work/continuatio
 new schedule/release/second slice/hardware claim. Combined exporter/spec stays
 started/sol:live table/other opcodes/global/selection/placement/arenas/spawns/
 observed behaviour remain open.
+
+2026-10-14: Sol tick t_mv86346w10b8v3, one bounded M0 fixed system-condition
+handler return slice. Clean main/fetched origin, no open PRs/issues or unfinished
+work at start; direct main follows repository convention. event-dump/38 schema38
+adds constant_condition_return only for CONDITION type-1/opcodes-1/-2. Original
+nonzero-ESI signed dispatch4263a7/table41b244 entries directly select4294a2
+STC/RET and4294b1 CLC/RET. Fixed carry true/false only when dispatch reaches
+handler, independent of incoming carry/reference/header/parameters/registers.
+Handlers have no parameter/runtime-state reads; dispatcher still reads type/
+opcode/table/stack and zeroes41cbbe. Actual condition/row result, ESI-zero path,
+row flags/inversion/activation/action execution/gameplay remain unresolved;
+runtime_resolution/general opcode/evaluation semantics false. Alias clear-carry
+entries deliberately excluded; unused parameters still validated strictly.
+Existing optional detached private unexpected-fault reporter unchanged.
+
+Independent raw traversal checks9306 event records and six originals:one frame/
+five global opcode-1 conditions without parameters; opcode-2 absent, capability
+only. Unmodified Unicorn2.1.4 executes1561 complete dispatcher/handler paths:
+1024 all256 tested flag-byte values/both opcodes/both entry carries,512 seeded
+opaque-parameter/register contexts,24 byte-exact original runs and rejected
+inherited-carry probe. Exact complete memory reads/writes, full mapped PE except
+expected dispatch DWORD, input,144-byte stack with one return-address write,
+normal registers/cursor/carry verified. No instruction/import/callback
+substitutions or live gameplay execution. Original executable SHA256 remains
+f16de343e48ad50cdf9b36118a790ece6980c24539dbcaf11ce5ce8eb7e0210f.
+
+Six new tests cover exhaustive signed opcode/type/role gates, opaque headers/
+references/unused faulting expressions, strict record/parameter validation,
+frame/global text/reconstruction/immutable bundles, late malformed unused
+expression refusal before output/report and independent original traversal.
+Swapped-carry negative control fails five intended assertions in six executed
+cases; source restored byte-exact/compileall-f before final positives. Nine
+previous test files only update explicit schema/version expectations37->38.
+Full455-test local run, compatibility/bundle CLI repeats and actual agent tsc
+verification are completing within this tick before commit/push. Evidence in
+agent state data/furries/constant-conditions/. Combined exporter/spec remains
+started/sol:other opcodes/global/selection/placement/arenas/spawns/live behaviour
+open. No second slice/new schedule/continuation/release/hardware claim.
+
+Final local validation: all455 tests pass with original/pinned KlikBack6e178b9
+enabled after negative-control restoration; actual agent
+./node_modules/.bin/tsc --noEmit passes. No agent source/lockfile changed.
+Prior original JSON/text equals8368bac after stripping only new record views/
+coverage/version; every older annotation/raw field/text line preserved. Old643-
+file immutable bundle refused replacement without mutation,preserved before
+rebuild;640 files identical,only events.json/events.txt/manifest.json change.
+Standalone JSON/text/bundle CLI repeats identical,input/executable unchanged.
+Project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
+Saved restored source/test/docs/roadmap hashes and proof/logs in
+ data/furries/constant-conditions/. Tested push/exact-head CI verification follow
+within this tick. No assets,executable,proof scripts,generated data or private
+endpoint committed/published. No second slice/new schedule/continuation/release.

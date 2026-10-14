@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 from tools import project_index as project
 from tools import integer_constants
 
-VERSION = "event-dump/37"
+VERSION = "event-dump/38"
 EXPRESSION_TYPES = frozenset({15, 22, 23, 45, 46, 52, 53})
 POSITION_PARAMETER_BYTES = {9: 34, 16: 26, 18: 36, 21: 34}
 SCALAR_WORD_TYPES = frozenset({3, 4, 5, 10, 12, 14, 15, 17, 26, 32, 34})
@@ -808,6 +808,22 @@ def annotate_value_table_condition(record):
     return record
 
 
+def annotate_constant_condition(record):
+    # These two original system-table entries point directly to STC/RET and
+    # CLC/RET. Row processing before/after the call is a separate contract.
+    if (record["role"] == "condition" and record["object_type"] == -1
+            and record["opcode"] in (-1, -2)):
+        record["constant_condition_return"] = {
+            "status": "conditional_fixed_carry_return",
+            "return_carry": record["opcode"] == -1,
+            "parameter_access": "none", "runtime_state_access": "none",
+            "assumption": "nonzero_esi_system_dispatch_reaches_handler",
+            "condition_result": None, "row_result": None,
+            "runtime_resolution": False,
+            "evidence": "cnc_runtime_system_table_direct_carry_return_entries"}
+    return record
+
+
 def decode_record(data, role, offset, index):
     header_size = 14 if role == "condition" else 12
     if len(data) < header_size:
@@ -865,10 +881,10 @@ def decode_record(data, role, offset, index):
         cursor += size
     if cursor != len(data):
         raise project.InputError("event parameter count leaves trailing record bytes")
-    return annotate_value_table_condition(annotate_value_table_action({"id": index, "role": role, "offset": offset, "bytes": len(data),
+    return annotate_constant_condition(annotate_value_table_condition(annotate_value_table_action({"id": index, "role": role, "offset": offset, "bytes": len(data),
             "object_type": word(data, 2, "<b"), "opcode": word(data, 3, "<b"),
             "object_reference": word(data, 4, "<h"), "meaning": "unknown",
-            "header_hex": data[:header_size].hex(), "parameters": parameters}))
+            "header_hex": data[:header_size].hex(), "parameters": parameters})))
 
 
 def decode_rows(data):
@@ -1063,7 +1079,7 @@ def event_document(reader, raw):
                 programs.append({"block_id": block_id, "frame_offset": block.offset,
                                  "bytes": len(block.data), **program})
         frames.append({"id": frame, "programs": programs})
-    return annotate_group_parameters({"schema_version": 37, "exporter": VERSION,
+    return annotate_group_parameters({"schema_version": 38, "exporter": VERSION,
             "source": inventory["source"], "reader_sha256": inventory["reader_sha256"],
             "coverage": {"frame_event_structure": True, "opcode_semantics": False,
                          "parameter_semantics": False, "global_event_structure": True,
@@ -1095,6 +1111,7 @@ def event_document(reader, raw):
                          "expression_value_table_closed_argument_inputs": True,
                          "value_table_action_inputs": True,
                          "value_table_condition_inputs": True,
+                         "constant_condition_returns": True,
                          "expression_evaluation": False,
                          "position_reference_storage": True,
                          "position_coordinate_storage": True,
@@ -1140,6 +1157,9 @@ def readable_program(program):
             if "value_table_condition_inputs" in record:
                 lines.append("        VALUE_TABLE_CONDITION " + json.dumps(
                     record["value_table_condition_inputs"], ensure_ascii=True, sort_keys=True))
+            if "constant_condition_return" in record:
+                lines.append("        CONSTANT_CONDITION_RETURN " + json.dumps(
+                    record["constant_condition_return"], ensure_ascii=True, sort_keys=True))
             for parameter in record["parameters"]:
                 lines.append(f"        PARAM {parameter['id']} offset={parameter['offset']} "
                              f"bytes={parameter['bytes']} type={parameter['type']} "
