@@ -2823,3 +2823,15 @@ test/typecheck evidence in data/furries/object-getters/. No agent source/lockfil
 change. Tested source delivery and exact-head CI verification follow within this
 same tick; exporter/spec remains started/sol. No second slice/new schedule/
 continuation/release/hardware claim.
+
+Delivery: tested sourcef9325ab8254a09435ac97824004f4c0568da5e13 pushed main;
+CI38536688949 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38536688949 . Downloaded
+job115761170416 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and376 tests (329 pass/47 local-original fixtures skipped).
+All376 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in agent state data/furries/object-getters/. This delivery edit
+changes NOTES only; tested source unchanged. No unfinished work/continuation/new
+schedule/release/second slice; combined exporter/spec remains started/sol:
+actual caller/opcode/global/selection/arenas/spawns/observed behaviour open.
