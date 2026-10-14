@@ -2752,3 +2752,15 @@ JSON/text/bundle CLI repeats byte-identical, original project/executable unchang
 Project SHA256 remains98c6d714104bbf9334fcf1aa4b14ab6b25f771fdf25cbe96a48e8291e991f7c0.
 Actual agent tsc gate passed; no agent source/lockfile changed. Tested source
 commit/push and exact-head CI verification follow within this tick.
+
+Delivery: tested sourcec75c7e7314cbc86c1db0884f589ffc14f98eb091 pushed main;
+CI38534277466 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38534277466 . Downloaded
+job115753257497 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and368 tests (322 pass/46 local-original fixtures skipped).
+All368 passed locally with original enabled after negative-control restoration.
+Saved source/docs/test/roadmap hashes match the CI-tested revision. Evidence/CI
+snapshots/job log in agent state data/furries/position-getters/. This delivery
+edit changes NOTES only; tested source unchanged. No unfinished work/continuation/
+new schedule/release/second slice; combined exporter/spec remains started/sol:
+actual opcode/caller/global semantics,selection/arenas/spawns/observed behaviour open.
