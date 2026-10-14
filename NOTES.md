@@ -3496,3 +3496,17 @@ follow within this tick. Combined exporter/spec remains started/sol:live table/
 other opcodes/global/selection/placement/arenas/spawns/observed behaviour open.
 No second slice/new schedule/continuation/release/hardware claim; no assets,
 executable,proof scripts,generated data or private endpoint committed/published.
+
+Delivery: tested source53d476ec6c1833d4d365f85956dc9c06bc1bac69 pushed main;
+CI38573900910 completed/success on that exact revision:
+https://github.com/jarvis-jhk/funny-furries/actions/runs/38573900910 . Downloaded
+job115885869499 log verifies actual source/pinned-reader checkout outputs,
+Python3.10,compileall and449 tests (394 pass/55 local-original fixtures skipped).
+All449 passed locally with original enabled after negative-control restoration.
+Saved source/test/docs/roadmap hashes match working files and CI-tested tree;
+job log SHA256959391185395c39f89f341202eb29d61a9045a408db8708d571b7e02ccfe55d1.
+Evidence/CI snapshots/job log in data/furries/value-table-conditions/. This delivery
+edit changes NOTES only; tested source unchanged. No unfinished work/continuation/
+new schedule/release/second slice/hardware claim. Combined exporter/spec stays
+started/sol:live table/other opcodes/global/selection/placement/arenas/spawns/
+observed behaviour remain open.
