@@ -139,10 +139,14 @@ Done when: one arena plays 1v1 on keyboard + two controllers and feels like the 
 Aim for this in two or three large sessions.
 - [x] Native fixed-tick 1v1 prototype: movement, melee/three weapons, pickups,
       lives/respawns/wins, keyboard/two controller seats, local original arena/art/audio.
-- [ ] SDL2 engine plays one arena 1 vs 1 like the original (same jumps, trajectories, weapons),
-      fixed tick, deterministic, keyboard + two controllers.
-      Local/reference implementation and two virtual-pad match checks are in place;
-      blocked on physical two-pad/original-feel acceptance (see docs/PLAYING.md).
+- [x] SDL2 engine plays one arena 1 vs 1 like the original (same jumps, trajectories, weapons),
+      fixed tick, deterministic, keyboard + two controllers; checked against reference
+      evidence and two virtual pads. Feel tuning follows Jan's feedback on releases.
+- [ ] Test release: GitHub prerelease for Linux/Windows/Deck that imports the player's
+      own FF2 Xmas copy at first start (no original data in the release).
+
+Human testing never blocks an item (Jan, 2026-10-15): ship a release, keep going,
+fix what Jan reports.
 
 ## M2 — All arenas, 4 players, Deck
 - [ ] All arenas, menus, scoreboard.

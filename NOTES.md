@@ -30,14 +30,12 @@ are green; actual source and test log output downloaded/checked (487 Python:
 older evidence retained. Local import `export/arena-reference5` (importer v5);
 ignored private `export/run-local.sh` uses it with fault reporting.
 
-**Next gate:** combined `furries-1v1-arena` is blocked with **Zwei Controller testen**,
-retaining started/sol; M1 is NOT done. See `docs/PLAYING.md` acceptance instructions.
-Two physical pads and a human original/native A/B pass are needed before claiming
-original feel. Rocket extension turn rate, fire fall/fade/contact details,
-ordered collision correction, respawn/trap timing and RNG remain approximate.
-Use that feedback to guide any further tuning instead of blind extra slices.
-No release, new schedule, CI continuation or unfinished implementation. Never
-publish the original assets/recordings or private launcher.
+**Next (Jan, 2026-10-15):** human testing never blocks. `furries-1v1-arena` is
+done; next is roadmap item `furries-test-release`: a GitHub prerelease (Linux,
+Windows, Deck) that imports the player's own FF2 Xmas copy at first start. Jan
+tests releases and reports problems; tune from his feedback then. Rocket turn
+rate, fire details, ordered collision, respawn/trap timing and RNG remain
+approximate. Never publish the original assets/recordings or private launcher.
 
 <details>
 <summary>Previous M1 checkpoint</summary>
