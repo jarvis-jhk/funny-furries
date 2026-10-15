@@ -14,7 +14,9 @@ an untracked `orig/` here — never commit it.
 - **Never commit or release the original's graphics, sounds, levels or the .cca file.** The game
   loads them from the player's own copy at first start. Recoloured furries likewise stay out until
   the author agrees. Contacting Bastiaan de Jong goes outside: only with Jan's okay.
-- Repo stays private until Jan decides otherwise. Commits use the jarvis-jhk noreply address.
+- Repo is PUBLIC since 2026-10-15 (Jan agreed; the author has not been asked about the name). Everything
+  pushed is public: re-check for original content, Jan's domains and private endpoints before each push.
+  Commits use the jarvis-jhk noreply address.
 - Jan's domains never appear in the repo, releases or logs. Fault reports go ntfy → GitHub issue,
   like the other games.
 - Plan in ROADMAP.md, running state in NOTES.md. Combined game roadmap: `npx tsx /app/agent/scripts/roadmap.ts`.

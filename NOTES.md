@@ -1,5 +1,9 @@
 # Notes
 
+
+**2026-10-15: repo made PUBLIC** (Jan, t_mv9tjlcifgygq). Author Bastiaan de Jong not
+asked about the game name. GitHub's auto-init commit 654d217 carries the bot account
+mail, every other commit the noreply address.
 **Current — 2026-10-15, v0.1.0 test prerelease shipped (`t_mv9r8ocf6qfxo`, Sol):**
 https://github.com/jarvis-jhk/funny-furries/releases/tag/v0.1.0 . Jan received the
 URL; combined `furries-test-release` is done. Next version must exceed0.1.0.
