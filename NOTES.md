@@ -1,5 +1,18 @@
 # Notes
 
+**Current — 2026-10-15, test release (`t_mv9r8ocf6qfxo`, Sol):** clean main,
+fetched; no open PR/issues or continuation. Added first-start ZIP/CCA import,
+local atomic/checked cache, GUI picker, anonymous detached public fault courier,
+and fullscreen start. Protected original from the full ZIP reconstructs the same
+project SHA as the development reference; original bytes remain unchanged.
+Four launcher checks (including two real ZIP imports), four Debug+UBSan suites
+and synthetic/native importer checks pass. Packaging, Windows CI, Deck installer,
+release fault bridge and the documented publication gate are next in this session.
+Physical Deck/two-pad play remains an open release check, never a blocker.
+
+<details>
+<summary>Previous M1 checkpoint</summary>
+
 **Current — 2026-10-15, M1 (`t_mv97y2eiae2ti`, Sol):** four tested gameplay
 steps pushed to main: `7d68d00` homing/wind-steered rockets; `51d6293` persistent
 fire and combat impulses; `4963127` collision sensors/swimming/springs and a
@@ -3879,5 +3892,7 @@ edit changes NOTES only; tested source unchanged. No unfinished work/continuatio
 new schedule/release/second slice/hardware claim. Combined exporter/spec stays
 started/sol:live row/bit lifecycle/other opcodes/global/selection/placement/arenas/
 spawns/observed behaviour remain open.
+
+</details>
 
 </details>

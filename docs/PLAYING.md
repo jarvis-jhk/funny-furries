@@ -137,20 +137,35 @@ also places each weapon at its original hand action point and grows explosion
 contact bounds with the artwork. Reimport into a fresh directory to get these
 muzzle offsets, blast bounds and corrected platform reversal limits.
 
-## M1 acceptance gate
+## Testing on two physical pads
 
-The current combined roadmap item is waiting for two physical controllers and
-an original/native play comparison. It is not complete and no release is implied.
-Build the current main revision and make a fresh v5 import from your own source
-bundle, following the commands above. Keep both controllers connected together.
-Confirm the blue/arrows/first-pad and red/F-H/second-pad seats stay independent
-while moving, holding jump, punching and firing. Finish a match and let the next
-round start; unplug and replace one pad without stealing the other seat.
+M1 is ready for release testing. Physical controllers and the Deck are open
+checks for Jan on the prerelease, not a gate on publishing it. Confirm the
+blue/arrows/first-pad and red/F-H/second-pad seats stay independent while moving,
+holding jump, punching and firing. Finish a match, let the next round start,
+and unplug/replace one pad without stealing the other seat.
 
-Compare the same original level: jump arc and running stops; spring approach and
-rebound; swimming/jetpack; moving-platform turns/carry; ice impulse, lingering
-fire and homing rockets. In particular judge rocket turning and victim response,
-which are event-based approximations. Record any mismatch with the action,
-location and which player/controller was involved. Clear the roadmap block only
-after that feedback is available; then fix concrete differences or close M1 if
-accepted. Virtual pads and a renderer smoke run do not replace this play check.
+Compare jumps, springs, swimming, platforms, ice, lingering fire and homing
+rockets with the original. Report the action, location and affected player.
+Approximate timings and collision order will be tuned from this feedback.
+
+## First-start launcher
+
+`tools/launcher.py` imports the player's full-version `funnyfurries.zip`,
+`FF2xmas.cca`, or the folder beside `FF2xmas.exe`. It reads the CCA locally,
+restores the protected container using the pinned KlikBack reader, and imports
+arena 1 without altering the source. The launcher keeps a checked, atomic local
+import under the user's application data directory. A damaged cache reopens
+file selection. `--reimport` selects another original; `--practice` skips import.
+`--fullscreen` fills the display for Deck use.
+
+Development CLI (requires Python and the separate reader):
+
+```
+python3 tools/launcher.py --reader-source /path/to/KlikBack/src --import-copy /path/to/funnyfurries.zip --import-only
+```
+
+The release launcher bundles its own Python/reader. Only fixed anonymous
+version/OS/fault-category reports go to the public ntfy topic. A detached helper
+handles delivery; input errors and missing/unsupported original copies are not
+fault reports. Set `FF_NO_REPORT=1` to disable it.

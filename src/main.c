@@ -227,12 +227,13 @@ static bool parse_ticks(const char *s,int *ticks) {
     *ticks=(int)value;return true;
 }
 int main(int argc,char **argv) {
-    const char *data=NULL,*screenshot=NULL;int ticks=0;bool auto_play=false;
+    const char *data=NULL,*screenshot=NULL;int ticks=0;bool auto_play=false,fullscreen=false;
     for(int i=1;i<argc;++i) {
-        if(!strcmp(argv[i],"--data")&&i+1<argc) data=argv[++i];
+        if(!strcmp(argv[i],"--fullscreen")) fullscreen=true;
+        else if(!strcmp(argv[i],"--data")&&i+1<argc) data=argv[++i];
         else if(!strcmp(argv[i],"--smoke")&&i+1<argc&&parse_ticks(argv[i+1],&ticks)) {++i;auto_play=true;}
         else if(!strcmp(argv[i],"--screenshot")&&i+1<argc) screenshot=argv[++i];
-        else if(!strcmp(argv[i],"--help")) {puts("funny-furries [--data LOCAL_IMPORT] [--smoke TICKS] [--screenshot FILE.bmp]\nWithout --data, play the asset-free practice arena. F1 shows controls.");return 0;}
+        else if(!strcmp(argv[i],"--help")) {puts("funny-furries [--fullscreen] [--data LOCAL_IMPORT] [--smoke TICKS] [--screenshot FILE.bmp]\nWithout --data, play the asset-free practice arena. F1 shows controls.");return 0;}
         else {fprintf(stderr,"Unknown or incomplete option. Use --help.\n");return 2;}
     }
     ff_fault_init();
@@ -245,7 +246,7 @@ int main(int argc,char **argv) {
     } else ff_arena_practice(&arena);
     if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_AUDIO)<0) goto fail;
     if(!(IMG_Init(IMG_INIT_PNG)&IMG_INIT_PNG)) goto fail;
-    app.window=SDL_CreateWindow("Funny Furries - development prototype",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1000,750,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
+    app.window=SDL_CreateWindow("Funny Furries 0.1.0 - test release",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1000,750,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
     if(!app.window) goto fail;
     app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
     if(!app.renderer) app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_SOFTWARE);
