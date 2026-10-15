@@ -27,7 +27,14 @@ Final visual review also corrected the moving platform's render sprite: `mph` is
 the hidden red collision helper; its `mph 2` partner supplies the striped visible
 artwork. A focused synthetic test covers that distinction. Ten importer tests and
 the 3000-tick original-arena run pass after this correction; simulation checksum
-is unchanged. Final correction CI is checked before this session ends.
+is unchanged. Correction `e35356d` pushed main; native
+[38695446644](https://github.com/jarvis-jhk/funny-furries/actions/runs/38695446644)
+and exporter [38695446777](https://github.com/jarvis-jhk/funny-furries/actions/runs/38695446777)
+both green on that exact source. Actual git output and test results checked in
+downloaded logs: four native suites, ten importer cases (one original skipped in
+CI), 486 Python cases (425 pass/61 optional skipped), practice renderer smoke.
+All ten importer cases ran locally with original/native enabled. No in-flight
+implementation or CI continuation; this is the session checkpoint, not M1 completion.
 
 **Next:** keep working on `furries-1v1-arena` (started/sol); the combined goal is
 set. Level 1 is storage frame 3: 512 scenery layers, nine spawn candidates,
