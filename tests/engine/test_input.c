@@ -35,7 +35,8 @@ static void play_match(FF_Input *input,SDL_Joystick *a,SDL_Joystick *b) {
     for(int i=0;i<10;++i) {pump(input);uint8_t keys[2];ff_input_read(input,keys);ff_game_tick(&game,&arena,keys);}
     CHECK(game.players[0].x>left&&game.players[1].x<right);CHECK(game.players[1].y<560*FF_FP);
 }
-int main(void) {
+int main(int argc,char **argv) {
+    (void)argc;(void)argv;
     CHECK(SDL_Init(SDL_INIT_GAMECONTROLLER|SDL_INIT_EVENTS)==0);
     FF_Input input;ff_input_init(&input);uint8_t keys[2];SDL_Event e;
     SDL_zero(e);e.type=SDL_KEYDOWN;e.key.keysym.scancode=SDL_SCANCODE_F;ff_input_event(&input,&e);

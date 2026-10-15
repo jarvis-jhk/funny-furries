@@ -15,8 +15,11 @@ Frozen Linux launcher imports the real full ZIP, opens/cancels its GUI,
 runs10000 imported ticks (`cfcc36f8`) and repeat synthetic/Unicode-path matches.
 Installer passes with spaces/Unicode paths. Pinned SDL2 2.30.12, PNG-only
 SDL_image2.8.8, WAV-only SDL_mixer2.8.1 and bundled Python/Tk need no player dev
-tools. Agent tsc passes. Native Windows and final Linux22 artifact CI/checks,
-then prerelease publication, remain in this session.
+tools. Agent tsc passes. The first Windows package run caught a test-only SDL_main signature mismatch;
+test_input now has the required argc/argv signature and compiles under local
+MinGW with Windows SDL headers. Superseded run38772400311 was cancelled after
+that known failure; fresh native Windows/Linux22 artifact CI and publication
+remain in this session.
 
 Live public ntfy relay: autostart app `furries-feedback`, source
 `tools/fault_bridge.mjs`, private config only in agent data. Anonymous live
