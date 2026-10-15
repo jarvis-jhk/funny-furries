@@ -76,9 +76,26 @@ static void arena_devices(void) {
     arena.device_count=1;arena.devices[0]=(FF_Device){FF_MOVING_PLATFORM,80,300,48,16,0};
     tick(&g,0,0,10);CHECK(p->x==120*FF_FP);CHECK(p->y==300*FF_FP);CHECK(p->grounded);
     tick(&g,FF_JUMP,0,1);CHECK(p->vy<0);CHECK(p->y<300*FF_FP);
-    CHECK(ff_device_position(&arena.devices[0],0).x==80);
-    CHECK(ff_device_position(&arena.devices[0],64).x==208);
-    CHECK(ff_device_position(&arena.devices[0],128).x==80);
+    CHECK(ff_device_position(&arena,0,0).x==80);
+    CHECK(ff_device_position(&arena,0,64).x==208);
+    CHECK(ff_device_position(&arena,0,128).x==80);
+}
+static void marker_collision_and_paths(void) {
+    FF_Game g;clean(&g);FF_Player *p=&g.players[0];
+    memset(arena.tiles,0,sizeof(arena.tiles));arena.imported=true;
+    memset(&arena.mask[300][80],FF_PLATFORM,100);
+    p->x=120*FF_FP;p->y=340*FF_FP;p->grounded=1;
+    tick(&g,FF_JUMP,0,1);tick(&g,0,0,70);
+    CHECK(p->y==300*FF_FP&&p->grounded);
+    /* Walking off the hidden marker resumes falling. */
+    tick(&g,FF_RIGHT,0,50);CHECK(p->y>300*FF_FP);
+    clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;p->grounded=1;
+    arena.device_count=1;arena.devices[0]=(FF_Device){FF_MOVING_PLATFORM,80,300,48,16,0};
+    arena.paths[0]=(FF_Path){64,144,1,-1};
+    CHECK(ff_device_position(&arena,0,16).x==64);
+    CHECK(ff_device_position(&arena,0,96).x==144);
+    CHECK(ff_device_position(&arena,0,160).x==80);
+    tick(&g,0,0,160);CHECK(p->x==100*FF_FP&&p->y==300*FF_FP&&p->grounded);
 }
 static void determinism(void) {
     FF_Game a,b;clean(&a);b=a;
@@ -93,4 +110,4 @@ static void determinism(void) {
     b.players[0].previous^=FF_JUMP;CHECK(ff_game_hash(&a)!=ff_game_hash(&b));
     printf("replay=%08x\n",ff_game_hash(&a));
 }
-int main(void) {physics();melee_round();weapons();bonuses();arena_devices();determinism();printf("%u game checks passed\n",checks);return 0;}
+int main(void) {physics();melee_round();weapons();bonuses();arena_devices();marker_collision_and_paths();determinism();printf("%u game checks passed\n",checks);return 0;}

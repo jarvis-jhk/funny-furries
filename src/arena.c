@@ -58,6 +58,12 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
         } else if (sscanf(line,"device %d %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&n[5],&tail)==6) {
             if(a->device_count==FF_DEVICES||n[0]<1||n[0]>9||n[1]<-4096||n[1]>4096||n[2]<-4096||n[2]>4096||n[3]<1||n[3]>1024||n[4]<1||n[4]>1024||n[5]<0||n[5]>=FF_IMAGES) {ok=false;break;}
             a->devices[a->device_count++]=(FF_Device){n[0],n[1],n[2],n[3],n[4],n[5]};
+        } else if (sscanf(line,"path %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&tail)==5) {
+            if(n[0]<0||n[0]>=a->device_count||a->devices[n[0]].kind!=FF_MOVING_PLATFORM||
+               a->paths[n[0]].speed||n[1]<-4096||n[2]>4096||n[1]>=n[2]||
+               a->devices[n[0]].x<n[1]||a->devices[n[0]].x>n[2]||
+               n[3]<1||n[3]>8||(n[4]!=-1&&n[4]!=1)) {ok=false;break;}
+            a->paths[n[0]]=(FF_Path){n[1],n[2],n[3],n[4]};
         } else if (sscanf(line,"sound %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<0||n[0]>6||n[1]<0||n[1]>4096) {ok=false;break;} a->sound_ids[n[0]]=n[1];
         } else {ok=false;break;}

@@ -19,6 +19,10 @@ int main(void) {
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\nmask 200 790 20 1\n"));
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\nsprite 2 0 0 0 7\n"));
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\ndevice 10 0 0 16 16 7\n"));
+    CHECK(load("FFARENA 1\nspawn 100 100\nspawn 200 100\ndevice 9 100 200 48 16 4\npath 0 50 200 1 -1\n"));
+    CHECK(ff_device_position(&arena,0,50).x==50);
+    CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\npath 0 50 200 1 -1\n"));
+    CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\ndevice 9 100 200 48 16 4\npath 0 100 100 1 -1\n"));
     CHECK(!load("FFARENA 2\nspawn 100 100\nspawn 200 100\n"));
     CHECK(!load("FFARENA 1\nspawn 100 100\n"));
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\ntruncated"));

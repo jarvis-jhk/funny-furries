@@ -17,7 +17,7 @@ from tools import image_dump
 def fixture(path):
     source = {'sha256': 'synthetic-arena'}
     header = bytearray(68)
-    struct.pack_into('<H', header, 42, 1)
+    struct.pack_into('<H', header, 42, 0x101)
     struct.pack_into('<H', header, 54, 1)
     local = bytearray(header)
     struct.pack_into('<H', local, 54, 999)  # Deliberately stale local artwork.
@@ -41,7 +41,7 @@ def fixture(path):
     docs = {
         'project-index.json': document(frames=[{'object_lists': [objects]}], global_object_lists=[globals_]),
         'frame-layout.json': document(frames=[{'dimension_inputs': {'width': {'raw_u16': 800}, 'height': {'raw_u16': 600}}, 'placements': [{'records': records}]}]),
-        'backdrops.json': document(frames=[{'object_lists': [{'objects': [{'id': 0, 'backdrop': stale}, {'id': 3, 'backdrop': shape}]}]}], global_object_lists=[{'objects': [{'id': 0, 'backdrop': shape}]}]),
+        'backdrops.json': document(frames=[{'object_lists': [{'objects': [{'id': 0, 'backdrop': stale}, {'id': 3, 'backdrop': {'header_hex': bytes(68).hex(), 'artwork': {'kind': 'image', 'image_id': 1}}}]}]}], global_object_lists=[{'objects': [{'id': 0, 'backdrop': shape}]}]),
         'animations.json': document(global_object_lists=[{'objects': [{'id': n, 'active_data': [{'animations': [{'id': 0, 'directions': [{'id': 0, 'image_ids': [1]}, {'id': 16, 'image_ids': [1]}]}]}]} for n in range(1, len(names))]}]),
         'image-manifest.json': document(banks=[{'segment_id': 21, 'entries': [{'id': 1, 'file': 'image-21-1.png', 'image': {'hot_spot_raw_u16': [4, 65535]}}]}]),
     }
@@ -108,9 +108,46 @@ class ArenaImportTests(unittest.TestCase):
             raw = bytearray(32)
             struct.pack_into('<Hhh', raw, 0, 4, 200, 300)
             docs['frame-layout.json']['frames'][0]['placements'][0]['records'].append({'raw_hex': raw.hex()})
+            docs['project-index.json']['frames'][0]['object_lists'][0].append({'id': 5, 'name': 'reverse', 'type': 2, 'global': True})
+            for x in (100, 400):
+                raw = bytearray(32)
+                struct.pack_into('<Hhh', raw, 0, 5, x, 300)
+                docs['frame-layout.json']['frames'][0]['placements'][0]['records'].append({'raw_hex': raw.hex()})
             text, _, report = arena.import_lines(files, docs, 0)
             self.assertIn('device 9 196 300 32 16 2', text)
+            self.assertIn('path 0 96 396 1 -1', text)
             self.assertEqual(report['devices'], 1)
+
+    def test_hidden_platform_direction_and_changer(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            docs = fixture(root / 'bundle')
+            _, files, _ = arena.checked_bundle(root / 'bundle')
+            globals_ = docs['project-index.json']['global_object_lists'][0]
+            ident = len(globals_)
+            globals_.append({'id': ident, 'name': 'up', 'type': 2})
+            docs['animations.json']['global_object_lists'][0]['objects'].append({
+                'id': ident, 'active_data': [{'animations': [{'id': 0, 'directions': [
+                    {'id': 24, 'image_ids': [2]}, {'id': 16, 'image_ids': [3]}]}]}]})
+            for image, width in ((2, 64), (3, 32)):
+                files[f'image-21-{image}.png'] = image_dump.png(bytes([255, 0, 0, 255])*width*5, width, 5)
+                docs['image-manifest.json']['banks'][0]['entries'].append({
+                    'id': image, 'file': f'image-21-{image}.png', 'image': {'hot_spot_raw_u16': [0, 0]}})
+            docs['project-index.json']['frames'][0]['object_lists'][0] += [
+                {'id': 4, 'name': 'up', 'type': 2, 'global': True},
+                {'id': 5, 'name': 'Changer', 'type': 2, 'global': True}]
+            for obj, x in ((4, 400), (4, 600), (5, 400)):
+                raw = bytearray(32)
+                struct.pack_into('<Hhh', raw, 0, obj, x, 200)
+                struct.pack_into('<H', raw, 24, 24)
+                docs['frame-layout.json']['frames'][0]['placements'][0]['records'].append({'raw_hex': raw.hex()})
+            text, wanted, report = arena.import_lines(files, docs, 0)
+            self.assertEqual(report['collision_markers'], 2)
+            self.assertIn('mask 200 400 32 2', text)
+            self.assertIn('mask 200 600 64 2', text)
+            self.assertIn('image-21-2.png', wanted)
+            self.assertIn('image-21-3.png', wanted)
+            self.assertNotIn('device ', text)  # Hidden markers never become visible devices.
 
     def test_invalid_bundle_no_output(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -170,7 +207,7 @@ class ArenaImportTests(unittest.TestCase):
              patch.object(arena, 'import_arena', side_effect=OSError('private path/token')), \
              patch.object(arena.project, 'report_fault') as reporter:
             self.assertEqual(arena.main(), 1)
-        reporter.assert_called_once_with('OSError', version='arena-import/1', title='Arena import failed')
+        reporter.assert_called_once_with('OSError', version='arena-import/2', title='Arena import failed')
 
     @unittest.skipUnless(os.environ.get('FF_NATIVE_GAME'), 'native binary not supplied')
     def test_real_renderer_with_synthetic_import(self):

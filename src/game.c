@@ -84,13 +84,16 @@ static void move_player(FF_Player *p,const FF_Arena *a) {
     }
     if(p->grounded) {p->y=floor_pixel(p->y)*FF_FP;p->vy=0;}
 }
-FF_Point ff_device_position(const FF_Device *d,uint32_t tick) {
-    int travel=0;
-    if(d->kind==FF_MOVING_PLATFORM) {
-        int phase=(int)(tick%128u);
-        travel=2*(phase<64?phase:128-phase);
-    }
-    return (FF_Point){d->x+travel,d->y};
+FF_Point ff_device_position(const FF_Arena *a,int device,uint32_t tick) {
+    const FF_Device *d=&a->devices[device];
+    if(d->kind!=FF_MOVING_PLATFORM) return (FF_Point){d->x,d->y};
+    const FF_Path *path=&a->paths[device];
+    int lo=path->speed?path->min_x:d->x,hi=path->speed?path->max_x:d->x+128;
+    int speed=path->speed?path->speed:2,dir=path->speed?path->direction:1;
+    uint32_t span=(uint32_t)(hi-lo),period=2*span;
+    uint32_t phase=(uint32_t)(dir<0?period-(uint32_t)(d->x-lo):(uint32_t)(d->x-lo));
+    phase=(phase+(tick%period)*(uint32_t)speed)%period;
+    return (FF_Point){lo+(int)(phase<=span?phase:period-phase),d->y};
 }
 static bool underwater(const FF_Player *p,const FF_Arena *a) {
     int x=p->x/FF_FP,y=p->y/FF_FP-16;
@@ -121,7 +124,7 @@ static void platform_carry(FF_Player *p,const FF_Arena *a,uint32_t tick) {
     if(!p->grounded) return;
     for(int i=0;i<a->device_count;++i) {
         const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM) continue;
-        FF_Point old=ff_device_position(d,tick-1),now=ff_device_position(d,tick);
+        FF_Point old=ff_device_position(a,i,tick-1),now=ff_device_position(a,i,tick);
         int x=p->x/FF_FP,y=p->y/FF_FP;
         if(y==old.y&&x+10>=old.x&&x-10<old.x+d->w) {
             int next=x+now.x-old.x;
@@ -133,7 +136,7 @@ static void platform_land(FF_Player *p,const FF_Arena *a,uint32_t tick,int32_t o
     if(p->vy<0) return;
     for(int i=0;i<a->device_count;++i) {
         const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM) continue;
-        FF_Point now=ff_device_position(d,tick);int x=p->x/FF_FP;
+        FF_Point now=ff_device_position(a,i,tick);int x=p->x/FF_FP;
         if(old_y<=now.y*FF_FP&&p->y>=now.y*FF_FP&&x+10>=now.x&&x-10<now.x+d->w) {
             p->y=now.y*FF_FP;p->vy=0;p->grounded=1;
         }

@@ -68,15 +68,18 @@ match; a mismatch is refused. This fixes the visibly incorrect local-header
 scenery observed during development. It is specific to the supported project,
 not a general global-object runtime resolver.
 
-Collision masks use exported alpha for named terrain (snow, metal and Ice).
-Decorative trees, brick backgrounds, lights and water do not block players.
-This is an explicit engine approximation, not a newly proven file-format meaning.
-Nine available placement/Start candidates are filtered against this mask. The
-arena also imports water surfaces, fans, directional bouncers and two moving
-platforms from active placements/artwork. Rendering and simulation share platform
-positions; platform carry, water swimming, fan force and bounces are deterministic.
-Platform range/speed, force volumes and swim/bounce constants are provisional.
-Bomb enemies and original `up` collision-marker animation selection are not ported.
+Collision masks now combine foreground backdrop obstacles with the original hidden
+`up` and active ice surfaces. The stored placement direction selects each marker's
+artwork; an overlapping `Changer` selects its short direction-16 variant at start.
+These surfaces catch falling players and allow jumps from below. This replaces the
+first prototype's blanket solid-snow approximation. Storage frame 3 imports 30 `up`
+markers plus active ice surfaces, and retains all 16 usable initial/Start candidates.
+
+Water, fans, directional bouncers and two moving platforms use original local art.
+Moving platforms travel one pixel per tick between their surrounding `reverse`
+markers, including player carry in either direction. Their positions are shared by
+rendering and simulation. Swimming, fan forces, bounces and body collision shapes
+still need play comparison; bomb hazards are not ported yet.
 
 The original Windows game was actually opened under Wine and level 1 selected for
 visual comparison. Its scenery and the prototype agree after linking globals;

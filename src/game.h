@@ -27,6 +27,7 @@ enum { FF_WATER=1, FF_FAN_LEFT, FF_FAN_RIGHT, FF_FAN_UP, FF_BOUNCE_UP,
        FF_BOUNCE_DOWN, FF_BOUNCE_LEFT, FF_BOUNCE_RIGHT, FF_MOVING_PLATFORM };
 typedef struct { int kind, x, y, w, h, image; } FF_Device;
 typedef struct { int x, y; } FF_Point;
+typedef struct { int min_x, max_x, speed, direction; } FF_Path;
 typedef struct { int image, x, y, w, h, kind; uint32_t color[2]; } FF_Layer;
 typedef struct { int count, image[FF_ANIM_FRAMES]; } FF_Sequence;
 typedef struct {
@@ -39,6 +40,7 @@ typedef struct {
     int pickup_images[6], shot_images[4];
     int sound_ids[7];
     FF_Device devices[FF_DEVICES]; int device_count;
+    FF_Path paths[FF_DEVICES];
     bool imported;
 } FF_Arena;
 typedef struct {
@@ -62,5 +64,5 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
 void ff_game_init(FF_Game *g, const FF_Arena *a, uint32_t seed);
 void ff_game_tick(FF_Game *g, const FF_Arena *a, const uint8_t input[2]);
 uint32_t ff_game_hash(const FF_Game *g);
-FF_Point ff_device_position(const FF_Device *device, uint32_t tick);
+FF_Point ff_device_position(const FF_Arena *a, int device, uint32_t tick);
 #endif

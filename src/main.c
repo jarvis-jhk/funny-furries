@@ -134,7 +134,7 @@ static void hud(App *app,const FF_Game *g) {
 static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paused) {
     SDL_RenderCopy(app->renderer,app->backdrop,NULL,NULL);
     for(int i=0;i<a->device_count;++i) {
-        const FF_Device *d=&a->devices[i];FF_Point pos=ff_device_position(d,g->tick);
+        const FF_Device *d=&a->devices[i];FF_Point pos=ff_device_position(a,i,g->tick);
         Image *im=load_image(app,d->image);
         if(im) {SDL_Rect dest={pos.x,pos.y,im->w,im->h};SDL_RenderCopy(app->renderer,im->texture,NULL,&dest);}
     }

@@ -51,6 +51,18 @@ import for the current code is `export/arena-1-final2`, built by the importer.
 `export/run-local.sh` launches it with the private fault endpoint configured;
 keep that ignored launcher private too.
 
+**2026-10-15 follow-up (`t_mv96vru98gz0q`, Sol):** clean/fetched main, no open
+PRs/issues or in-flight work. First tested step replaces named solid-snow collision
+with backdrop obstacle bits plus hidden `up`/active ice alpha surfaces. Placement
++24 directions and start `Changer` overlaps select long/short markers. Platform
+paths now use the surrounding original `reverse` markers at 1 pixel/tick, rather
+than an arbitrary 128-pixel/2-pixel triangle; carry is shared with rendering.
+Four Debug+UBSan CTests pass; all 11 importer tests pass with original/native
+renderer enabled; actual agent tsc passes. Local import `export/arena-markers`
+retains 512 layers, 16 initial/Start candidates and 34 devices. Imported
+3000-tick renderer smoke passes (hash `4e6a455b`). Next gameplay step continues
+in this session; final source CI will be checked after those changes.
+
 **2026-10-14 — direction change (Jan, t_mv8apsn318lf2j):** the M0 exporter is closed. ~60 sessions
 went into proving single Click & Create evaluator handlers byte by byte; for a game this simple that
 is overhead, not progress. M0 already gives images, sounds, animations, backdrops and readable

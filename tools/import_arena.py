@@ -126,6 +126,26 @@ def import_lines(files, docs, frame):
             pixels[image_id] = rgba_png(files[info['file']])
         return pixels[image_id]
 
+    global_names = {}
+    global_animation = {}
+    for group in index['global_object_lists']:
+        for o in group:
+            key = (o['name'], o['type'])
+            if key in global_names:
+                raise ValueError('ambiguous global artwork name')
+            global_names[key] = o['id']
+    for group in docs['animations.json']['global_object_lists']:
+        for obj in group['objects']:
+            if obj['active_data']:
+                global_animation[obj['id']] = obj['active_data']
+
+    def animations(name):
+        ident = global_names[(name, 2)]
+        data = global_animation[ident]
+        if len(data) != 1:
+            raise ValueError('ambiguous global animation body')
+        return [a for a in data[0]['animations'] if a.get('directions')]
+
     for placement in layout['placements']:
         for record in placement['records']:
             raw = bytes.fromhex(record['raw_hex'])
@@ -133,7 +153,7 @@ def import_lines(files, docs, frame):
             if ident not in names:
                 raise ValueError('placement has no local definition')
             name = names[ident]['name']
-            active_placements.append((name, x, y))
+            active_placements.append((name, x, y, struct.unpack_from('<H', raw, 24)[0]))
             if name == 'Start' and 12 <= x <= 788 and 32 <= y + 16 <= 560:
                 spawns.append((x, y + 16))
             if name in {'P1h', 'P2h'}:
@@ -170,10 +190,9 @@ def import_lines(files, docs, frame):
             lines.append(f'layer {image_id} {x} {y} {width} {height} {draw} {rgb[0]:06x} {rgb[-1]:06x}')
             layers += 1
             flags = struct.unpack_from('<H', header, 42)[0]
-            # Named foreground plus one header bit is an M1 approximation.
-            # The original also uses active collision-marker objects.
-            terrain = name.startswith(('snow', 'metal')) or name in {'Ice', 'Ice 2'}
-            collision = (2 if flags & 0x100 else 1) if terrain else 0
+            # Foreground obstacles use bit 8; ordinary snow is supported by
+            # separate hidden `up` objects, not by its decorative bitmap.
+            collision = 1 if flags & 0x100 else 0
             if collision:
                 for yy in range(max(0, y), min(H, y + height)):
                     for xx in range(max(0, x), min(W, x + width)):
@@ -182,6 +201,34 @@ def import_lines(files, docs, frame):
                             collisions[yy][xx] = min(collisions[yy][xx] or collision, collision)
     if not layers or layers > 2048:
         raise ValueError('missing arena scenery or layer capacity exceeded')
+
+    def active_image(name, direction=0):
+        choices = [d for a in animations(name) for d in a['directions'] if d['image_ids']]
+        selected = next((d for d in choices if d['id'] == direction),
+                        next((d for d in choices if d['id'] == 0), choices[0]))
+        result = selected['image_ids'][0]
+        image_info(result)
+        return result
+
+    markers = 0
+    for name, x, y, direction in active_placements:
+        if name not in {'up', 'Ice'} or (name, 2) not in global_names:
+            continue
+        # Start-of-frame Changer overlap selects the short (direction 16) top.
+        initial_image = active_image(name, direction)
+        width, height, _ = image_info(initial_image)
+        hx, hy = map(signed16, images[initial_image]['image']['hot_spot_raw_u16'])
+        if any(n == 'Changer' and x-hx <= cx < x-hx+width and y-hy <= cy < y-hy+height
+               for n, cx, cy, _ in active_placements):
+            direction = 16
+        ident = active_image(name, direction)
+        width, height, rgba = image_info(ident)
+        hx, hy = map(signed16, images[ident]['image']['hot_spot_raw_u16'])
+        for yy in range(max(0, y-hy), min(H, y-hy+height)):
+            for xx in range(max(0, x-hx), min(W, x-hx+width)):
+                if rgba[((yy-y+hy)*width+xx-x+hx)*4+3] > 127 and not collisions[yy][xx]:
+                    collisions[yy][xx] = 2
+        markers += 1
 
     def free_spawn(p):
         x, y = p
@@ -206,26 +253,6 @@ def import_lines(files, docs, frame):
             lines.append(f'mask {y} {x} {end - x} {row[x]}')
             x = end
 
-    global_names = {}
-    global_animation = {}
-    for group in index['global_object_lists']:
-        for o in group:
-            key = (o['name'], o['type'])
-            if key in global_names:
-                raise ValueError('ambiguous global artwork name')
-            global_names[key] = o['id']
-    for group in docs['animations.json']['global_object_lists']:
-        for obj in group['objects']:
-            if obj['active_data']:
-                global_animation[obj['id']] = obj['active_data']
-
-    def animations(name):
-        ident = global_names[(name, 2)]
-        data = global_animation[ident]
-        if len(data) != 1:
-            raise ValueError('ambiguous global animation body')
-        return [a for a in data[0]['animations'] if a.get('directions')]
-
     for player in range(2):
         for part, suffix in enumerate(('Foot', 'body', 'Hand', 'hat', 'shoothand')):
             for anim in animations(f'P{player + 1} {suffix}'):
@@ -239,24 +266,27 @@ def import_lines(files, docs, frame):
                         lines.append(f'sprite {player} {part} {anim["id"]} {int(direction["id"] == 16)} {image}')
 
     def first_image(name):
-        for anim in animations(name):
-            for direction in anim['directions']:
-                if direction['image_ids']:
-                    result = direction['image_ids'][0]
-                    image_info(result)
-                    return result
-        raise ValueError('missing active artwork')
+        return active_image(name)
 
     device_kinds = {'Water': 1, 'Fan L': 2, 'Fan R': 3, 'Fan up': 4,
                     'bounce up': 5, 'bounce down': 6, 'bounce L': 7,
                     'bounce R': 8, 'mph': 9}
-    for name, x, y in active_placements:
+    device_count = 0
+    for name, x, y, _ in active_placements:
         if name not in device_kinds:
             continue
         ident = first_image('mph 2' if name == 'mph' else name)
         width, height, _ = image_info(ident)
         hx, hy = map(signed16, images[ident]['image']['hot_spot_raw_u16'])
         lines.append(f'device {device_kinds[name]} {x-hx} {y-hy} {width} {height} {ident}')
+        if name == 'mph':
+            stops = sorted({rx for n, rx, ry, _ in active_placements if n == 'reverse' and abs(ry-y) < height})
+            left = [rx for rx in stops if rx <= x]
+            right = [rx for rx in stops if rx >= x]
+            if not left or not right or left[-1] == right[0]:
+                raise ValueError('moving platform lacks surrounding reverse markers')
+            lines.append(f'path {device_count} {left[-1]-hx} {right[0]-hx} 1 -1')
+        device_count += 1
 
     for kind, name in enumerate(('', 'IceGun', 'Flame Thrower', 'Rocket Launcher', 'Health 25', 'Jetpack')):
         if kind:
@@ -281,7 +311,7 @@ def import_lines(files, docs, frame):
         entry = sounds[name]
         wanted.add(entry['file'])
         lines.append(f'sound {sound} {entry["id"]}')
-    return '\n'.join(lines) + '\n', wanted, {'frame': frame, 'layers': layers, 'spawns': len(usable), 'devices': sum(name in device_kinds for name, _, _ in active_placements), 'collision_pixels': sum(sum(bool(v) for v in row) for row in collisions)}
+    return '\n'.join(lines) + '\n', wanted, {'frame': frame, 'layers': layers, 'spawns': len(usable), 'devices': device_count, 'collision_markers': markers, 'collision_pixels': sum(sum(bool(v) for v in row) for row in collisions)}
 
 
 def import_arena(bundle: Path, output: Path, frame=3):
@@ -289,7 +319,7 @@ def import_arena(bundle: Path, output: Path, frame=3):
     text, wanted, summary = import_lines(files, docs, frame)
     payloads = {name: files[name] for name in sorted(wanted)}
     payloads['arena.ff'] = text.encode('ascii')
-    report = {'importer': 'arena-import/1', 'source_sha256': manifest['source']['sha256'], **summary,
+    report = {'importer': 'arena-import/2', 'source_sha256': manifest['source']['sha256'], **summary,
               'fidelity': 'prototype; collision flags, timing and feel need original-game acceptance',
               'files': {name: hashlib.sha256(raw).hexdigest() for name, raw in payloads.items()}}
     payloads['import.json'] = (json.dumps(report, indent=2, sort_keys=True) + '\n').encode()
@@ -321,7 +351,7 @@ def main():
         print(f'Import refused: {error}', file=sys.stderr)
         return 2
     except Exception as error:
-        project.report_fault(type(error).__name__, version='arena-import/1', title='Arena import failed')
+        project.report_fault(type(error).__name__, version='arena-import/2', title='Arena import failed')
         print('Arena import failed; original input was not modified.', file=sys.stderr)
         return 1
     print(f'Imported frame {summary["frame"]}: {summary["layers"]} layers, {summary["spawns"]} spawn candidates.\nPlay: build/native/funny-furries --data {args.output}')
