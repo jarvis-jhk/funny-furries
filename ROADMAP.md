@@ -142,8 +142,9 @@ Aim for this in two or three large sessions.
 - [x] SDL2 engine plays one arena 1 vs 1 like the original (same jumps, trajectories, weapons),
       fixed tick, deterministic, keyboard + two controllers; checked against reference
       evidence and two virtual pads. Feel tuning follows Jan's feedback on releases.
-- [ ] Test release: GitHub prerelease for Linux/Windows/Deck that imports the player's
+- [x] Test release: GitHub prerelease for Linux/Windows/Deck that imports the player's
       own FF2 Xmas copy at first start (no original data in the release).
+      Shipped v0.1.0 prerelease on 2026-10-15; physical play feedback remains open.
 
 Human testing never blocks an item (Jan, 2026-10-15): ship a release, keep going,
 fix what Jan reports.

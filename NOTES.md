@@ -1,31 +1,37 @@
 # Notes
 
-**Current — 2026-10-15, test release (`t_mv9r8ocf6qfxo`, Sol):** full release
-procedure is `docs/RELEASE.md`. Five tested steps on main now provide protected
-ZIP/CCA first-start import, bundled Python/Tk, Linux/Deck local installer,
-Unicode Windows paths and anonymous fault reporting. Ubuntu22's fortified
-write warning and the Windows SDL test-entry signature were fixed. Normal
-CI on `5b0abec` is green; actual checkout/test logs verified (491 Python cases,
-429 pass/62 optional skips; four native suites).
+**Current — 2026-10-15, v0.1.0 test prerelease shipped (`t_mv9r8ocf6qfxo`, Sol):**
+https://github.com/jarvis-jhk/funny-furries/releases/tag/v0.1.0 . Jan received the
+URL; combined `furries-test-release` is done. Next version must exceed0.1.0.
+Tag/source `b3c8f3b454d1cbe8f249a3195410a3a4ef1a06ce`; five tested main commits
+add first-start full ZIP/protected CCA import, checked/repairable local cache,
+frozen Python/Tk launcher, source-built SDL/media, Windows UTF-8 paths and local
+Linux/Deck installer. Players need their own full original; no dev tools, game
+data, recordings or private endpoints are distributed.
 
-Package run38772685085: Linux/Deck passed. Downloaded exact Linux archive and
-source, checked hashes/source/private-content audit, opened/cancelled frozen GUI,
-imported the real protected ZIP into a fresh Unicode-path home, ran10000 ticks
-(`cfcc36f8`), installed locally and ran fullscreen. Windows native build/three
-suites and freeze/DLL bundling passed; packaged game returned0 but its GUI
-subsystem lost inherited stdout, so the smoke gate correctly failed. Launcher
-now explicitly passes stdout/stderr handles; package smoke also requires two
-identical actual BMP screenshots. Retest final source and publish next.
+Exact-source package CI [38773722486](https://github.com/jarvis-jhk/funny-furries/actions/runs/38773722486)
+passed native Windows3/Linux4 suites, isolated packaged Unicode-path imports,
+repeated deterministic matches and identical actual screenshots. Actual source
+and test output verified from downloaded logs. Normal native38773655582 and
+exporter38773655569 also pass (491 Python:429pass/62optional skips). Real owned
+protected ZIP imports/repeat/source preservation/cache recovery pass locally.
+The downloaded final Linux artifact imports that ZIP, runs10000 original-arena
+ticks (`cfcc36f8`), opens/cancels its GUI, installs under a Unicode/spaced home,
+and runs fullscreen. Corresponding source matches the committed checkout.
+All archives audited; every uploaded release asset was downloaded and checked
+against SHA256SUMS before publication. Agent tsc passed before every code commit.
 
-Local validation: four Debug+UBSan/fortified Release suites, all11 original/
-native importer cases, four launcher cases including three real imports and
-corrupt-cache recovery; frozen GUI/import/renderer/install tests. Agent tsc
-passes before commits. Source/artifacts/evidence: agent data/furries/test-release/.
+Anonymous ntfy → deduplicated GitHub issue → furries queue relay is live as
+`furries-feedback` autostart app; config stays only in agent data. Live transport
+probe and validation/dedup/retry tests pass. No scheduler/continuation added.
+Source, logs, checked artifacts, release metadata and evidence are under agent
+`data/furries/test-release/`; full procedure/installation is docs/RELEASE.md.
 
-Live public ntfy relay is autostart app `furries-feedback`, source
-`tools/fault_bridge.mjs`, private config only in agent data. Anonymous live
-transport probe received; validation/dedup/queue retry tests pass. No schedule.
-Physical Deck/two-pad play remains open release feedback, never a blocker.
+**Open feedback, not a block:** physical two-pad/Deck/Steam Input acceptance,
+movement/rocket/fire/device timing and original-feel tuning. This is arena1
+1v1, not four players/all arenas/online/auto-update. Fix concrete feedback in
+later releases; do not restore the old human-test block. No implementation or
+CI continuation remains for this item.
 
 <details>
 <summary>Previous M1 checkpoint</summary>
