@@ -11,11 +11,12 @@ void ff_arena_practice(FF_Arena *a) {
     for (int x=30; x<45; ++x) a->tiles[27][x]=FF_PLATFORM;
     for (int x=17; x<33; ++x) a->tiles[19][x]=FF_PLATFORM;
     a->spawn_count=4;
+    a->bonus_count=2;a->bonuses[0]=(FF_Point){350,200};a->bonuses[1]=(FF_Point){450,200};
     a->spawns[0]=(FF_Point){160,520}; a->spawns[1]=(FF_Point){640,520};
     a->spawns[2]=(FF_Point){320,280}; a->spawns[3]=(FF_Point){480,280};
     for (int i=0;i<6;++i) a->pickup_images[i]=-1;
     for (int i=0;i<4;++i) a->shot_images[i]=-1;
-    for (int i=0;i<7;++i) a->sound_ids[i]=-1;
+    for (int i=0;i<FF_SOUNDS;++i) a->sound_ids[i]=-1;
 }
 
 /* A small bounded text format keeps imported game content separate from code. */
@@ -25,7 +26,7 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
     memset(a,0,sizeof(*a));
     for (int i=0;i<6;++i) a->pickup_images[i]=-1;
     for (int i=0;i<4;++i) a->shot_images[i]=-1;
-    for (int i=0;i<7;++i) a->sound_ids[i]=-1;
+    for (int i=0;i<FF_SOUNDS;++i) a->sound_ids[i]=-1;
     char line[1024]; int version=0, lines=0; bool ok=true;
     while (fgets(line,sizeof(line),f)) {
         ++lines; int n[10]; unsigned c[2]; char tail;
@@ -64,8 +65,18 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
                a->devices[n[0]].x<n[1]||a->devices[n[0]].x>n[2]||
                n[3]<1||n[3]>8||(n[4]!=-1&&n[4]!=1)) {ok=false;break;}
             a->paths[n[0]]=(FF_Path){n[1],n[2],n[3],n[4]};
+        } else if (sscanf(line,"bonus %d %d %c",&n[0],&n[1],&tail)==2) {
+            if(a->bonus_count==FF_SPAWNS||n[0]<0||n[0]>=FF_W||n[1]<0||n[1]>=560) {ok=false;break;}
+            a->bonuses[a->bonus_count++]=(FF_Point){n[0],n[1]};
+        } else if (sscanf(line,"hazard %d %d %d %c",&n[0],&n[1],&n[2],&tail)==3) {
+            if(n[0]<1||n[0]>3||n[1]<0||n[1]>1||n[2]<0||n[2]>=FF_IMAGES) {ok=false;break;}
+            FF_Sequence *s=&a->hazard_sprites[n[0]-1][n[1]];
+            if(s->count==FF_ANIM_FRAMES) {ok=false;break;} s->image[s->count++]=n[2];
+        } else if (sscanf(line,"blast %d %c",&n[0],&tail)==1) {
+            if(n[0]<0||n[0]>=FF_IMAGES||a->blast_sprite.count==FF_ANIM_FRAMES) {ok=false;break;}
+            a->blast_sprite.image[a->blast_sprite.count++]=n[0];
         } else if (sscanf(line,"sound %d %d %c",&n[0],&n[1],&tail)==2) {
-            if(n[0]<0||n[0]>6||n[1]<0||n[1]>4096) {ok=false;break;} a->sound_ids[n[0]]=n[1];
+            if(n[0]<0||n[0]>=FF_SOUNDS||n[1]<0||n[1]>4096) {ok=false;break;} a->sound_ids[n[0]]=n[1];
         } else {ok=false;break;}
     }
     if(ferror(f)||version!=1||a->spawn_count<2) ok=false;

@@ -63,6 +63,18 @@ retains 512 layers, 16 initial/Start candidates and 34 devices. Imported
 3000-tick renderer smoke passes (hash `4e6a455b`). Next gameplay step continues
 in this session; final source CI will be checked after those changes.
 
+Second tested step adds falling/bouncing, walking and flying bomb traps from the
+original Bonus points, seeded trap scheduling, punch/projectile detonation, chain
+reactions, visible animated blasts and the original eighth sound. Contact/blast
+both deal eight health, with independent once-per-blast hits for each player.
+Wine reference captures measured ~64 px of jump rise; native now gives 63.25 px,
+with 25/8 run cap. Stored shot settings/cooldowns replace initial guesses. Hazard
+motion/lifetime/blast shapes and original time/steering remain provisional.
+Four Debug+UBSan suites, all 11 original/native importer cases, full 487-case Python
+suite (426 pass/61 optional skip) and actual agent tsc pass. The original import
+`export/arena-hazards` loads all artwork/audio; 5000-tick renderer smoke passes on
+the pre-cooldown revision (`11402a4b`). Follow-up final smoke/CI pending this session.
+
 **2026-10-14 — direction change (Jan, t_mv8apsn318lf2j):** the M0 exporter is closed. ~60 sessions
 went into proving single Click & Create evaluator handlers byte by byte; for a game this simple that
 is overhead, not progress. M0 already gives images, sounds, animations, backdrops and readable

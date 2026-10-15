@@ -6,7 +6,7 @@
 static unsigned checks;
 static FF_Arena arena;
 static void tick(FF_Game *g,int a,int b,int n) {uint8_t in[2]={(uint8_t)a,(uint8_t)b};while(n--) ff_game_tick(g,&arena,in);}
-static void clean(FF_Game *g) {ff_arena_practice(&arena);ff_game_init(g,&arena,1);memset(g->pickups,0,sizeof(g->pickups));for(int i=0;i<2;++i) g->players[i].invulnerable=0;}
+static void clean(FF_Game *g) {ff_arena_practice(&arena);arena.bonus_count=0;ff_game_init(g,&arena,1);memset(g->pickups,0,sizeof(g->pickups));for(int i=0;i<2;++i) g->players[i].invulnerable=0;}
 static void physics(void) {
     FF_Game g;clean(&g);tick(&g,0,0,100);
     CHECK(g.players[0].grounded);CHECK(g.players[0].y==560*FF_FP);
@@ -20,7 +20,7 @@ static void physics(void) {
     tick(&g,FF_JUMP,0,1);tick(&g,0,0,60);CHECK(g.players[0].y==432*FF_FP);CHECK(g.players[0].grounded);
     /* Full solids stop upward motion as well as downward motion. */
     arena.tiles[25][6]=FF_SOLID;g.players[0].x=104*FF_FP;g.players[0].y=460*FF_FP;g.players[0].grounded=1;
-    tick(&g,FF_JUMP,0,1);CHECK(g.players[0].y>=448*FF_FP);tick(&g,0,0,2);CHECK(g.players[0].vy>=0);
+    tick(&g,FF_JUMP,0,1);CHECK(g.players[0].y>=448*FF_FP);tick(&g,0,0,3);CHECK(g.players[0].vy>=0);
 }
 static void melee_round(void) {
     FF_Game g;clean(&g);
@@ -44,6 +44,13 @@ static void weapons(void) {
     tick(&g,FF_FIRE,0,8);CHECK(g.players[1].health==94);CHECK(g.players[1].frozen>0);CHECK(g.players[0].ammo==0);CHECK(g.players[0].weapon==FF_FISTS);
     clean(&g);g.players[0].x=300*FF_FP;g.players[1].x=360*FF_FP;g.players[0].y=g.players[1].y=560*FF_FP;
     g.players[0].weapon=FF_ROCKET;g.players[0].ammo=1;tick(&g,FF_FIRE,0,12);CHECK(g.players[1].health==84);
+    /* Frame-3 shooting rows set eight ticks for ice/flame and fifty for rockets. */
+    clean(&g);g.players[0].weapon=FF_ROCKET;g.players[0].ammo=3;
+    tick(&g,FF_FIRE,0,50);CHECK(g.players[0].ammo==2);
+    tick(&g,FF_FIRE,0,1);CHECK(g.players[0].ammo==1);
+    clean(&g);g.players[0].weapon=FF_ICE;g.players[0].ammo=3;
+    tick(&g,FF_FIRE,0,8);CHECK(g.players[0].ammo==2);
+    tick(&g,FF_FIRE,0,1);CHECK(g.players[0].ammo==1);
     /* A wall absorbs a fast projectile before it reaches the target. */
     clean(&g);g.players[0].x=300*FF_FP;g.players[1].x=370*FF_FP;g.players[0].y=g.players[1].y=560*FF_FP;
     arena.tiles[33][21]=FF_SOLID;arena.tiles[34][21]=FF_SOLID;g.players[0].weapon=FF_ICE;g.players[0].ammo=5;
@@ -84,7 +91,7 @@ static void marker_collision_and_paths(void) {
     FF_Game g;clean(&g);FF_Player *p=&g.players[0];
     memset(arena.tiles,0,sizeof(arena.tiles));arena.imported=true;
     memset(&arena.mask[300][80],FF_PLATFORM,100);
-    p->x=120*FF_FP;p->y=340*FF_FP;p->grounded=1;
+    p->x=120*FF_FP;p->y=330*FF_FP;p->grounded=1;
     tick(&g,FF_JUMP,0,1);tick(&g,0,0,70);
     CHECK(p->y==300*FF_FP&&p->grounded);
     /* Walking off the hidden marker resumes falling. */
@@ -96,6 +103,61 @@ static void marker_collision_and_paths(void) {
     CHECK(ff_device_position(&arena,0,96).x==144);
     CHECK(ff_device_position(&arena,0,160).x==80);
     tick(&g,0,0,160);CHECK(p->x==100*FF_FP&&p->y==300*FF_FP&&p->grounded);
+}
+static void hazards_and_blasts(void) {
+    FF_Game g;clean(&g);
+    /* Contact and the resulting explosion are separate eight-point hits. */
+    for(int i=0;i<2;++i) {g.players[i].x=300*FF_FP;g.players[i].y=560*FF_FP;}
+    g.hazards[0]=(FF_Hazard){300*FF_FP,544*FF_FP,0,0,FF_BOMB_FLY,200,0};
+    tick(&g,0,0,1);CHECK(!g.hazards[0].life);
+    CHECK(g.players[0].health==84&&g.players[1].health==84);
+    CHECK(g.sounds&FF_SOUND_BLAST);
+    tick(&g,0,0,25);CHECK(g.players[0].health==84&&g.players[1].health==84);
+    /* Each player can enter a still-live explosion once, including its owner. */
+    clean(&g);g.players[0].x=300*FF_FP;g.players[0].y=560*FF_FP;
+    g.players[1].x=430*FF_FP;g.players[1].y=560*FF_FP;
+    g.blasts[0]=(FF_Blast){300*FF_FP,544*FF_FP,20,0};tick(&g,0,0,1);
+    CHECK(g.players[0].health==92&&g.players[1].health==100);
+    g.players[1].x=320*FF_FP;tick(&g,0,0,1);CHECK(g.players[1].health==92);
+    tick(&g,0,0,17);CHECK(g.players[0].health==92&&g.players[1].health==92);
+    /* Reverse slot order must still propagate an entire chain. */
+    clean(&g);g.players[0].invulnerable=g.players[1].invulnerable=100;
+    for(int i=0;i<4;++i) g.hazards[3-i]=(FF_Hazard){(300+35*i)*FF_FP,200*FF_FP,0,0,FF_BOMB_FLY,200,0};
+    g.blasts[0]=(FF_Blast){280*FF_FP,200*FF_FP,20,0};tick(&g,0,0,1);
+    for(int i=0;i<4;++i) CHECK(!g.hazards[i].life);
+    clean(&g);g.players[0].x=300*FF_FP;g.players[0].y=560*FF_FP;
+    g.players[0].weapon=FF_ICE;g.players[0].ammo=1;
+    g.hazards[0]=(FF_Hazard){345*FF_FP,542*FF_FP,0,0,FF_BOMB_FLY,200,0};
+    tick(&g,FF_FIRE,0,8);CHECK(!g.hazards[0].life);
+    clean(&g);g.players[0].x=300*FF_FP;g.players[0].y=560*FF_FP;
+    g.hazards[0]=(FF_Hazard){340*FF_FP,544*FF_FP,0,0,FF_BOMB_FLY,200,0};
+    tick(&g,FF_PUNCH,0,1);CHECK(!g.hazards[0].life);
+    /* A walking bomb turns before stepping off a ledge. */
+    clean(&g);arena.imported=true;memset(arena.tiles,0,sizeof(arena.tiles));
+    memset(&arena.mask[300][80],FF_PLATFORM,100);
+    g.hazards[0]=(FF_Hazard){173*FF_FP,299*FF_FP,FF_FP,0,FF_BOMB_WALK,200,1};
+    tick(&g,0,0,1);CHECK(g.hazards[0].vx<0);
+    /* Falling bombs bounce from one-way surfaces but detonate on solids. */
+    g.hazards[0]=(FF_Hazard){120*FF_FP,299*FF_FP,0,FF_FP,FF_BOMB,200,0};
+    tick(&g,0,0,1);CHECK(g.hazards[0].life&&g.hazards[0].vy<0);
+    memset(&arena.mask[300][80],FF_SOLID,100);
+    g.hazards[0]=(FF_Hazard){120*FF_FP,299*FF_FP,0,FF_FP,FF_BOMB,200,0};
+    tick(&g,0,0,1);CHECK(!g.hazards[0].life);
+    /* Scheduled hazards use the arena's actual bonus points and seeded RNG. */
+    clean(&g);arena.bonus_count=1;arena.bonuses[0]=(FF_Point){400,100};
+    g.trap_wait=1;FF_Game replay=g;
+    tick(&g,0,0,1);tick(&replay,0,0,1);CHECK(ff_game_hash(&g)==ff_game_hash(&replay));
+    CHECK(g.hazards[0].life&&g.hazards[0].y>=100*FF_FP&&g.trap_wait>=200);
+    CHECK(g.hazards[0].kind>=FF_BOMB&&g.hazards[0].kind<=FF_BOMB_FLY);
+    tick(&g,0,0,1800);tick(&replay,0,0,1800);CHECK(ff_game_hash(&g)==ff_game_hash(&replay));
+}
+static void reference_jump(void) {
+    FF_Game g;clean(&g);g.players[0].x=100*FF_FP;g.players[0].y=560*FF_FP;g.players[0].grounded=1;
+    int top=g.players[0].y;tick(&g,FF_JUMP,0,1);
+    for(int i=0;i<44;++i) {if(g.players[0].y<top) top=g.players[0].y;tick(&g,0,0,1);}
+    CHECK(560*FF_FP-top>=63*FF_FP&&560*FF_FP-top<=64*FF_FP);
+    CHECK(g.players[0].grounded);
+    tick(&g,FF_RIGHT,0,20);CHECK(g.players[0].vx==25*FF_FP/8);
 }
 static void determinism(void) {
     FF_Game a,b;clean(&a);b=a;
@@ -110,4 +172,4 @@ static void determinism(void) {
     b.players[0].previous^=FF_JUMP;CHECK(ff_game_hash(&a)!=ff_game_hash(&b));
     printf("replay=%08x\n",ff_game_hash(&a));
 }
-int main(void) {physics();melee_round();weapons();bonuses();arena_devices();marker_collision_and_paths();determinism();printf("%u game checks passed\n",checks);return 0;}
+int main(void) {physics();melee_round();weapons();bonuses();arena_devices();marker_collision_and_paths();hazards_and_blasts();reference_jump();determinism();printf("%u game checks passed\n",checks);return 0;}

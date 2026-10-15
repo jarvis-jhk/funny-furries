@@ -11,7 +11,7 @@
 typedef struct { SDL_Texture *texture; int w,h; } Image;
 typedef struct {
     SDL_Window *window;SDL_Renderer *renderer;SDL_Texture *scene,*backdrop; FF_Input input;
-    Image images[FF_IMAGES]; Mix_Chunk *sounds[7]; bool audio;
+    Image images[FF_IMAGES]; Mix_Chunk *sounds[FF_SOUNDS]; bool audio;
     const char *assets;
 } App;
 static const uint8_t font[][5]={
@@ -138,6 +138,14 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
         Image *im=load_image(app,d->image);
         if(im) {SDL_Rect dest={pos.x,pos.y,im->w,im->h};SDL_RenderCopy(app->renderer,im->texture,NULL,&dest);}
     }
+    for(int i=0;i<FF_HAZARDS;++i) {
+        const FF_Hazard *h=&g->hazards[i];if(!h->life) continue;
+        const FF_Sequence *seq=&a->hazard_sprites[h->kind-1][h->vx<0];
+        if(!seq->count) seq=&a->hazard_sprites[h->kind-1][0];
+        int x=h->x/FF_FP,y=h->y/FF_FP;
+        if(seq->count) sprite(app,a,seq->image[(g->tick/4)%(unsigned)seq->count],x,y);
+        else {color(app,245,80,35);rect(app,x-6,y-6,12,12);color(app,255,220,90);rect(app,x-2,y-10,4,5);}
+    }
     for(int i=0;i<FF_PICKUPS;++i) {const FF_Pickup *p=&g->pickups[i];if(!p->active) continue;
         int id=a->pickup_images[p->kind];
         if(id>=0) sprite(app,a,id,p->x,p->y);
@@ -156,6 +164,17 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
             }
         }
         else {color(app,s->kind==FF_ICE?150:255,s->kind==FF_ICE?230:130,80);rect(app,s->x/FF_FP-4,s->y/FF_FP-3,8,6);}
+    }
+    for(int i=0;i<FF_BLASTS;++i) {
+        const FF_Blast *b=&g->blasts[i];if(!b->life) continue;
+        int x=b->x/FF_FP,y=b->y/FF_FP;
+        if(a->blast_sprite.count) {
+            int frame=(20-b->life)*a->blast_sprite.count/20;
+            sprite(app,a,a->blast_sprite.image[frame],x,y);
+        } else {
+            int r=10+b->life;color(app,255,130,35);rect(app,x-r,y-r,r*2,r*2);
+            color(app,255,225,100);rect(app,x-r/2,y-r/2,r,r);
+        }
     }
     hud(app,g);
     if(help||paused||g->winner>=0) {
@@ -179,6 +198,11 @@ static bool assets_ready(App *app,const FF_Arena *a) {
         const FF_Sequence *s=&a->sprites[p][part][k][d];
         for(int i=0;i<s->count;++i) if(!load_image(app,s->image[i])) return false;
     }
+    for(int h=0;h<3;++h) for(int d=0;d<2;++d) {
+        const FF_Sequence *s=&a->hazard_sprites[h][d];
+        for(int i=0;i<s->count;++i) if(!load_image(app,s->image[i])) return false;
+    }
+    for(int i=0;i<a->blast_sprite.count;++i) if(!load_image(app,a->blast_sprite.image[i])) return false;
     for(int i=0;i<a->device_count;++i) if(!load_image(app,a->devices[i].image)) return false;
     for(int i=1;i<6;++i) if(a->pickup_images[i]>=0&&!load_image(app,a->pickup_images[i])) return false;
     for(int i=1;i<4;++i) if(a->shot_images[i]>=0&&!load_image(app,a->shot_images[i])) return false;
@@ -221,7 +245,7 @@ int main(int argc,char **argv) {
     background(&app,&arena);
     if(SDL_SetRenderTarget(app.renderer,NULL)<0) goto fail;
     app.audio=Mix_OpenAudio(44100,AUDIO_S16SYS,2,1024)==0;
-    if(app.audio&&data) for(int i=0;i<7;++i) if(arena.sound_ids[i]>=0) {
+    if(app.audio&&data) for(int i=0;i<FF_SOUNDS;++i) if(arena.sound_ids[i]>=0) {
         char path[4096];snprintf(path,sizeof(path),"%s/sound-23-%d.wav",data,arena.sound_ids[i]);
         app.sounds[i]=Mix_LoadWAV(path);
         if(!app.sounds[i]) {fprintf(stderr,"Incomplete local sound import.\n");result=2;goto cleanup;}
@@ -256,7 +280,7 @@ int main(int argc,char **argv) {
             uint8_t keys[2];ff_input_read(&app.input,keys);
             if(auto_play) {keys[0]=(game.tick%200<100?FF_RIGHT:FF_LEFT)|(game.tick%33==0?FF_JUMP:0)|FF_FIRE|(game.tick%20==0?FF_PUNCH:0);keys[1]=(game.tick%180<90?FF_LEFT:FF_RIGHT)|(game.tick%47==0?FF_JUMP:0)|FF_FIRE|(game.tick%21==0?FF_PUNCH:0);}
             ff_game_tick(&game,&arena,keys);accumulator-=frequency;
-            if(app.audio) for(int i=0;i<7;++i) if((game.sounds&(1u<<i))&&app.sounds[i]) Mix_PlayChannel(-1,app.sounds[i],0);
+            if(app.audio) for(int i=0;i<FF_SOUNDS;++i) if((game.sounds&(1u<<i))&&app.sounds[i]) Mix_PlayChannel(-1,app.sounds[i],0);
             if(auto_play&&game.tick>=(uint32_t)ticks) {running=false;break;}
         }
         if(SDL_SetRenderTarget(app.renderer,app.scene)<0) goto fail;
@@ -280,7 +304,7 @@ fail:
 cleanup:
     ff_input_close(&app.input);
     for(int i=0;i<FF_IMAGES;++i) if(app.images[i].texture) SDL_DestroyTexture(app.images[i].texture);
-    for(int i=0;i<7;++i) if(app.sounds[i]) Mix_FreeChunk(app.sounds[i]);
+    for(int i=0;i<FF_SOUNDS;++i) if(app.sounds[i]) Mix_FreeChunk(app.sounds[i]);
     if(app.audio) Mix_CloseAudio();
     if(app.scene) SDL_DestroyTexture(app.scene);
     if(app.backdrop) SDL_DestroyTexture(app.backdrop);

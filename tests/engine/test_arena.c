@@ -23,6 +23,12 @@ int main(void) {
     CHECK(ff_device_position(&arena,0,50).x==50);
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\npath 0 50 200 1 -1\n"));
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\ndevice 9 100 200 48 16 4\npath 0 100 100 1 -1\n"));
+    CHECK(load("FFARENA 1\nspawn 100 100\nspawn 200 100\nbonus 120 150\nhazard 3 0 12\nblast 13\nsound 7 14\n"));
+    CHECK(arena.bonus_count==1&&arena.bonuses[0].x==120);
+    CHECK(arena.hazard_sprites[2][0].image[0]==12&&arena.blast_sprite.image[0]==13&&arena.sound_ids[7]==14);
+    CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\nhazard 4 0 12\n"));
+    CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\nbonus 800 100\n"));
+    CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\nblast 1024\n"));
     CHECK(!load("FFARENA 2\nspawn 100 100\nspawn 200 100\n"));
     CHECK(!load("FFARENA 1\nspawn 100 100\n"));
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\ntruncated"));

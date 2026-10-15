@@ -294,6 +294,30 @@ def import_lines(files, docs, frame):
     for kind, name in enumerate(('', 'bullet', 'Flame', 'Rocket')):
         if kind:
             lines.append(f'shot {kind} {first_image(name)}')
+    for name, x, y, _ in active_placements:
+        if name == 'Bonus' and 0 <= x < W and 0 <= y < 560:
+            lines.append(f'bonus {x} {y}')
+    for kind, name in enumerate(('Bomb', 'Bombwalk', 'Bombfly'), 1):
+        if (name, 2) not in global_names:
+            continue
+        for a in animations(name):
+            if a['id'] != 0:
+                continue
+            for d in a['directions']:
+                if d['id'] not in (0, 16):
+                    continue
+                for image in d['image_ids'] or []:
+                    image_info(image)
+                    lines.append(f'hazard {kind} {int(d["id"] == 16)} {image}')
+    if ('Explosion', 2) in global_names:
+        for a in animations('Explosion'):
+            if a['id'] == 0:
+                for d in a['directions']:
+                    if d['image_ids']:
+                        for image in d['image_ids']:
+                            image_info(image)
+                            lines.append(f'blast {image}')
+                        break
     for ident, info in images.items():
         if info['file'] in wanted:
             hx, hy = map(signed16, info['image']['hot_spot_raw_u16'])
@@ -307,7 +331,9 @@ def import_lines(files, docs, frame):
             for entry in bank['entries']:
                 name = bytes.fromhex(entry['header_hex'])[10:26].split(b'\0', 1)[0].decode('latin1')
                 sounds[name] = entry
-    for sound, name in enumerate(('woosh', 'laser2b', 'fireshot', 'rocket', 'au', 'bonus', 'gdie5')):
+    for sound, name in enumerate(('woosh', 'laser2b', 'fireshot', 'rocket', 'au', 'bonus', 'gdie5', 'explod7')):
+        if name == 'explod7' and name not in sounds:
+            continue
         entry = sounds[name]
         wanted.add(entry['file'])
         lines.append(f'sound {sound} {entry["id"]}')
@@ -319,7 +345,7 @@ def import_arena(bundle: Path, output: Path, frame=3):
     text, wanted, summary = import_lines(files, docs, frame)
     payloads = {name: files[name] for name in sorted(wanted)}
     payloads['arena.ff'] = text.encode('ascii')
-    report = {'importer': 'arena-import/2', 'source_sha256': manifest['source']['sha256'], **summary,
+    report = {'importer': 'arena-import/3', 'source_sha256': manifest['source']['sha256'], **summary,
               'fidelity': 'prototype; collision flags, timing and feel need original-game acceptance',
               'files': {name: hashlib.sha256(raw).hexdigest() for name, raw in payloads.items()}}
     payloads['import.json'] = (json.dumps(report, indent=2, sort_keys=True) + '\n').encode()
@@ -351,7 +377,7 @@ def main():
         print(f'Import refused: {error}', file=sys.stderr)
         return 2
     except Exception as error:
-        project.report_fault(type(error).__name__, version='arena-import/2', title='Arena import failed')
+        project.report_fault(type(error).__name__, version='arena-import/3', title='Arena import failed')
         print('Arena import failed; original input was not modified.', file=sys.stderr)
         return 1
     print(f'Imported frame {summary["frame"]}: {summary["layers"]} layers, {summary["spawns"]} spawn candidates.\nPlay: build/native/funny-furries --data {args.output}')

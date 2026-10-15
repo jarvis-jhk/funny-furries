@@ -25,14 +25,15 @@ def fixture(path):
     stale = {'header_hex': local.hex(), 'artwork': {'kind': 'image', 'image_id': 999}}
     names = ['snowfloor']
     names += [f'P{p} {part}' for p in (1, 2) for part in ('Foot', 'body', 'Hand', 'hat', 'shoothand')]
-    names += ['IceGun', 'Flame Thrower', 'Rocket Launcher', 'Health 25', 'Jetpack', 'bullet', 'Flame', 'Rocket']
+    names += ['IceGun', 'Flame Thrower', 'Rocket Launcher', 'Health 25', 'Jetpack', 'bullet', 'Flame', 'Rocket', 'Bomb', 'Bombwalk', 'Bombfly', 'Explosion']
     globals_ = [{'id': n, 'name': name, 'type': 1 if n == 0 else 2} for n, name in enumerate(names)]
     objects = [{'id': 0, 'name': 'snowfloor', 'type': 1, 'global': True},
                {'id': 1, 'name': 'P1h', 'type': 2, 'global': False},
                {'id': 2, 'name': 'P2h', 'type': 2, 'global': False},
-               {'id': 3, 'name': 'BrickBack', 'type': 1, 'global': False}]
+               {'id': 3, 'name': 'BrickBack', 'type': 1, 'global': False},
+               {'id': 8, 'name': 'Bonus', 'type': 2, 'global': False}]
     records = []
-    for ident, x, y in ((0, 80, 200), (1, 100, 120), (2, 200, 120), (3, 300, 200)):
+    for ident, x, y in ((0, 80, 200), (1, 100, 120), (2, 200, 120), (3, 300, 200), (8, 120, 150)):
         raw = bytearray(32)
         struct.pack_into('<Hhh', raw, 0, ident, x, y)
         records.append({'raw_hex': raw.hex()})
@@ -53,7 +54,7 @@ def fixture(path):
         stream.writeframes(b'\0\0' * 64)
     entries = []
     files = {'image-21-1.png': image_dump.png(bytes([0, 0, 0, 0]) + bytes([180, 120, 240, 255]) * 511, 32, 16)}
-    for n, name in enumerate(('woosh', 'laser2b', 'fireshot', 'rocket', 'au', 'bonus', 'gdie5')):
+    for n, name in enumerate(('woosh', 'laser2b', 'fireshot', 'rocket', 'au', 'bonus', 'gdie5', 'explod7')):
         file = f'sound-23-{n}.wav'
         h = bytes(10) + name.encode().ljust(16, b'\0')
         entries.append({'id': n, 'file': file, 'header_hex': h.hex()})
@@ -82,6 +83,12 @@ class ArenaImportTests(unittest.TestCase):
             self.assertIn('mask 200 81 31 1', text)  # Transparent corner is open.
             self.assertNotIn('mask 200 300', text)  # Decorative wall stays open.
             self.assertIn('hot 1 4 -1', text)
+            self.assertIn('bonus 120 150', text)
+            self.assertIn('hazard 1 0 1', text)
+            self.assertIn('hazard 2 1 1', text)
+            self.assertIn('hazard 3 0 1', text)
+            self.assertIn('blast 1', text)
+            self.assertIn('sound 7 7', text)
             self.assertNotIn('999', text)
             before = {p.name: p.read_bytes() for p in (root / 'output').iterdir()}
             arena.import_arena(root / 'bundle', root / 'output', 0)
@@ -207,7 +214,7 @@ class ArenaImportTests(unittest.TestCase):
              patch.object(arena, 'import_arena', side_effect=OSError('private path/token')), \
              patch.object(arena.project, 'report_fault') as reporter:
             self.assertEqual(arena.main(), 1)
-        reporter.assert_called_once_with('OSError', version='arena-import/2', title='Arena import failed')
+        reporter.assert_called_once_with('OSError', version='arena-import/3', title='Arena import failed')
 
     @unittest.skipUnless(os.environ.get('FF_NATIVE_GAME'), 'native binary not supplied')
     def test_real_renderer_with_synthetic_import(self):
