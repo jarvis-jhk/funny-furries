@@ -64,6 +64,14 @@ class LauncherTests(unittest.TestCase):
             self.assertTrue((target / 'arena.ff').is_file())
             self.assertFalse(list(home.glob('.import-*')))
             self.assertEqual(len(list(home.glob('arena-v5-*'))), 1)
+            (target / 'arena.ff').write_bytes(b'damaged')
+            self.assertIsNone(launcher.selected(home))
+            repaired = launcher.import_copy(source, home, Path(os.environ['FF_KLIKBACK_SRC']))
+            self.assertNotEqual(repaired, target)
+            launcher.save_selection(home, repaired)
+            self.assertEqual(launcher.selected(home), repaired)
+            self.assertEqual((target / 'arena.ff').read_bytes(), b'damaged')
+            self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), before)
 
 
 if __name__ == '__main__':

@@ -1,22 +1,27 @@
 # Notes
 
-**Current — 2026-10-15, test release (`t_mv9r8ocf6qfxo`, Sol):** first-start
-launcher/import is on main `4b923d7`; both ordinary CI jobs pass. The real
-protected full ZIP reconstructs our reference project SHA, imports twice and
-leaves the input unchanged. Local frozen launcher imports the real ZIP, opens
-and cancels its GUI, and runs synthetic/repeated matches; local installer also
-passes with spaces/Unicode paths. Four launcher cases, all11 native importer
-cases, four Debug+UBSan/Release suites, and fault-bridge validation/dedup/retry
-checks pass. Agent tsc passed before commits.
+**Current — 2026-10-15, test release (`t_mv9r8ocf6qfxo`, Sol):** launcher
+`4b923d7` and packaging `87d541e` are on main. Full publication gate is
+`docs/RELEASE.md`. Normal native/exporter CI passed (491 Python cases,
+429 pass/62 optional skips), actual source/test logs saved under agent
+`data/furries/test-release/`. First package run38771710397 exposed Ubuntu22
+Release's fortified `write` warning; fixed by checking/retrying EINTR. Local
+Release with explicit `_FORTIFY_SOURCE=2` passes all four suites. Also fixed
+same-copy recovery after a corrupt cache: preserve damaged files, create a
+fresh atomic import. Four launcher cases now include three real protected ZIP
+imports, repeat/checksum/source preservation and corruption recovery.
 
-Packaging now uses pinned SDL2 2.30.12 (virtual-pad APIs require newer SDL than
-Ubuntu22's stock package), PNG-only SDL_image2.8.8 and WAV-only SDL_mixer2.8.1.
-No Python/SDL/dev tools are needed by players. Windows handles UTF-8 user data
-paths. Live ntfy relay is the autostart `furries-feedback` app (source
-`tools/fault_bridge.mjs`, secrets only in agent data); anonymous transport probe
-received, no scheduler added. Full gate: `docs/RELEASE.md`. Native Windows and
-Linux22 package CI, exact artifact checks and prerelease publication are next
-in this session. Physical Deck/two-pad play stays an open release check.
+Frozen Linux launcher imports the real full ZIP, opens/cancels its GUI,
+runs10000 imported ticks (`cfcc36f8`) and repeat synthetic/Unicode-path matches.
+Installer passes with spaces/Unicode paths. Pinned SDL2 2.30.12, PNG-only
+SDL_image2.8.8, WAV-only SDL_mixer2.8.1 and bundled Python/Tk need no player dev
+tools. Agent tsc passes. Native Windows and final Linux22 artifact CI/checks,
+then prerelease publication, remain in this session.
+
+Live public ntfy relay: autostart app `furries-feedback`, source
+`tools/fault_bridge.mjs`, private config only in agent data. Anonymous live
+transport probe received; validation/dedup/queue retry tests pass. No schedule.
+Physical Deck/two-pad play remains open release feedback, never a blocker.
 
 <details>
 <summary>Previous M1 checkpoint</summary>

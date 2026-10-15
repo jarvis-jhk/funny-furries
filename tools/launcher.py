@@ -14,6 +14,7 @@ import sys
 import tempfile
 import threading
 import zipfile
+import uuid
 
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -73,6 +74,12 @@ def import_copy(source, home, reader_source=None):
         manifest, files = export_project.research_bundle(reader, raw)
         sha = manifest['source']['sha256']
         target = Path(home) / ('arena-v5-' + sha)
+        if target.exists():
+            try:
+                check_import(target)
+            except (OSError, ValueError, KeyError, TypeError):
+                # Preserve the damaged directory for inspection; publish a fresh atomic import.
+                target = target.with_name(target.name + '-' + uuid.uuid4().hex[:8])
         # Scratch exports disappear even on failure. Only a complete atomic arena survives.
         Path(home).mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='.import-', dir=home) as scratch:

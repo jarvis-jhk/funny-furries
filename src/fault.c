@@ -15,7 +15,11 @@ static const char runtime_payload[]="{\"lane\":\"furries\",\"kind\":\"bug\",\"ti
 static const char crash_payload[]="{\"lane\":\"furries\",\"kind\":\"bug\",\"title\":\"Game process crashed\",\"detail\":\"native-process-signal\",\"source\":\"funny-furries/0.1.0 native-desktop\"}";
 #ifndef _WIN32
 static void notify_courier(char code) {
-    if(courier>=0) {int descriptor=courier;courier=-1;(void)write(descriptor,&code,1);close(descriptor);}
+    if(courier>=0) {
+        int descriptor=courier;courier=-1;ssize_t delivered;
+        do {delivered=write(descriptor,&code,1);} while(delivered<0&&errno==EINTR);
+        close(descriptor);
+    }
 }
 static void crash(int number) {
     /* Only async-signal-safe syscalls here; network and allocation run elsewhere. */
