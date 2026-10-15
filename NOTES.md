@@ -1,5 +1,13 @@
 # Notes
 
+**Current — 2026-10-15, M1 (`t_mv95gejy6khqq`, Sol):** native C/SDL2 engine now
+exists: deterministic fixed tick, two-player keyboard/controller input, practice
+arena, three weapons, melee, bonuses, lives/respawn/wins and HUD. Debug+UBSan
+CTest and real offscreen SDL smoke pass locally. Movement/timing are provisional;
+this is not original-feel acceptance. Next within this session: import first
+original arena/artwork/audio, then exercise the complete local-data game path.
+No release, hardware claim, schedule or CI continuation.
+
 **2026-10-14 — direction change (Jan, t_mv8apsn318lf2j):** the M0 exporter is closed. ~60 sessions
 went into proving single Click & Create evaluator handlers byte by byte; for a game this simple that
 is overhead, not progress. M0 already gives images, sounds, animations, backdrops and readable
@@ -7,6 +15,9 @@ events — enough for M1. From now on: build the SDL2 engine (M1 1v1 arena) in l
 answer open behaviour questions (geometry, spawns, physics constants, weapons) only when the engine
 needs them, from the exported events, the decompiled project and the running original. Do not
 add further `Runtime-proven …` exporter slices. The detailed log below is history.
+
+<details>
+<summary>M0 exporter history (closed)</summary>
 
 2026-10-13: repo and lane created (JARVIS adhoc, t_mv5tuz6swmao5). Nothing implemented yet.
 
@@ -3794,3 +3805,5 @@ edit changes NOTES only; tested source unchanged. No unfinished work/continuatio
 new schedule/release/second slice/hardware claim. Combined exporter/spec stays
 started/sol:live row/bit lifecycle/other opcodes/global/selection/placement/arenas/
 spawns/observed behaviour remain open.
+
+</details>

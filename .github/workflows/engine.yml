@@ -1,0 +1,22 @@
+name: Native engine
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SDL development libraries
+        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev
+      - name: Configure Debug and undefined behavior sanitizer
+        run: cmake -S . -B build/native -DCMAKE_BUILD_TYPE=Debug -DFF_SANITIZE=ON
+      - name: Build
+        run: cmake --build build/native -j2
+      - name: Test deterministic matches, controllers and fault delivery
+        run: ctest --test-dir build/native --output-on-failure
+      - name: Run the actual renderer and game loop
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+        run: build/native/funny-furries --smoke 1000 --screenshot build/practice.bmp
