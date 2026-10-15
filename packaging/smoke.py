@@ -1,5 +1,6 @@
 """Exercise the actual frozen launcher and isolated native package, without original data."""
 import os
+import hashlib
 from pathlib import Path
 import subprocess
 import sys
@@ -22,10 +23,15 @@ with tempfile.TemporaryDirectory(prefix='furries package ü ') as directory:
     target = home / 'arena-v5-synthetic'
     import_arena.import_arena(home / 'bundle', target, 0)
     launcher.save_selection(home, target)
-    args = [str(binary), '--home', str(home), '--smoke', '1500']
+    screenshot = home / 'frame.bmp'
+    args = [str(binary), '--home', str(home), '--smoke', '1500', '--screenshot', str(screenshot)]
     a = subprocess.run(args, env=env, capture_output=True, text=True, timeout=30)
+    assert screenshot.is_file() and screenshot.read_bytes().startswith(b'BM'), (a.returncode, a.stdout, a.stderr)
+    frame = hashlib.sha256(screenshot.read_bytes()).hexdigest()
+    screenshot.unlink()
     b = subprocess.run(args, env=env, capture_output=True, text=True, timeout=30)
     assert a.returncode == b.returncode == 0, (a.returncode, a.stdout, a.stderr, b.returncode, b.stderr)
+    assert screenshot.is_file() and hashlib.sha256(screenshot.read_bytes()).hexdigest() == frame, 'Repeated renderer output differs'
     assert a.stdout == b.stdout and '1500' in a.stdout, (a.stdout, b.stdout)
     practice = subprocess.run([str(binary), '--practice', '--smoke', '1000'], env=env,
                               capture_output=True, text=True, timeout=30)

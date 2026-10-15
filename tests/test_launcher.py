@@ -46,6 +46,8 @@ class LauncherTests(unittest.TestCase):
             run.return_value.returncode = -11
             launcher.run_game(None, [])
             report.assert_called_once_with('game')
+            self.assertIs(run.call_args.kwargs['stdout'], launcher.sys.stdout)
+            self.assertIs(run.call_args.kwargs['stderr'], launcher.sys.stderr)
         with patch.object(launcher.subprocess, 'Popen') as popen, patch.dict(os.environ, {'FF_NO_REPORT': '1'}):
             launcher.report_fault('game')
             popen.assert_not_called()

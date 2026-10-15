@@ -168,7 +168,8 @@ def run_game(target, game_args):
         import ctypes
         ctypes.windll.kernel32.SetDllDirectoryW(None)
     command = [str(binary)] + (['--data', str(target)] if target else []) + game_args
-    result = subprocess.run(command, env=env).returncode
+    # Explicit handles also reach GUI-subsystem executables on Windows.
+    result = subprocess.run(command, env=env, stdout=sys.stdout, stderr=sys.stderr).returncode
     if result not in (0, 2):
         report_fault('game')
     return result

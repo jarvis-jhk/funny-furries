@@ -1,27 +1,28 @@
 # Notes
 
-**Current — 2026-10-15, test release (`t_mv9r8ocf6qfxo`, Sol):** launcher
-`4b923d7` and packaging `87d541e` are on main. Full publication gate is
-`docs/RELEASE.md`. Normal native/exporter CI passed (491 Python cases,
-429 pass/62 optional skips), actual source/test logs saved under agent
-`data/furries/test-release/`. First package run38771710397 exposed Ubuntu22
-Release's fortified `write` warning; fixed by checking/retrying EINTR. Local
-Release with explicit `_FORTIFY_SOURCE=2` passes all four suites. Also fixed
-same-copy recovery after a corrupt cache: preserve damaged files, create a
-fresh atomic import. Four launcher cases now include three real protected ZIP
-imports, repeat/checksum/source preservation and corruption recovery.
+**Current — 2026-10-15, test release (`t_mv9r8ocf6qfxo`, Sol):** full release
+procedure is `docs/RELEASE.md`. Five tested steps on main now provide protected
+ZIP/CCA first-start import, bundled Python/Tk, Linux/Deck local installer,
+Unicode Windows paths and anonymous fault reporting. Ubuntu22's fortified
+write warning and the Windows SDL test-entry signature were fixed. Normal
+CI on `5b0abec` is green; actual checkout/test logs verified (491 Python cases,
+429 pass/62 optional skips; four native suites).
 
-Frozen Linux launcher imports the real full ZIP, opens/cancels its GUI,
-runs10000 imported ticks (`cfcc36f8`) and repeat synthetic/Unicode-path matches.
-Installer passes with spaces/Unicode paths. Pinned SDL2 2.30.12, PNG-only
-SDL_image2.8.8, WAV-only SDL_mixer2.8.1 and bundled Python/Tk need no player dev
-tools. Agent tsc passes. The first Windows package run caught a test-only SDL_main signature mismatch;
-test_input now has the required argc/argv signature and compiles under local
-MinGW with Windows SDL headers. Superseded run38772400311 was cancelled after
-that known failure; fresh native Windows/Linux22 artifact CI and publication
-remain in this session.
+Package run38772685085: Linux/Deck passed. Downloaded exact Linux archive and
+source, checked hashes/source/private-content audit, opened/cancelled frozen GUI,
+imported the real protected ZIP into a fresh Unicode-path home, ran10000 ticks
+(`cfcc36f8`), installed locally and ran fullscreen. Windows native build/three
+suites and freeze/DLL bundling passed; packaged game returned0 but its GUI
+subsystem lost inherited stdout, so the smoke gate correctly failed. Launcher
+now explicitly passes stdout/stderr handles; package smoke also requires two
+identical actual BMP screenshots. Retest final source and publish next.
 
-Live public ntfy relay: autostart app `furries-feedback`, source
+Local validation: four Debug+UBSan/fortified Release suites, all11 original/
+native importer cases, four launcher cases including three real imports and
+corrupt-cache recovery; frozen GUI/import/renderer/install tests. Agent tsc
+passes before commits. Source/artifacts/evidence: agent data/furries/test-release/.
+
+Live public ntfy relay is autostart app `furries-feedback`, source
 `tools/fault_bridge.mjs`, private config only in agent data. Anonymous live
 transport probe received; validation/dedup/queue retry tests pass. No schedule.
 Physical Deck/two-pad play remains open release feedback, never a blocker.
