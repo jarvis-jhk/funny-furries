@@ -14,7 +14,13 @@ Step 3 replaces the blanket body with source sensor silhouettes, directional
 spring contacts/100-speed impulses, held swimming thrust and animated fire.
 Two virtual SDL controllers now drive a full simultaneous-KO/new-round match
 through the actual game/input integration. See docs/REFERENCE.md for evidence
-and approximation boundaries. M1 is not complete.
+and approximation boundaries. Step 4 uses weapon action-point muzzles, growing
+blast bounds/returning-rocket self-hits, and corrects platform leading-edge turns.
+Actual Wine held-Up recording confirms auto-jump; held punch now repeats at 25
+instead of an invented edge-only/18-tick rule. Original platform pixels recover
+~44 jump ticks against native45, with ~63–64px rise against native63.25; Wine wall
+clock is host-dependent. Importer v5, local `export/arena-reference5`. M1 is not
+complete; final real two-pad/original-feel acceptance is the next gate.
 
 **Current — 2026-10-15, M1 (`t_mv96vru98gz0q`, Sol):** three tested gameplay
 steps pushed directly to main: `13a99d8` collision markers/platform paths,

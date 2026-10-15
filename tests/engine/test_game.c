@@ -34,9 +34,11 @@ static void melee_round(void) {
     g.players[0].y=g.players[1].y=560*FF_FP;g.players[0].facing=1;
     tick(&g,FF_PUNCH,0,1);CHECK(g.winner==0);CHECK(g.players[0].score==1);
     tick(&g,0,0,150);CHECK(g.winner==-1);CHECK(g.players[1].lives==3);CHECK(g.players[0].score==1);
-    /* Holding punch does not produce repeat punches. */
+    /* Holding punch repeats only after the original 25-tick hand cooldown. */
     clean(&g);g.players[0].x=300*FF_FP;g.players[1].x=330*FF_FP;g.players[0].y=g.players[1].y=560*FF_FP;
     tick(&g,FF_PUNCH,0,25);CHECK(g.players[1].health==88);
+    g.players[1].x=330*FF_FP;g.players[1].y=560*FF_FP;g.players[1].vx=g.players[1].vy=0;
+    tick(&g,FF_PUNCH,0,1);CHECK(g.players[1].health==76);
 }
 static void weapons(void) {
     FF_Game g;clean(&g);g.players[0].x=300*FF_FP;g.players[1].x=360*FF_FP;g.players[0].y=g.players[1].y=560*FF_FP;
@@ -78,6 +80,10 @@ static void homing_rockets(void) {
     g.shots[0]=(FF_Shot){120*FF_FP,206*FF_FP,0,-57*FF_FP/8,FF_ROCKET,0,100,8,0};
     tick(&g,0,0,1);CHECK(!g.shots[0].life&&g.blasts[0].life);
     CHECK(g.blasts[0].y>=200*FF_FP&&g.blasts[0].y<201*FF_FP);
+    /* A missile that turns back can hit its shooter, including direct damage. */
+    clean(&g);g.players[0].x=300*FF_FP;g.players[0].y=560*FF_FP;g.players[1].respawn=60;
+    g.shots[0]=(FF_Shot){325*FF_FP,542*FF_FP,-57*FF_FP/8,0,FF_ROCKET,0,100,16,0};
+    tick(&g,0,0,2);CHECK(g.players[0].health==84&&!g.shots[0].life);
     /* Substeps preserve the exact displacement of a fractional-speed shot. */
     clean(&g);g.players[1].respawn=60;
     g.shots[0]=(FF_Shot){300*FF_FP,100*FF_FP,100*FF_FP/8,0,FF_ICE,0,100,0,0};
@@ -228,6 +234,26 @@ static void hazards_and_blasts(void) {
     CHECK(g.hazards[0].kind>=FF_BOMB&&g.hazards[0].kind<=FF_BOMB_FLY);
     tick(&g,0,0,1800);tick(&replay,0,0,1800);CHECK(ff_game_hash(&g)==ff_game_hash(&replay));
 }
+static void imported_weapon_geometry(void) {
+    FF_Game g;clean(&g);FF_Player *p=&g.players[0];
+    p->x=200*FF_FP;p->y=300*FF_FP;p->weapon=FF_ICE;p->ammo=1;
+    arena.muzzles[0][FF_ICE][0]=(FF_Point){30,-11};
+    tick(&g,FF_FIRE,0,1);CHECK(g.shots[0].life);
+    CHECK(g.shots[0].x==p->x+30*FF_FP+100*FF_FP/8);
+    CHECK(g.shots[0].y==p->y-11*FF_FP);
+    memset(g.shots,0,sizeof(g.shots));p->facing=-1;p->cooldown=0;p->weapon=FF_ICE;p->ammo=1;
+    arena.muzzles[0][FF_ICE][1]=(FF_Point){-29,-10};
+    tick(&g,FF_FIRE,0,1);CHECK(g.shots[0].x==p->x-29*FF_FP-100*FF_FP/8);
+    CHECK(g.shots[0].y==p->y-10*FF_FP);
+    /* Imported blasts grow with the artwork, rather than hitting the full radius immediately. */
+    clean(&g);arena.imported=true;arena.blast_sprite.count=2;
+    arena.blast_boxes[0]=(FF_Box){-10,-10,20,20};arena.blast_boxes[1]=(FF_Box){-32,-32,64,64};
+    g.players[0].x=340*FF_FP;g.players[0].y=400*FF_FP;
+    g.blasts[0]=(FF_Blast){300*FF_FP,384*FF_FP,20,0};
+    tick(&g,0,0,10);CHECK(g.players[0].health==100);
+    tick(&g,0,0,1);CHECK(g.players[0].health==92);
+    tick(&g,0,0,9);CHECK(g.players[0].health==92&&!g.blasts[0].life);
+}
 static void reference_jump(void) {
     FF_Game g;clean(&g);g.players[0].x=100*FF_FP;g.players[0].y=560*FF_FP;g.players[0].grounded=1;
     int top=g.players[0].y;tick(&g,FF_JUMP,0,1);
@@ -235,6 +261,11 @@ static void reference_jump(void) {
     CHECK(560*FF_FP-top>=63*FF_FP&&560*FF_FP-top<=64*FF_FP);
     CHECK(g.players[0].grounded);
     tick(&g,FF_RIGHT,0,20);CHECK(g.players[0].vx==25*FF_FP/8);
+    /* The unmodified Wine original repeatedly jumps while Up remains held. */
+    clean(&g);g.players[0].x=100*FF_FP;g.players[0].y=560*FF_FP;g.players[0].grounded=1;
+    int takeoffs=0;
+    for(int i=0;i<100;++i) {int grounded=g.players[0].grounded;tick(&g,FF_JUMP,0,1);if(grounded&&g.players[0].vy<0) ++takeoffs;}
+    CHECK(takeoffs==3);
 }
 static void wind_and_bonus_regions(void) {
     FF_Game g;clean(&g);FF_Player *p=&g.players[0];
@@ -272,4 +303,4 @@ static void determinism(void) {
     b.players[0].previous^=FF_JUMP;CHECK(ff_game_hash(&a)!=ff_game_hash(&b));
     printf("replay=%08x\n",ff_game_hash(&a));
 }
-int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();sensor_body_and_directional_bounces();hazards_and_blasts();reference_jump();wind_and_bonus_regions();determinism();printf("%u game checks passed\n",checks);return 0;}
+int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();sensor_body_and_directional_bounces();hazards_and_blasts();imported_weapon_geometry();reference_jump();wind_and_bonus_regions();determinism();printf("%u game checks passed\n",checks);return 0;}

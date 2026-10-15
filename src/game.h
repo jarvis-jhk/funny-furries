@@ -32,6 +32,7 @@ enum { FF_WATER=1, FF_FAN_LEFT, FF_FAN_RIGHT, FF_FAN_UP, FF_BOUNCE_UP,
        FF_WIND_LEFT, FF_WIND_RIGHT, FF_WIND_UP };
 typedef struct { int kind, x, y, w, h, image; } FF_Device;
 typedef struct { int x, y; } FF_Point;
+typedef struct { int x, y, w, h; } FF_Box;
 typedef struct { int min_x, max_x, speed, direction; } FF_Path;
 typedef struct { int image, x, y, w, h, kind; uint32_t color[2]; } FF_Layer;
 typedef struct { int count, image[FF_ANIM_FRAMES]; } FF_Sequence;
@@ -43,9 +44,11 @@ typedef struct {
     int hot_x[FF_IMAGES], hot_y[FF_IMAGES];
     FF_Sequence sprites[2][FF_PARTS][FF_ANIMS][2];
     int pickup_images[6], shot_images[4];
+    FF_Point muzzles[2][4][2];
     int sound_ids[FF_SOUNDS];
     FF_Point bonuses[FF_SPAWNS]; int bonus_count;
     FF_Sequence hazard_sprites[3][2], blast_sprite, fire_sprites[2];
+    FF_Box blast_boxes[FF_ANIM_FRAMES];
     FF_Device devices[FF_DEVICES]; int device_count;
     FF_Path paths[FF_DEVICES];
     bool imported;

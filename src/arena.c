@@ -3,6 +3,13 @@
 #include <string.h>
 #include <stdlib.h>
 
+static void asset_defaults(FF_Arena *a) {
+    for(int i=0;i<6;++i) a->pickup_images[i]=-1;
+    for(int i=0;i<4;++i) a->shot_images[i]=-1;
+    for(int i=0;i<FF_SOUNDS;++i) a->sound_ids[i]=-1;
+    for(int p=0;p<2;++p) for(int w=1;w<4;++w) for(int d=0;d<2;++d)
+        a->muzzles[p][w][d]=(FF_Point){d?-16:16,-18};
+}
 void ff_arena_practice(FF_Arena *a) {
     memset(a, 0, sizeof(*a));
     for (int x=0; x<FF_COLS; ++x) a->tiles[35][x]=FF_SOLID;
@@ -14,9 +21,7 @@ void ff_arena_practice(FF_Arena *a) {
     a->bonus_count=2;a->bonuses[0]=(FF_Point){350,200};a->bonuses[1]=(FF_Point){450,200};
     a->spawns[0]=(FF_Point){160,520}; a->spawns[1]=(FF_Point){640,520};
     a->spawns[2]=(FF_Point){320,280}; a->spawns[3]=(FF_Point){480,280};
-    for (int i=0;i<6;++i) a->pickup_images[i]=-1;
-    for (int i=0;i<4;++i) a->shot_images[i]=-1;
-    for (int i=0;i<FF_SOUNDS;++i) a->sound_ids[i]=-1;
+    asset_defaults(a);
 }
 
 /* A small bounded text format keeps imported game content separate from code. */
@@ -24,9 +29,7 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
     FILE *f=fopen(path,"r");
     if (!f) { snprintf(error,capacity,"Cannot open arena data"); return false; }
     memset(a,0,sizeof(*a));
-    for (int i=0;i<6;++i) a->pickup_images[i]=-1;
-    for (int i=0;i<4;++i) a->shot_images[i]=-1;
-    for (int i=0;i<FF_SOUNDS;++i) a->sound_ids[i]=-1;
+    asset_defaults(a);
     char line[1024]; int version=0, lines=0; bool ok=true;
     while (fgets(line,sizeof(line),f)) {
         ++lines; int n[10]; unsigned c[2]; char tail;
@@ -56,6 +59,10 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
             if(n[0]<0||n[0]>5||n[1]<0||n[1]>=FF_IMAGES) {ok=false;break;} a->pickup_images[n[0]]=n[1];
         } else if (sscanf(line,"shot %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<1||n[0]>3||n[1]<0||n[1]>=FF_IMAGES) {ok=false;break;} a->shot_images[n[0]]=n[1];
+        } else if (sscanf(line,"muzzle %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&tail)==5) {
+            if(n[0]<0||n[0]>1||n[1]<1||n[1]>3||n[2]<0||n[2]>1||
+               n[3]<-4096||n[3]>4096||n[4]<-4096||n[4]>4096) {ok=false;break;}
+            a->muzzles[n[0]][n[1]][n[2]]=(FF_Point){n[3],n[4]};
         } else if (sscanf(line,"device %d %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&n[5],&tail)==6) {
             if(a->device_count==FF_DEVICES||n[0]<1||n[0]>FF_WIND_UP||n[1]<-4096||n[1]>4096||n[2]<-4096||n[2]>4096||n[3]<1||n[3]>1024||n[4]<1||n[4]>1024||n[5]<-1||n[5]>=FF_IMAGES||(n[0]>=FF_WIND_LEFT?n[5]!=-1:n[5]<0)) {ok=false;break;}
             a->devices[a->device_count++]=(FF_Device){n[0],n[1],n[2],n[3],n[4],n[5]};
@@ -75,6 +82,10 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
         } else if (sscanf(line,"blast %d %c",&n[0],&tail)==1) {
             if(n[0]<0||n[0]>=FF_IMAGES||a->blast_sprite.count==FF_ANIM_FRAMES) {ok=false;break;}
             a->blast_sprite.image[a->blast_sprite.count++]=n[0];
+        } else if (sscanf(line,"blastbox %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&tail)==5) {
+            if(n[0]<0||n[0]>=a->blast_sprite.count||n[1]<-4096||n[1]>4096||
+               n[2]<-4096||n[2]>4096||n[3]<1||n[3]>4096||n[4]<1||n[4]>4096) {ok=false;break;}
+            a->blast_boxes[n[0]]=(FF_Box){n[1],n[2],n[3],n[4]};
         } else if (sscanf(line,"fire %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_IMAGES) {ok=false;break;}
             FF_Sequence *s=&a->fire_sprites[n[0]];

@@ -268,11 +268,22 @@ def import_lines(files, docs, frame):
     def first_image(name):
         return active_image(name)
 
+    def active_bounds(name, direction=0):
+        ident = active_image(name, direction)
+        width, height, rgba = image_info(ident)
+        points = [(xx, yy) for yy in range(height) for xx in range(width)
+                  if rgba[(yy * width + xx) * 4 + 3] > 127]
+        if not points:
+            raise ValueError('empty moving-platform collision marker')
+        hx, hy = map(signed16, images[ident]['image']['hot_spot_raw_u16'])
+        return (min(p[0] for p in points)-hx, min(p[1] for p in points)-hy,
+                max(p[0] for p in points)-hx, max(p[1] for p in points)-hy)
+
     device_kinds = {'Water': 1, 'Fan L': 2, 'Fan R': 3, 'Fan up': 4,
                     'bounce up': 5, 'bounce down': 6, 'bounce L': 7,
                     'bounce R': 8, 'mph': 9, 'Wind L': 10, 'Wind R': 11, 'Wind up': 12}
     device_count = 0
-    for name, x, y, _ in active_placements:
+    for name, x, y, direction in active_placements:
         if name not in device_kinds:
             continue
         ident = first_image('mph 2' if name == 'mph' else name)
@@ -280,12 +291,22 @@ def import_lines(files, docs, frame):
         hx, hy = map(signed16, images[ident]['image']['hot_spot_raw_u16'])
         lines.append(f'device {device_kinds[name]} {x-hx} {y-hy} {width} {height} {ident if device_kinds[name] < 10 else -1}')
         if name == 'mph':
-            stops = sorted({rx for n, rx, ry, _ in active_placements if n == 'reverse' and abs(ry-y) < height})
-            left = [rx for rx in stops if rx <= x]
-            right = [rx for rx in stops if rx >= x]
-            if not left or not right or left[-1] == right[0]:
+            px0, py0, px1, py1 = active_bounds('mph', direction)
+            stops = []
+            for n, rx, ry, rd in active_placements:
+                if n != 'reverse':
+                    continue
+                rx0, ry0, rx1, ry1 = active_bounds(n, rd)
+                if ry+ry0 <= y+py1 and ry+ry1 >= y+py0:
+                    stops.append((rx, rx+rx0, rx+rx1))
+            left = sorted(s for s in stops if s[0] <= x)
+            right = sorted(s for s in stops if s[0] >= x)
+            if not left or not right:
                 raise ValueError('moving platform lacks surrounding reverse markers')
-            lines.append(f'path {device_count} {left[-1]-hx} {right[0]-hx} 1 -1')
+            low, high = left[-1][2]-hx-px0, right[0][1]-hx-px1
+            if not low <= x-hx <= high or low >= high:
+                raise ValueError('moving platform overlaps its reverse markers at start')
+            lines.append(f'path {device_count} {low} {high} 1 -1')
         device_count += 1
 
     for kind, name in enumerate(('', 'IceGun', 'Flame Thrower', 'Rocket Launcher', 'Health 25', 'Jetpack')):
@@ -294,6 +315,18 @@ def import_lines(files, docs, frame):
     for kind, name in enumerate(('', 'bullet', 'Flame', 'Rocket')):
         if kind:
             lines.append(f'shot {kind} {first_image(name)}')
+    for player in range(2):
+        for a in animations(f'P{player+1} shoothand'):
+            if a['id'] not in (13, 14, 15):
+                continue
+            kind = {13: 1, 14: 3, 15: 2}[a['id']]
+            for d in a['directions']:
+                if d['id'] not in (0, 16) or not d['image_ids']:
+                    continue
+                info = images[d['image_ids'][0]]['image']
+                ax, ay = map(signed16, info['action_point_raw_u16'])
+                hx, hy = map(signed16, info['hot_spot_raw_u16'])
+                lines.append(f'muzzle {player} {kind} {int(d["id"] == 16)} {ax-hx} {ay-hy-16}')
     for a in animations('Flame'):
         if a['id'] in (0, 12):
             for d in a['directions']:
@@ -322,9 +355,12 @@ def import_lines(files, docs, frame):
             if a['id'] == 0:
                 for d in a['directions']:
                     if d['image_ids']:
-                        for image in d['image_ids']:
-                            image_info(image)
+                        for frame_id, image in enumerate(d['image_ids']):
+                            width, height, _ = image_info(image)
                             lines.append(f'blast {image}')
+                            info = images[image]['image']
+                            hx, hy = map(signed16, info['hot_spot_raw_u16'])
+                            lines.append(f'blastbox {frame_id} {-hx} {-hy} {width} {height}')
                         break
     for ident, info in images.items():
         if info['file'] in wanted:
@@ -353,7 +389,7 @@ def import_arena(bundle: Path, output: Path, frame=3):
     text, wanted, summary = import_lines(files, docs, frame)
     payloads = {name: files[name] for name in sorted(wanted)}
     payloads['arena.ff'] = text.encode('ascii')
-    report = {'importer': 'arena-import/4', 'source_sha256': manifest['source']['sha256'], **summary,
+    report = {'importer': 'arena-import/5', 'source_sha256': manifest['source']['sha256'], **summary,
               'fidelity': 'prototype; collision flags, timing and feel need original-game acceptance',
               'files': {name: hashlib.sha256(raw).hexdigest() for name, raw in payloads.items()}}
     payloads['import.json'] = (json.dumps(report, indent=2, sort_keys=True) + '\n').encode()
@@ -385,7 +421,7 @@ def main():
         print(f'Import refused: {error}', file=sys.stderr)
         return 2
     except Exception as error:
-        project.report_fault(type(error).__name__, version='arena-import/4', title='Arena import failed')
+        project.report_fault(type(error).__name__, version='arena-import/5', title='Arena import failed')
         print('Arena import failed; original input was not modified.', file=sys.stderr)
         return 1
     print(f'Imported frame {summary["frame"]}: {summary["layers"]} layers, {summary["spawns"]} spawn candidates.\nPlay: build/native/funny-furries --data {args.output}')

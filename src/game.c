@@ -154,11 +154,12 @@ static void platform_land(FF_Player *p,const FF_Arena *a,uint32_t tick,int32_t o
         }
     }
 }
-static void shoot(FF_Game *g,FF_Player *p,int owner) {
+static void shoot(FF_Game *g,const FF_Arena *a,FF_Player *p,int owner) {
     if(p->weapon==FF_FISTS||p->ammo<=0||p->cooldown) return;
     for(int i=0;i<FF_SHOTS;++i) if(!g->shots[i].life) {
         int kind=p->weapon;
-        g->shots[i]=(FF_Shot){p->x+p->facing*16*FF_FP,p->y-18*FF_FP,
+        FF_Point muzzle=a->muzzles[owner][kind][p->facing<0];
+        g->shots[i]=(FF_Shot){p->x+muzzle.x*FF_FP,p->y+muzzle.y*FF_FP,
             p->facing*(kind==FF_ICE?100:kind==FF_ROCKET?57:40)*FF_FP/8,0,kind,owner,kind==FF_FLAME?270:100,p->facing<0?16:0,0};
         --p->ammo;p->cooldown=kind==FF_ROCKET?50:8;
         g->sounds|=kind==FF_ICE?FF_SOUND_ICE:kind==FF_ROCKET?FF_SOUND_ROCKET:FF_SOUND_FLAME;
@@ -255,14 +256,23 @@ static void hazard_tick(FF_Game *g,const FF_Arena *a,int damage[2]) {
         if(contact) {blast(g,h->x,h->y);h->life=0;}
     }
 }
-static void blast_tick(FF_Game *g,int damage[2],int knock[2],int lift[2]) {
+static bool blast_overlap(const FF_Blast *b,const FF_Arena *a,int32_t x,int32_t y,int w,int h) {
+    if(a->blast_sprite.count) {
+        int frame=(20-b->life)*a->blast_sprite.count/20;
+        const FF_Box *box=&a->blast_boxes[frame];
+        if(box->w) return x<b->x+(box->x+box->w)*FF_FP&&x+w*FF_FP>b->x+box->x*FF_FP&&
+            y<b->y+(box->y+box->h)*FF_FP&&y+h*FF_FP>b->y+box->y*FF_FP;
+    }
+    return near(x+w*FF_FP/2,y+h*FF_FP/2,b->x,b->y,42);
+}
+static void blast_tick(FF_Game *g,const FF_Arena *a,int damage[2],int knock[2],int lift[2]) {
     /* A bounded repeat propagates chains regardless of the hazard slot order. */
     for(int pass=0;pass<FF_HAZARDS;++pass) {
         bool changed=false;
         for(int i=0;i<FF_BLASTS;++i) if(g->blasts[i].life) {
             for(int j=0;j<FF_HAZARDS;++j) {
                 FF_Hazard *h=&g->hazards[j];if(!h->life) continue;
-                if(near(g->blasts[i].x,g->blasts[i].y,h->x,h->y,42)) {
+                if(blast_overlap(&g->blasts[i],a,h->x-7*FF_FP,h->y-7*FF_FP,14,14)) {
                     h->life=0;blast(g,h->x,h->y);changed=true;
                 }
             }
@@ -273,7 +283,7 @@ static void blast_tick(FF_Game *g,int damage[2],int knock[2],int lift[2]) {
         FF_Blast *b=&g->blasts[i];if(!b->life) continue;
         for(int k=0;k<2;++k) {
             FF_Player *p=&g->players[k];if(p->respawn||(b->hit&(1u<<k))) continue;
-            if(near(p->x,p->y-16*FF_FP,b->x,b->y,42)) {
+            if(blast_overlap(b,a,p->x-11*FF_FP,p->y-32*FF_FP,22,32)) {
                 b->hit|=1u<<k;damage[k]+=8;knock[k]=(p->x<b->x?-50:50)*FF_FP/8;
                 lift[k]=(p->y-16*FF_FP<b->y?-50:50)*FF_FP/8;
             }
@@ -333,7 +343,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
         int gravity=wet?FF_FP/8:FF_FP/4,fall_cap=wet?20*FF_FP/8:8*FF_FP;
         if(p->vy>fall_cap) p->vy-=gravity;
         else p->vy=clamp(p->vy+gravity,-100*FF_FP/8,fall_cap);
-        if(!wet&&(keys&FF_JUMP)&&!(p->previous&FF_JUMP)&&p->grounded) {p->vy=-44*FF_FP/8;p->grounded=0;}
+        if(!wet&&(keys&FF_JUMP)&&p->grounded) {p->vy=-44*FF_FP/8;p->grounded=0;}
         if(wet) {
             if((keys&FF_JUMP)&&p->vy>-20*FF_FP/8) p->vy=clamp(p->vy-2*FF_FP/8,-20*FF_FP/8,100*FF_FP/8);
         }
@@ -342,8 +352,8 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
         int32_t old_y=p->y;
         move_player(p,a);
         platform_land(p,a,g->tick,old_y);
-        if((keys&FF_PUNCH)&&!(p->previous&FF_PUNCH)&&!p->cooldown) {
-            p->punch_ticks=8;p->cooldown=18;g->sounds|=FF_SOUND_PUNCH;
+        if((keys&FF_PUNCH)&&!p->cooldown) {
+            p->punch_ticks=8;p->cooldown=25;g->sounds|=FF_SOUND_PUNCH;
             FF_Player *other=&g->players[1-i];
             int dx=(other->x-p->x)/FF_FP,dy=abs(other->y-p->y)/FF_FP;
             if(!other->respawn&&dx*p->facing>=0&&dx*p->facing<48&&dy<32) {
@@ -356,7 +366,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
                 b->life=0;blast(g,b->x,b->y);
             }
         }
-        if(keys&FF_FIRE) shoot(g,p,i);
+        if(keys&FF_FIRE) shoot(g,a,p,i);
         p->previous=input[i];
         if(p->y>(FF_H+32)*FF_FP) damage[i]=1000;
     }
@@ -387,10 +397,13 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
             }
             if(impact) break;
             if(s->kind==FF_FLAME) continue;
-            FF_Player *p=&g->players[1-s->owner];
-            if(!p->respawn&&abs(p->x-s->x)<13*FF_FP&&s->y>=p->y-32*FF_FP&&s->y<p->y) {
-                target=1-s->owner;impact=true;break;
+            for(int k=0;k<2;++k) {
+                FF_Player *p=&g->players[k];
+                if(!p->respawn&&abs(p->x-s->x)<13*FF_FP&&s->y>=p->y-32*FF_FP&&s->y<p->y) {
+                    target=k;impact=true;break;
+                }
             }
+            if(impact) break;
         }
         if(target>=0) {
             damage[target]+=s->kind==FF_ICE?6:8;
@@ -409,7 +422,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
             s->life=0;
         }
     }
-    blast_tick(g,damage,knock,lift);
+    blast_tick(g,a,damage,knock,lift);
     for(int i=0;i<2;++i) {
         FF_Player *p=&g->players[i];
         if((damage[i]||burning[i])&&(!p->invulnerable||damage[i]>=1000)&&!p->respawn) {

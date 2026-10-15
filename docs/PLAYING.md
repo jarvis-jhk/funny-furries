@@ -81,8 +81,8 @@ markers plus active ice surfaces, and retains all 16 usable initial/Start candid
 Water, fans, directional bouncers and two moving platforms use original local art.
 Hidden Wind L/R/up placements supply the fan-force rectangles; only the actual fan
 art is drawn. The old approximate reach is retained for asset-free practice data.
-Moving platforms travel one pixel per tick between their surrounding `reverse`
-markers, including player carry in either direction. Their positions are shared by
+Moving platforms travel one pixel per tick and turn when their leading edge
+meets a surrounding `reverse` marker, including player carry in either direction. Their positions are shared by
 rendering and simulation. Swimming uses continuous held thrust, springs respond only to approach from
 their active side, and collision follows the original sensor silhouettes.
 These changes still need physical play comparison. Bombs now spawn from original Bonus points using a seeded
@@ -130,3 +130,9 @@ Existing local imports continue to work with their single flame image; reimport
 into a new output directory for animated fire. SDL virtual-controller checks
 now play a full simultaneous-KO match and its automatic next round through the
 actual game input layer, then exercise separate movement and jumping.
+
+Hold jump to jump again on landing; hold punch to repeat at the original 25-tick
+hand cooldown. The running original confirms repeated held jumping. Importer v5
+also places each weapon at its original hand action point and grows explosion
+contact bounds with the artwork. Reimport into a fresh directory to get these
+muzzle offsets, blast bounds and corrected platform reversal limits.

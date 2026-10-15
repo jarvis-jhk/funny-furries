@@ -12,7 +12,8 @@ show about 64 pixels of rise; our fixed-tick jump reaches 63.25. Run speed is
 
 The next comparisons use the original's readable event rows directly:
 
-- Frame 12–15: fists cost 12 health, with horizontal 22/upward 12 impulses.
+- Frame 8–15: fists cost 12 health, with horizontal 22/upward 12 impulses
+  and a 25-tick hand cooldown. Held punch repeats after that cooldown.
 - Frame 16–20/30: ice/flame use cooldown 8, rockets 50; shot speeds 100/57/40.
 - Frame 22–25: ice costs 6 health, with horizontal 6/upward 7 impulses.
   There is no freeze/control lock in these rows.
@@ -29,7 +30,8 @@ The next comparisons use the original's readable event rows directly:
 Those speed/impulse settings use the same 1/8 scale as the measured jump/run.
 The native rocket turns one of 32 direction steps per tick. Original extension
 scheduling/turn rate, fire fall/fade motion and exact contact timing remain
-approximations. Respawn timing, blast extent and trap motion are provisional too.
+approximations. Respawn timing and trap motion are provisional too; blast contact uses the
+current frame bounds rather than exact transparent-pixel overlap.
 
 A second actual Wine session collected an eight-round launcher and fired it into
 nearby terrain. Private timestamped screenshots show ammo consumption, the
@@ -52,3 +54,26 @@ actual complete mutual-KO match and automatic new round through the input layer,
 then move and jump independently. The keyboard is exercised through SDL key
 messages. Virtual devices establish wiring; physical two-pad feel requires a
 human acceptance pass on the target hardware.
+
+Further running-reference checks used the moving platform as a one-pixel/tick
+clock. Its pixels match the local source artwork. The old jump recording spans
+about 44 ticks from departure to landing, versus 45 in the native test, with
+roughly 63–64 pixels of colored-body rise versus 63.25 native feet rise. Animation
+pixels and capture ordering introduce about a pixel/tick of uncertainty. A new
+continuous-Up recording shows repeated jumps without releasing the key; native
+jump now repeats on landing too. The capture host runs the original at a variable
+rate (about 44 platform pixels/second here); do not retune the 50 Hz simulation to
+that host's wall clock.
+
+Platform reversal is a leading-edge overlap, not center-to-marker travel. The
+upper platform was observed turning near left-edge X=688. Its 48-pixel hidden
+collision image and the two-pixel-wide reverse markers give X=352..688; the lower
+platform's markers similarly give 176..272. The importer derives these from the
+opaque sensor bounds. This fixes the previous half-platform-width overshoot.
+
+Weapon muzzle offsets now come from each facing hand image's action point minus
+its hotspot (and the feet-origin shift). Rocket muzzles are ±23/-11; ice and
+flame differ. Imported explosion bounds grow from 20×20 to 64×64 with the rendered
+frames. A returning rocket can hit its shooter for both contact and blast damage.
+Old local imports keep prototype muzzle/blast defaults; a fresh v5 import is
+needed for the revised geometry and platform paths.

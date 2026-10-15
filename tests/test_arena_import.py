@@ -51,8 +51,11 @@ def fixture(path, wind=False):
         'frame-layout.json': document(frames=[{'dimension_inputs': {'width': {'raw_u16': 800}, 'height': {'raw_u16': 600}}, 'placements': [{'records': records}]}]),
         'backdrops.json': document(frames=[{'object_lists': [{'objects': [{'id': 0, 'backdrop': stale}, {'id': 3, 'backdrop': {'header_hex': bytes(68).hex(), 'artwork': {'kind': 'image', 'image_id': 1}}}]}]}], global_object_lists=[{'objects': [{'id': 0, 'backdrop': shape}]}]),
         'animations.json': document(global_object_lists=[{'objects': [{'id': n, 'active_data': [{'animations': [{'id': 0, 'directions': [{'id': 0, 'image_ids': [1]}, {'id': 16, 'image_ids': [1]}]}]}]} for n in range(1, len(names))]}]),
-        'image-manifest.json': document(banks=[{'segment_id': 21, 'entries': [{'id': 1, 'file': 'image-21-1.png', 'image': {'hot_spot_raw_u16': [4, 65535]}}]}]),
+        'image-manifest.json': document(banks=[{'segment_id': 21, 'entries': [{'id': 1, 'file': 'image-21-1.png', 'image': {'hot_spot_raw_u16': [4, 65535], 'action_point_raw_u16': [12, 5]}}]}]),
     }
+    for obj in docs['animations.json']['global_object_lists'][0]['objects']:
+        if names[obj['id']] in ('P1 shoothand', 'P2 shoothand'):
+            obj['active_data'][0]['animations'].append({'id': 13, 'directions': [{'id': 0, 'image_ids': [1]}]})
     samples = io.BytesIO()
     with wave.open(samples, 'wb') as stream:
         stream.setnchannels(1)
@@ -91,6 +94,8 @@ class ArenaImportTests(unittest.TestCase):
             self.assertNotIn('mask 200 300', text)  # Decorative wall stays open.
             self.assertIn('hot 1 4 -1', text)
             self.assertIn('fire 0 1', text)
+            self.assertIn('muzzle 0 1 0 8 -10', text)
+            self.assertIn('blastbox 0 -4 1 32 16', text)
             self.assertIn('bonus 120 150', text)
             self.assertIn('hazard 1 0 1', text)
             self.assertIn('hazard 2 1 1', text)
@@ -113,7 +118,7 @@ class ArenaImportTests(unittest.TestCase):
             _, files, _ = arena.checked_bundle(root / 'bundle')
             globals_ = docs['project-index.json']['global_object_lists'][0]
             animations = docs['animations.json']['global_object_lists'][0]['objects']
-            for name, image in [('mph', 1), ('mph 2', 2)]:
+            for name, image in [('mph', 1), ('mph 2', 2), ('reverse', 1)]:
                 ident = len(globals_)
                 globals_.append({'id': ident, 'name': name, 'type': 2})
                 animations.append({'id': ident, 'active_data': [{'animations': [{'id': 0, 'directions': [{'id': 0, 'image_ids': [image]}]}]}]})
@@ -130,7 +135,7 @@ class ArenaImportTests(unittest.TestCase):
                 docs['frame-layout.json']['frames'][0]['placements'][0]['records'].append({'raw_hex': raw.hex()})
             text, _, report = arena.import_lines(files, docs, 0)
             self.assertIn('device 9 196 300 32 16 2', text)
-            self.assertIn('path 0 96 396 1 -1', text)
+            self.assertIn('path 0 127 365 1 -1', text)
             self.assertEqual(report['devices'], 1)
 
     def test_hidden_platform_direction_and_changer(self):
@@ -222,7 +227,7 @@ class ArenaImportTests(unittest.TestCase):
              patch.object(arena, 'import_arena', side_effect=OSError('private path/token')), \
              patch.object(arena.project, 'report_fault') as reporter:
             self.assertEqual(arena.main(), 1)
-        reporter.assert_called_once_with('OSError', version='arena-import/4', title='Arena import failed')
+        reporter.assert_called_once_with('OSError', version='arena-import/5', title='Arena import failed')
 
     @unittest.skipUnless(os.environ.get('FF_NATIVE_GAME'), 'native binary not supplied')
     def test_real_renderer_with_synthetic_import(self):
@@ -246,9 +251,10 @@ class ArenaImportTests(unittest.TestCase):
             self.assertEqual(report['layers'], 512)
             self.assertGreaterEqual(report['spawns'], 2)
             text = (root / 'output/arena.ff').read_text()
-            for record in ('sprite 0 0', 'device 12 ', 'bonus ', 'hazard 3 ', 'blast ', 'fire 0 ', 'fire 1 ', 'sound 7 '):
+            for record in ('sprite 0 0', 'device 12 ', 'bonus ', 'hazard 3 ', 'blast ', 'fire 0 ', 'fire 1 ', 'muzzle 0 3 0 23 -11', 'muzzle 0 3 1 -23 -11', 'blastbox 0 -10 -10 20 20', 'sound 7 '):
                 self.assertIn(record, text)
             self.assertEqual(report['devices'], 38)
+            self.assertIn('path 16 352 688 1 -1', text)
             self.assertEqual(report['collision_markers'], 58)
 
 
