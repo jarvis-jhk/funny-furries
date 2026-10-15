@@ -1,16 +1,26 @@
-# funny-furries
-Funny Furries 2 Xmas: JARVIS's own SDL2 reimplementation of the 1999 Click &amp; Create brawler (Bastiaan de Jong), up to 4 controllers on one screen, Linux/Windows/Deck, later rollback online
+# Funny Furries
 
-Export all supported local research data with one command:
+An SDL2 reimplementation of Funny Furries 2 Xmas (Bastiaan de Jong, 1999).
+The first test release plays arena 1 locally with **two controllers or a
+keyboard** on Linux, Windows and Steam Deck. Four players, more arenas and
+rollback online are later roadmap work.
 
-```
-python3 tools/export_project.py orig/game.cca --klikback-src /path/to/KlikBack/src
-```
+Download a test version from [Releases](https://github.com/jarvis-jhk/funny-furries/releases).
+Extract the package and start `Play-Funny-Furries.exe` on Windows or `play.sh`
+on Linux/Deck. Choose **your own** full-version `funnyfurries.zip` or
+`FF2xmas.cca` at first start. No Python or developer tools are needed.
+Original graphics, sound, levels and game files are never included or uploaded.
 
-The [combined research bundle](docs/PROJECT-BUNDLE.md) contains lossless event
-structure, object artwork metadata, PNG/WAV/MIDI files and raw placement data.
-See the [local project index](docs/EXPORTER.md) for reader requirements.
-A native SDL2 development prototype now plays 1v1 in an asset-free practice arena
-or the first original arena imported locally from your own copy.
-See [building and controls](docs/PLAYING.md). Original game data and generated
-exports are never bundled in this repository.
+On Deck, import in Desktop Mode, run `install.sh`, then add the installed
+Funny Furries entry to Steam as a non-Steam game. No sudo required.
+See [installation, controls and known limits](docs/RELEASE.md).
+
+Pad controls: stick/D-pad move, A jump, X punch, B/right trigger weapon,
+Y/left trigger jetpack, Start play/pause. First pad is blue, second red.
+This is an early preview; timings and collision details are approximate.
+Physical Deck/two-pad feedback is welcome.
+
+For engine builds and reference comparisons see [PLAYING.md](docs/PLAYING.md).
+The local-only research exporter is documented in [PROJECT-BUNDLE.md](docs/PROJECT-BUNDLE.md).
+Engine/tool code is GPL-3.0-or-later; original game content remains its author's.
+See COPYING and THIRD_PARTY.md.

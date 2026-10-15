@@ -12,10 +12,13 @@ are included in the release's source archive. No changes are made to it.
 The launcher bundles CPython (PSF licence), Tcl/Tk (Tcl/Tk licence), OpenSSL
 (Apache-2.0) and PyInstaller's bootloader (GPL with its distribution exception).
 Runtime notices are in the launcher `_internal` directory and `licenses/`.
+Python: https://www.python.org/downloads/source/ ; PyInstaller:
+https://github.com/pyinstaller/pyinstaller/tree/v6.16.0 ; Tcl/Tk:
+https://www.tcl.tk/software/tcltk/ .
 
 The native game links SDL2, SDL2_image and SDL2_mixer (zlib licence), and their
-image/audio dependencies. Linux packages use Ubuntu 22.04 runtime packages;
-Windows packages use MSYS2 UCRT64 packages. Package versions, copyright/licence
+image/audio dependencies. SDL 2.30.12, SDL_image 2.8.8 (stb PNG backend) and SDL_mixer 2.8.1
+(WAV-only) are built from pinned source archives on both platforms. Package versions, copyright/licence
 notices and corresponding-source download locations are included under
 `licenses/`. System graphics, audio drivers and the C library remain the host's.
 

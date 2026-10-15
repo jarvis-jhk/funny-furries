@@ -1,14 +1,22 @@
 # Notes
 
-**Current — 2026-10-15, test release (`t_mv9r8ocf6qfxo`, Sol):** clean main,
-fetched; no open PR/issues or continuation. Added first-start ZIP/CCA import,
-local atomic/checked cache, GUI picker, anonymous detached public fault courier,
-and fullscreen start. Protected original from the full ZIP reconstructs the same
-project SHA as the development reference; original bytes remain unchanged.
-Four launcher checks (including two real ZIP imports), four Debug+UBSan suites
-and synthetic/native importer checks pass. Packaging, Windows CI, Deck installer,
-release fault bridge and the documented publication gate are next in this session.
-Physical Deck/two-pad play remains an open release check, never a blocker.
+**Current — 2026-10-15, test release (`t_mv9r8ocf6qfxo`, Sol):** first-start
+launcher/import is on main `4b923d7`; both ordinary CI jobs pass. The real
+protected full ZIP reconstructs our reference project SHA, imports twice and
+leaves the input unchanged. Local frozen launcher imports the real ZIP, opens
+and cancels its GUI, and runs synthetic/repeated matches; local installer also
+passes with spaces/Unicode paths. Four launcher cases, all11 native importer
+cases, four Debug+UBSan/Release suites, and fault-bridge validation/dedup/retry
+checks pass. Agent tsc passed before commits.
+
+Packaging now uses pinned SDL2 2.30.12 (virtual-pad APIs require newer SDL than
+Ubuntu22's stock package), PNG-only SDL_image2.8.8 and WAV-only SDL_mixer2.8.1.
+No Python/SDL/dev tools are needed by players. Windows handles UTF-8 user data
+paths. Live ntfy relay is the autostart `furries-feedback` app (source
+`tools/fault_bridge.mjs`, secrets only in agent data); anonymous transport probe
+received, no scheduler added. Full gate: `docs/RELEASE.md`. Native Windows and
+Linux22 package CI, exact artifact checks and prerelease publication are next
+in this session. Physical Deck/two-pad play stays an open release check.
 
 <details>
 <summary>Previous M1 checkpoint</summary>

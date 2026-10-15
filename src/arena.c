@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 static void asset_defaults(FF_Arena *a) {
     for(int i=0;i<6;++i) a->pickup_images[i]=-1;
@@ -26,7 +29,13 @@ void ff_arena_practice(FF_Arena *a) {
 
 /* A small bounded text format keeps imported game content separate from code. */
 bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity) {
+#ifdef _WIN32
+    wchar_t wide[4096];
+    FILE *f=NULL;
+    if(MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,path,-1,wide,4096)>0) f=_wfopen(wide,L"r");
+#else
     FILE *f=fopen(path,"r");
+#endif
     if (!f) { snprintf(error,capacity,"Cannot open arena data"); return false; }
     memset(a,0,sizeof(*a));
     asset_defaults(a);

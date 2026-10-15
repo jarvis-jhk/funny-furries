@@ -42,8 +42,8 @@ with the private lane report endpoint. A separate courier posts a fixed anonymou
 version/device-class/category payload; the process never waits for the network.
 No endpoint or identity is compiled into the game. Invalid options/imports are user
 errors and are not reported. Delivery is best-effort and needs `curl` on PATH.
-The public ntfy/issue bridge and Windows/Deck packaging belong to M2; this prototype
-has only been built/run on Linux.
+Packaged launches use the anonymous public ntfy/issue relay described in
+[RELEASE.md](RELEASE.md); the private environment option above is for local development only.
 
 ## Play the first original arena locally
 

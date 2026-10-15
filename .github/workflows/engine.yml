@@ -19,6 +19,10 @@ jobs:
         env:
           FF_NATIVE_GAME: ${{ github.workspace }}/build/native/funny-furries
         run: python3 -m unittest discover -s tests -p test_arena_import.py -v
+      - name: Test first-start launcher and fault bridge
+        run: |
+          python3 -m unittest discover -s tests -p test_launcher.py -v
+          node --test tests/test_fault_bridge.mjs
       - name: Run the actual renderer and game loop
         env:
           SDL_VIDEODRIVER: dummy
