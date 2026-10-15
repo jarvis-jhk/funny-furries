@@ -141,6 +141,8 @@ Aim for this in two or three large sessions.
       lives/respawns/wins, keyboard/two controller seats, local original arena/art/audio.
 - [ ] SDL2 engine plays one arena 1 vs 1 like the original (same jumps, trajectories, weapons),
       fixed tick, deterministic, keyboard + two controllers.
+      Local/reference implementation and two virtual-pad match checks are in place;
+      blocked on physical two-pad/original-feel acceptance (see docs/PLAYING.md).
 
 ## M2 — All arenas, 4 players, Deck
 - [ ] All arenas, menus, scoreboard.

@@ -136,3 +136,21 @@ hand cooldown. The running original confirms repeated held jumping. Importer v5
 also places each weapon at its original hand action point and grows explosion
 contact bounds with the artwork. Reimport into a fresh directory to get these
 muzzle offsets, blast bounds and corrected platform reversal limits.
+
+## M1 acceptance gate
+
+The current combined roadmap item is waiting for two physical controllers and
+an original/native play comparison. It is not complete and no release is implied.
+Build the current main revision and make a fresh v5 import from your own source
+bundle, following the commands above. Keep both controllers connected together.
+Confirm the blue/arrows/first-pad and red/F-H/second-pad seats stay independent
+while moving, holding jump, punching and firing. Finish a match and let the next
+round start; unplug and replace one pad without stealing the other seat.
+
+Compare the same original level: jump arc and running stops; spring approach and
+rebound; swimming/jetpack; moving-platform turns/carry; ice impulse, lingering
+fire and homing rockets. In particular judge rocket turning and victim response,
+which are event-based approximations. Record any mismatch with the action,
+location and which player/controller was involved. Clear the roadmap block only
+after that feedback is available; then fix concrete differences or close M1 if
+accepted. Virtual pads and a renderer smoke run do not replace this play check.

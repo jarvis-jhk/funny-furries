@@ -1,26 +1,46 @@
 # Notes
 
-**Active — 2026-10-15, M1 (`t_mv97y2eiae2ti`, Sol):** clean checkout/fetched origin,
-no open PRs/issues or continuation. Implemented deterministic homing rockets,
-wind steering and heading rendering from original global rows 362–369, plus
-vertical/diagonal collision substeps without fractional displacement loss.
-One native direction step/tick remains a turn-rate approximation. Four
-Debug+UBSan suites and synthetic importer/renderer checks pass. Step 2 adds persistent terrain fire, six-tick burning gates, original
-ice/melee/blast impulses and removes the invented ice control lock. Strong
-impulses now survive the run cap. Four Debug+UBSan suites pass after correcting
-new trajectory fixtures and a run-cap equality oscillation caught by the existing
-jump/run test. Work continues on original collision/device response;
-Step 3 replaces the blanket body with source sensor silhouettes, directional
-spring contacts/100-speed impulses, held swimming thrust and animated fire.
-Two virtual SDL controllers now drive a full simultaneous-KO/new-round match
-through the actual game/input integration. See docs/REFERENCE.md for evidence
-and approximation boundaries. Step 4 uses weapon action-point muzzles, growing
-blast bounds/returning-rocket self-hits, and corrects platform leading-edge turns.
-Actual Wine held-Up recording confirms auto-jump; held punch now repeats at 25
-instead of an invented edge-only/18-tick rule. Original platform pixels recover
-~44 jump ticks against native45, with ~63–64px rise against native63.25; Wine wall
-clock is host-dependent. Importer v5, local `export/arena-reference5`. M1 is not
-complete; final real two-pad/original-feel acceptance is the next gate.
+**Current — 2026-10-15, M1 (`t_mv97y2eiae2ti`, Sol):** four tested gameplay
+steps pushed to main: `7d68d00` homing/wind-steered rockets; `51d6293` persistent
+fire and combat impulses; `4963127` collision sensors/swimming/springs and a
+full two-controller match test; `b30d47e` weapon muzzles, growing blasts,
+returning-rocket self-hits, held controls and corrected platform reversal.
+See `docs/REFERENCE.md` for reference rows, actual Wine observations and limits.
+
+The running original confirms repeated held jumping and launcher shots/terrain
+explosions. Moving-platform pixels provide a one-pixel/tick clock: prior jump
+recording is about 44 airborne ticks, native45, roughly63–64px rise versus
+native63.25. Wine wall time varies with the host and is not a tick oracle.
+Upper-platform reversal near X688 exposed the previous half-width overshoot;
+v5 paths now use the opaque leading-edge/marker contact. Flames persist250 ticks
+plus a fade, burn4 every6 ticks and animate; ice knocks back/up without disabling
+controls. Held fists repeat at25 ticks; jumps repeat on landing. Strong external
+impulses survive the run cap. Weapon muzzles use hand action points; blast bounds
+grow20×20→64×64 with the animation. Timing/contact shapes remain approximations.
+
+Validation on source `b30d47ed7d260cb6da4d3b722c1da5710892d001`: all four
+Debug+UBSan CTests; all11 importer cases with original/native renderer enabled;
+actual imported10000-tick renderer smoke `cfcc36f8`; actual agent tsc before
+every code commit. Two SDL virtual pads play a full simultaneous-KO match,
+automatic next round, separate movement/jumping and seat removal/replacement.
+Exact-source native [38702752153](https://github.com/jarvis-jhk/funny-furries/actions/runs/38702752153)
+and exporter [38702752145](https://github.com/jarvis-jhk/funny-furries/actions/runs/38702752145)
+are green; actual source and test log output downloaded/checked (487 Python:
+426 pass/61 optional skips). State/logs/recordings: agent `data/furries/arena-combat/`;
+older evidence retained. Local import `export/arena-reference5` (importer v5);
+ignored private `export/run-local.sh` uses it with fault reporting.
+
+**Next gate:** combined `furries-1v1-arena` is blocked with **Zwei Controller testen**,
+retaining started/sol; M1 is NOT done. See `docs/PLAYING.md` acceptance instructions.
+Two physical pads and a human original/native A/B pass are needed before claiming
+original feel. Rocket extension turn rate, fire fall/fade/contact details,
+ordered collision correction, respawn/trap timing and RNG remain approximate.
+Use that feedback to guide any further tuning instead of blind extra slices.
+No release, new schedule, CI continuation or unfinished implementation. Never
+publish the original assets/recordings or private launcher.
+
+<details>
+<summary>Previous M1 checkpoint</summary>
 
 **Current — 2026-10-15, M1 (`t_mv96vru98gz0q`, Sol):** three tested gameplay
 steps pushed directly to main: `13a99d8` collision markers/platform paths,
@@ -61,6 +81,8 @@ done on current evidence. Local import `export/arena-wind`; ignored private
 `export/run-local.sh` uses it with fault reporting. Keep original assets,
 recordings and that private launcher out of git/releases. This is a clean session
 checkpoint, not a request to add more byte-level exporter proofs.
+
+</details>
 
 **2026-10-14 — direction change (Jan, t_mv8apsn318lf2j):** the M0 exporter is closed. ~60 sessions
 went into proving single Click & Create evaluator handlers byte by byte; for a game this simple that
