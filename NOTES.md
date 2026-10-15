@@ -14,9 +14,13 @@ arena format, two real SDL virtual pads/hotplug/focus, local HTTP fault courier)
 485 Python cases: 424 pass/61 optional fixtures skipped; all nine new import
 cases also pass with the original bundle and real native renderer enabled.
 A 3000-tick original-arena offscreen run succeeds, checksum `8b5066e8`.
-Actual agent TypeScript compiler is required before each code commit. Native
-and exporter CI for the final source will be checked within this session;
-no continuation or new schedule is being created. Evidence: agent state
+Actual agent TypeScript compiler passed before both code commits. Source
+`6e11b00` pushed main; both exact-source CI workflows are green: native
+[38694987076](https://github.com/jarvis-jhk/funny-furries/actions/runs/38694987076)
+and exporter [38694987141](https://github.com/jarvis-jhk/funny-furries/actions/runs/38694987141).
+Downloaded job logs verify actual source output, four native suites, synthetic
+import/renderer, smoke and 485 Python cases. No unfinished CI or continuation;
+no new schedule. Evidence: agent state
 `data/furries/arena-prototype/` (never publish original screenshots/assets).
 
 **Next:** keep working on `furries-1v1-arena` (started/sol); the combined goal is
@@ -31,6 +35,8 @@ replace the named-terrain approximation with its `up`/collision-marker behaviour
 and add bomb hazards; avoid new byte-level exporter proofs. Physical two-pad feel
 still needs acceptance before marking M1 done. Start with `docs/PLAYING.md`; local
 import for the current code is `export/arena-1-final`, built by the importer.
+`export/run-local.sh` launches it with the private fault endpoint configured;
+keep that ignored launcher private too.
 
 **2026-10-14 — direction change (Jan, t_mv8apsn318lf2j):** the M0 exporter is closed. ~60 sessions
 went into proving single Click & Create evaluator handlers byte by byte; for a game this simple that
