@@ -270,7 +270,7 @@ def import_lines(files, docs, frame):
 
     device_kinds = {'Water': 1, 'Fan L': 2, 'Fan R': 3, 'Fan up': 4,
                     'bounce up': 5, 'bounce down': 6, 'bounce L': 7,
-                    'bounce R': 8, 'mph': 9}
+                    'bounce R': 8, 'mph': 9, 'Wind L': 10, 'Wind R': 11, 'Wind up': 12}
     device_count = 0
     for name, x, y, _ in active_placements:
         if name not in device_kinds:
@@ -278,7 +278,7 @@ def import_lines(files, docs, frame):
         ident = first_image('mph 2' if name == 'mph' else name)
         width, height, _ = image_info(ident)
         hx, hy = map(signed16, images[ident]['image']['hot_spot_raw_u16'])
-        lines.append(f'device {device_kinds[name]} {x-hx} {y-hy} {width} {height} {ident}')
+        lines.append(f'device {device_kinds[name]} {x-hx} {y-hy} {width} {height} {ident if device_kinds[name] < 10 else -1}')
         if name == 'mph':
             stops = sorted({rx for n, rx, ry, _ in active_placements if n == 'reverse' and abs(ry-y) < height})
             left = [rx for rx in stops if rx <= x]
@@ -345,7 +345,7 @@ def import_arena(bundle: Path, output: Path, frame=3):
     text, wanted, summary = import_lines(files, docs, frame)
     payloads = {name: files[name] for name in sorted(wanted)}
     payloads['arena.ff'] = text.encode('ascii')
-    report = {'importer': 'arena-import/3', 'source_sha256': manifest['source']['sha256'], **summary,
+    report = {'importer': 'arena-import/4', 'source_sha256': manifest['source']['sha256'], **summary,
               'fidelity': 'prototype; collision flags, timing and feel need original-game acceptance',
               'files': {name: hashlib.sha256(raw).hexdigest() for name, raw in payloads.items()}}
     payloads['import.json'] = (json.dumps(report, indent=2, sort_keys=True) + '\n').encode()
@@ -377,7 +377,7 @@ def main():
         print(f'Import refused: {error}', file=sys.stderr)
         return 2
     except Exception as error:
-        project.report_fault(type(error).__name__, version='arena-import/3', title='Arena import failed')
+        project.report_fault(type(error).__name__, version='arena-import/4', title='Arena import failed')
         print('Arena import failed; original input was not modified.', file=sys.stderr)
         return 1
     print(f'Imported frame {summary["frame"]}: {summary["layers"]} layers, {summary["spawns"]} spawn candidates.\nPlay: build/native/funny-furries --data {args.output}')

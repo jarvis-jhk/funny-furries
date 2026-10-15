@@ -71,9 +71,19 @@ Wine reference captures measured ~64 px of jump rise; native now gives 63.25 px,
 with 25/8 run cap. Stored shot settings/cooldowns replace initial guesses. Hazard
 motion/lifetime/blast shapes and original time/steering remain provisional.
 Four Debug+UBSan suites, all 11 original/native importer cases, full 487-case Python
-suite (426 pass/61 optional skip) and actual agent tsc pass. The original import
+suite (427 pass/60 optional skip with native renderer enabled) and actual agent tsc pass. The original import
 `export/arena-hazards` loads all artwork/audio; 5000-tick renderer smoke passes on
 the pre-cooldown revision (`11402a4b`). Follow-up final smoke/CI pending this session.
+
+Third tested step imports the four hidden Wind L/R/up force regions (38 total
+devices); no hidden artwork is rendered or required as a native texture. The
+original-data renderer caught that texture gate initially; the synthetic renderer
+fixture now includes a hidden wind volume and exercises it in CI. Imported pickups
+now follow seeded global bonus timing at the 24 original Bonus points instead of
+appearing at player spawns or using fixed per-item respawns. Four Debug+UBSan suites
+and all 11 original/native importer cases pass; final imported 10000-tick smoke
+passes (`99d17fdc`) and actual agent tsc passes before commit. Current local import:
+`export/arena-wind`. Final source CI is checked below before session end.
 
 **2026-10-14 — direction change (Jan, t_mv8apsn318lf2j):** the M0 exporter is closed. ~60 sessions
 went into proving single Click & Create evaluator handlers byte by byte; for a game this simple that

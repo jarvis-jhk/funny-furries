@@ -78,6 +78,8 @@ first prototype's blanket solid-snow approximation. Storage frame 3 imports 30 `
 markers plus active ice surfaces, and retains all 16 usable initial/Start candidates.
 
 Water, fans, directional bouncers and two moving platforms use original local art.
+Hidden Wind L/R/up placements supply the fan-force rectangles; only the actual fan
+art is drawn. The old approximate reach is retained for asset-free practice data.
 Moving platforms travel one pixel per tick between their surrounding `reverse`
 markers, including player carry in either direction. Their positions are shared by
 rendering and simulation. Swimming, fan forces, bounces and body collision shapes
@@ -85,7 +87,10 @@ still need play comparison. Bombs now spawn from original Bonus points using a s
 trap timer: falling/bouncing, walking and flying variants can be punched or shot,
 and explosions trigger chains. Contact and blast each deal eight health, with one
 blast hit per player, animated original explosion art and its eighth sound effect.
-Hazard movement, lifetimes and explosion collision shapes remain approximations.
+Hazard movement, lifetimes and explosion collision shapes remain approximations. Imported bonuses use those same 24 original Bonus points,
+with an initial 300..599-tick delay and later 100..999-tick intervals; traps use
+400..799 initially, then 200..1099. Practice still begins with immediate pickups.
+These ranges follow the readable event constants; RNG/selection order is ours.
 
 The original Windows game was actually opened under Wine and level 1 selected for
 visual comparison. Its scenery and the prototype agree after linking globals;

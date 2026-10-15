@@ -14,7 +14,7 @@ from tools import import_arena as arena
 from tools import image_dump
 
 
-def fixture(path):
+def fixture(path, wind=False):
     source = {'sha256': 'synthetic-arena'}
     header = bytearray(68)
     struct.pack_into('<H', header, 42, 0x101)
@@ -26,14 +26,21 @@ def fixture(path):
     names = ['snowfloor']
     names += [f'P{p} {part}' for p in (1, 2) for part in ('Foot', 'body', 'Hand', 'hat', 'shoothand')]
     names += ['IceGun', 'Flame Thrower', 'Rocket Launcher', 'Health 25', 'Jetpack', 'bullet', 'Flame', 'Rocket', 'Bomb', 'Bombwalk', 'Bombfly', 'Explosion']
+    if wind:
+        names.append('Wind up')
     globals_ = [{'id': n, 'name': name, 'type': 1 if n == 0 else 2} for n, name in enumerate(names)]
     objects = [{'id': 0, 'name': 'snowfloor', 'type': 1, 'global': True},
                {'id': 1, 'name': 'P1h', 'type': 2, 'global': False},
                {'id': 2, 'name': 'P2h', 'type': 2, 'global': False},
                {'id': 3, 'name': 'BrickBack', 'type': 1, 'global': False},
                {'id': 8, 'name': 'Bonus', 'type': 2, 'global': False}]
+    if wind:
+        objects.append({'id': 9, 'name': 'Wind up', 'type': 2, 'global': True})
     records = []
-    for ident, x, y in ((0, 80, 200), (1, 100, 120), (2, 200, 120), (3, 300, 200), (8, 120, 150)):
+    placements = ((0, 80, 200), (1, 100, 120), (2, 200, 120), (3, 300, 200), (8, 120, 150))
+    if wind:
+        placements += ((9, 500, 200),)
+    for ident, x, y in placements:
         raw = bytearray(32)
         struct.pack_into('<Hhh', raw, 0, ident, x, y)
         records.append({'raw_hex': raw.hex()})
@@ -214,13 +221,13 @@ class ArenaImportTests(unittest.TestCase):
              patch.object(arena, 'import_arena', side_effect=OSError('private path/token')), \
              patch.object(arena.project, 'report_fault') as reporter:
             self.assertEqual(arena.main(), 1)
-        reporter.assert_called_once_with('OSError', version='arena-import/3', title='Arena import failed')
+        reporter.assert_called_once_with('OSError', version='arena-import/4', title='Arena import failed')
 
     @unittest.skipUnless(os.environ.get('FF_NATIVE_GAME'), 'native binary not supplied')
     def test_real_renderer_with_synthetic_import(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            fixture(root / 'bundle')
+            fixture(root / 'bundle', wind=True)
             arena.import_arena(root / 'bundle', root / 'output', 0)
             env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy')
             args = [os.environ['FF_NATIVE_GAME'], '--data', str(root / 'output'), '--smoke', '1000']
@@ -237,7 +244,11 @@ class ArenaImportTests(unittest.TestCase):
             report = arena.import_arena(Path(os.environ['FF_TEST_BUNDLE']), root / 'output')
             self.assertEqual(report['layers'], 512)
             self.assertGreaterEqual(report['spawns'], 2)
-            self.assertIn('sprite 0 0', (root / 'output/arena.ff').read_text())
+            text = (root / 'output/arena.ff').read_text()
+            for record in ('sprite 0 0', 'device 12 ', 'bonus ', 'hazard 3 ', 'blast ', 'sound 7 '):
+                self.assertIn(record, text)
+            self.assertEqual(report['devices'], 38)
+            self.assertEqual(report['collision_markers'], 58)
 
 
 if __name__ == '__main__':

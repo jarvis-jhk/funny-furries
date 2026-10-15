@@ -10,7 +10,7 @@
 #define FF_COLS 50
 #define FF_ROWS 38
 #define FF_SHOTS 96
-#define FF_PICKUPS 16
+#define FF_PICKUPS 32
 #define FF_SPAWNS 64
 #define FF_LAYERS 2048
 #define FF_IMAGES 1024
@@ -28,7 +28,8 @@ enum { FF_SOLID=1, FF_PLATFORM=2 };
 enum { FF_SOUND_PUNCH=1, FF_SOUND_ICE=2, FF_SOUND_FLAME=4, FF_SOUND_ROCKET=8, FF_SOUND_HIT=16, FF_SOUND_PICKUP=32, FF_SOUND_DEATH=64, FF_SOUND_BLAST=128 };
 enum { FF_BOMB=1, FF_BOMB_WALK, FF_BOMB_FLY };
 enum { FF_WATER=1, FF_FAN_LEFT, FF_FAN_RIGHT, FF_FAN_UP, FF_BOUNCE_UP,
-       FF_BOUNCE_DOWN, FF_BOUNCE_LEFT, FF_BOUNCE_RIGHT, FF_MOVING_PLATFORM };
+       FF_BOUNCE_DOWN, FF_BOUNCE_LEFT, FF_BOUNCE_RIGHT, FF_MOVING_PLATFORM,
+       FF_WIND_LEFT, FF_WIND_RIGHT, FF_WIND_UP };
 typedef struct { int kind, x, y, w, h, image; } FF_Device;
 typedef struct { int x, y; } FF_Point;
 typedef struct { int min_x, max_x, speed, direction; } FF_Path;
@@ -64,7 +65,7 @@ typedef struct {
     FF_Shot shots[FF_SHOTS];
     FF_Pickup pickups[FF_PICKUPS];
     FF_Hazard hazards[FF_HAZARDS]; FF_Blast blasts[FF_BLASTS];
-    int trap_wait;
+    int trap_wait, pickup_wait;
     uint32_t rng, tick;
     int winner, round_wait;
     unsigned sounds;

@@ -159,6 +159,29 @@ static void reference_jump(void) {
     CHECK(g.players[0].grounded);
     tick(&g,FF_RIGHT,0,20);CHECK(g.players[0].vx==25*FF_FP/8);
 }
+static void wind_and_bonus_regions(void) {
+    FF_Game g;clean(&g);FF_Player *p=&g.players[0];
+    p->x=100*FF_FP;p->y=300*FF_FP;
+    arena.device_count=2;
+    arena.devices[0]=(FF_Device){FF_FAN_UP,80,350,48,16,0};
+    arena.devices[1]=(FF_Device){FF_WIND_UP,80,200,32,100,-1};
+    tick(&g,0,0,1);CHECK(p->vy<0);
+    p->x=125*FF_FP;p->y=380*FF_FP;p->vy=0;
+    tick(&g,0,0,1);CHECK(p->vy==FF_FP/4); // The visible fan does not add a second region.
+    p->x=100*FF_FP;p->y=280*FF_FP;p->vx=p->vy=0;
+    arena.devices[1].kind=FF_WIND_LEFT;tick(&g,0,0,1);CHECK(p->vx==-5*FF_FP/8);
+    clean(&g);arena.imported=true;arena.bonus_count=1;arena.bonuses[0]=(FF_Point){400,100};
+    ff_game_init(&g,&arena,1);int active=0;
+    for(int i=0;i<FF_PICKUPS;++i) active+=g.pickups[i].active;
+    CHECK(!active&&g.pickup_wait>=300&&g.pickup_wait<600);
+    g.pickup_wait=1;g.trap_wait=10000;tick(&g,0,0,1);
+    CHECK(g.pickups[0].active&&g.pickups[0].x==400&&g.pickups[0].y==100);
+    CHECK(g.pickup_wait>=100&&g.pickup_wait<1000);
+    p=&g.players[0];p->x=400*FF_FP;p->y=116*FF_FP;p->vy=0;
+    tick(&g,0,0,1);CHECK(!g.pickups[0].active&&!g.pickups[0].kind);
+    /* Consumed imported bonuses wait for the global timer, not a per-item respawn. */
+    g.pickup_wait=500;tick(&g,0,0,301);CHECK(!g.pickups[0].kind);
+}
 static void determinism(void) {
     FF_Game a,b;clean(&a);b=a;
     uint32_t r=17;
@@ -172,4 +195,4 @@ static void determinism(void) {
     b.players[0].previous^=FF_JUMP;CHECK(ff_game_hash(&a)!=ff_game_hash(&b));
     printf("replay=%08x\n",ff_game_hash(&a));
 }
-int main(void) {physics();melee_round();weapons();bonuses();arena_devices();marker_collision_and_paths();hazards_and_blasts();reference_jump();determinism();printf("%u game checks passed\n",checks);return 0;}
+int main(void) {physics();melee_round();weapons();bonuses();arena_devices();marker_collision_and_paths();hazards_and_blasts();reference_jump();wind_and_bonus_regions();determinism();printf("%u game checks passed\n",checks);return 0;}

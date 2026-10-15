@@ -46,7 +46,8 @@ void ff_game_init(FF_Game *g,const FF_Arena *a,uint32_t seed) {
         g->players[i].lives=3;
         reset_player(&g->players[i],a->spawns[i%a->spawn_count],i);
     }
-    int count=a->spawn_count<8?a->spawn_count:8;
+    g->pickup_wait=300+(int)(random_word(g)%300);
+    int count=a->imported?0:(a->spawn_count<8?a->spawn_count:8);
     for(int i=0;i<count;++i) {
         FF_Point p=a->spawns[i];
         g->pickups[i]=(FF_Pickup){p.x,p.y-16,1+i%5,1,0};
@@ -106,11 +107,17 @@ static bool underwater(const FF_Player *p,const FF_Arena *a) {
 static void device_forces(FF_Player *p,const FF_Arena *a) {
     int x=p->x/FF_FP,y=p->y/FF_FP-16;
     if(p->bounce_wait) --p->bounce_wait;
+    bool wind_volumes=false;
+    for(int i=0;i<a->device_count;++i) if(a->devices[i].kind>=FF_WIND_LEFT) wind_volumes=true;
     for(int i=0;i<a->device_count;++i) {
         const FF_Device *d=&a->devices[i];
-        if(d->kind==FF_FAN_UP&&x>=d->x&&x<d->x+d->w&&y>d->y-110&&y<d->y+12) p->vy=clamp(p->vy-FF_FP/2,-5*FF_FP,8*FF_FP);
-        if(d->kind==FF_FAN_LEFT&&y>=d->y&&y<d->y+d->h&&x>d->x-110&&x<d->x+12) p->vx=clamp(p->vx-FF_FP/2,-6*FF_FP,6*FF_FP);
-        if(d->kind==FF_FAN_RIGHT&&y>=d->y&&y<d->y+d->h&&x>d->x-12&&x<d->x+110) p->vx=clamp(p->vx+FF_FP/2,-6*FF_FP,6*FF_FP);
+        if(!wind_volumes&&d->kind==FF_FAN_UP&&x>=d->x&&x<d->x+d->w&&y>d->y-110&&y<d->y+12) p->vy=clamp(p->vy-FF_FP/2,-5*FF_FP,8*FF_FP);
+        if(!wind_volumes&&d->kind==FF_FAN_LEFT&&y>=d->y&&y<d->y+d->h&&x>d->x-110&&x<d->x+12) p->vx=clamp(p->vx-FF_FP/2,-6*FF_FP,6*FF_FP);
+        if(!wind_volumes&&d->kind==FF_FAN_RIGHT&&y>=d->y&&y<d->y+d->h&&x>d->x-12&&x<d->x+110) p->vx=clamp(p->vx+FF_FP/2,-6*FF_FP,6*FF_FP);
+        if(d->kind>=FF_WIND_LEFT&&x+11>=d->x&&x-11<d->x+d->w&&y+16>=d->y&&y-16<d->y+d->h) {
+            if(d->kind==FF_WIND_UP) p->vy=clamp(p->vy-5*FF_FP/8,-5*FF_FP,8*FF_FP);
+            else p->vx=clamp(p->vx+(d->kind==FF_WIND_LEFT?-5:5)*FF_FP/8,-6*FF_FP,6*FF_FP);
+        }
         if(p->bounce_wait||d->kind<FF_BOUNCE_UP||d->kind>FF_BOUNCE_RIGHT) continue;
         if(x+12<d->x||x-12>=d->x+d->w||y+16<d->y||y-16>=d->y+d->h) continue;
         if(d->kind==FF_BOUNCE_UP) p->vy=-9*FF_FP;
@@ -239,6 +246,17 @@ static void blast_tick(FF_Game *g,int damage[2],int knock[2]) {
         --b->life;
     }
 }
+static void pickup_spawn(FF_Game *g,const FF_Arena *a) {
+    if(!a->imported||!a->bonus_count||--g->pickup_wait>0) return;
+    g->pickup_wait=100+(int)(random_word(g)%900);
+    FF_Point p=a->bonuses[random_word(g)%(uint32_t)a->bonus_count];
+    for(int i=0;i<FF_PICKUPS;++i) if(g->pickups[i].active&&
+        g->pickups[i].x==p.x&&g->pickups[i].y==p.y) return;
+    for(int i=0;i<FF_PICKUPS;++i) if(!g->pickups[i].kind) {
+        g->pickups[i]=(FF_Pickup){p.x,p.y,1+(int)(random_word(g)%5),1,0};
+        g->sounds|=FF_SOUND_PICKUP;return;
+    }
+}
 static void pickup(FF_Player *p,int kind) {
     static const int amount[]={0,25,15,8}, limit[]={0,50,30,16};
     if(kind==FF_HEALTH) p->health=clamp(p->health+25,0,100);
@@ -347,6 +365,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
         if(g->winner<2) ++g->players[g->winner].score;
         g->round_wait=150;return;
     }
+    pickup_spawn(g,a);
     for(int i=0;i<FF_PICKUPS;++i) {
         FF_Pickup *b=&g->pickups[i];if(!b->kind) continue;
         if(!b->active) {
@@ -356,7 +375,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
         for(int j=0;j<2;++j) {
             FF_Player *p=&g->players[j];
             if(!p->respawn&&abs(p->x/FF_FP-b->x)<22&&abs(p->y/FF_FP-16-b->y)<26) {
-                pickup(p,b->kind);b->active=0;b->timer=300;g->sounds|=FF_SOUND_PICKUP;break;
+                pickup(p,b->kind);b->active=0;b->timer=300;if(a->imported) b->kind=0;g->sounds|=FF_SOUND_PICKUP;break;
             }
         }
     }
@@ -365,7 +384,7 @@ uint32_t ff_game_hash(const FF_Game *g) {
     /* Hash values explicitly; structure padding and host byte order are irrelevant. */
     uint32_t h=2166136261u;
 #define HASH(v) do { uint32_t bits=(uint32_t)(v); for(int byte=0;byte<4;++byte) {h^=(bits>>(byte*8))&255u;h*=16777619u;} } while(0)
-    HASH(g->trap_wait);HASH(g->rng);HASH(g->tick);HASH(g->winner);HASH(g->round_wait);HASH(g->sounds);
+    HASH(g->pickup_wait);HASH(g->trap_wait);HASH(g->rng);HASH(g->tick);HASH(g->winner);HASH(g->round_wait);HASH(g->sounds);
     for(int i=0;i<2;++i) {const FF_Player *p=&g->players[i];
         HASH(p->x);HASH(p->y);HASH(p->vx);HASH(p->vy);HASH(p->facing);HASH(p->health);HASH(p->lives);HASH(p->score);
         HASH(p->fuel);HASH(p->weapon);HASH(p->ammo);HASH(p->grounded);HASH(p->cooldown);HASH(p->punch_ticks);

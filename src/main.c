@@ -203,7 +203,7 @@ static bool assets_ready(App *app,const FF_Arena *a) {
         for(int i=0;i<s->count;++i) if(!load_image(app,s->image[i])) return false;
     }
     for(int i=0;i<a->blast_sprite.count;++i) if(!load_image(app,a->blast_sprite.image[i])) return false;
-    for(int i=0;i<a->device_count;++i) if(!load_image(app,a->devices[i].image)) return false;
+    for(int i=0;i<a->device_count;++i) if(a->devices[i].image>=0&&!load_image(app,a->devices[i].image)) return false;
     for(int i=1;i<6;++i) if(a->pickup_images[i]>=0&&!load_image(app,a->pickup_images[i])) return false;
     for(int i=1;i<4;++i) if(a->shot_images[i]>=0&&!load_image(app,a->shot_images[i])) return false;
     return true;
