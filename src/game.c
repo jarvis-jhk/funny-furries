@@ -13,15 +13,17 @@ static int tile(const FF_Arena *a,int x,int y) {
     return a->imported?(y<FF_H?a->mask[y][x]:0):a->tiles[y/FF_TILE][x/FF_TILE];
 }
 static bool blocked(const FF_Arena *a,int x,int y) {
-    if(x-11<0||x+11>=FF_W||y-32<0) return true;
-    if(a->imported) {
-        for(int yy=y-32;yy<y&&yy<FF_H;++yy)
-            for(int xx=x-11;xx<=x+11;++xx) if(a->mask[yy][xx]==FF_SOLID) return true;
-        return false;
+    if(x-11<0||x+10>=FF_W||y-26<0) return true;
+    /* Union of the original head, wall and lower-body sensor silhouettes. */
+    for(int yy=y-26;yy<y;++yy) {
+        int half=yy>=y-21&&yy<y-8?11:7;
+        for(int xx=x-half;xx<x+half;++xx) if(tile(a,xx,yy)==FF_SOLID) return true;
     }
-    for(int row=(y-32)/FF_TILE;row<=(y-1)/FF_TILE;++row)
-        for(int col=(x-11)/FF_TILE;col<=(x+11)/FF_TILE;++col)
-            if(tile(a,col*FF_TILE,row*FF_TILE)==FF_SOLID) return true;
+    return false;
+}
+static bool supported(const FF_Arena *a,int x,int y) {
+    for(int xx=x-9;xx<x+9;++xx)
+        if(tile(a,xx,y)==FF_PLATFORM&&tile(a,xx,y-1)!=FF_PLATFORM) return true;
     return false;
 }
 static FF_Point spawn(FF_Game *g,const FF_Arena *a,int who) {
@@ -68,20 +70,15 @@ static void move_player(FF_Player *p,const FF_Arena *a) {
     for(int yy=old;yy!=target;) {
         yy+=step;bool hit=blocked(a,x,yy);
         if(step>0) {
-            int left=tile(a,x-10,yy-1),right=tile(a,x+10,yy-1);
             /* One-way tops catch only a crossing from above. */
-            if(a->imported) {
-                for(int xx=x-10;xx<=x+10;++xx)
-                    if(tile(a,xx,yy-1)==FF_PLATFORM&&tile(a,xx,yy-2)!=FF_PLATFORM) hit=true;
-            } else if((yy-1)%FF_TILE==0&&(left==FF_PLATFORM||right==FF_PLATFORM)) hit=true;
+            if(supported(a,x,yy-1)) hit=true;
         }
         if(hit) {next=(yy-step)*FF_FP;p->vy=0;p->grounded=step>0;break;}
     }
     p->y=next;
     if(!p->grounded&&p->vy>=0) {
         y=floor_pixel(p->y);
-        p->grounded=blocked(a,x,y+1)||
-            ((a->imported||y%FF_TILE==0)&&(tile(a,x-10,y)==FF_PLATFORM||tile(a,x+10,y)==FF_PLATFORM));
+        p->grounded=blocked(a,x,y+1)||supported(a,x,y);
     }
     if(p->grounded) {p->y=floor_pixel(p->y)*FF_FP;p->vy=0;}
 }
@@ -104,8 +101,11 @@ static bool underwater(const FF_Player *p,const FF_Arena *a) {
     }
     return false;
 }
+static bool overlaps(int x,int y,int w,int h,const FF_Device *d) {
+    return x<d->x+d->w&&x+w>d->x&&y<d->y+d->h&&y+h>d->y;
+}
 static void device_forces(FF_Player *p,const FF_Arena *a) {
-    int x=p->x/FF_FP,y=p->y/FF_FP-16;
+    int x=p->x/FF_FP,feet=p->y/FF_FP,y=feet-16;
     if(p->bounce_wait) --p->bounce_wait;
     bool wind_volumes=false;
     for(int i=0;i<a->device_count;++i) if(a->devices[i].kind>=FF_WIND_LEFT) wind_volumes=true;
@@ -114,17 +114,22 @@ static void device_forces(FF_Player *p,const FF_Arena *a) {
         if(!wind_volumes&&d->kind==FF_FAN_UP&&x>=d->x&&x<d->x+d->w&&y>d->y-110&&y<d->y+12) p->vy=clamp(p->vy-FF_FP/2,-5*FF_FP,8*FF_FP);
         if(!wind_volumes&&d->kind==FF_FAN_LEFT&&y>=d->y&&y<d->y+d->h&&x>d->x-110&&x<d->x+12) p->vx=clamp(p->vx-FF_FP/2,-6*FF_FP,6*FF_FP);
         if(!wind_volumes&&d->kind==FF_FAN_RIGHT&&y>=d->y&&y<d->y+d->h&&x>d->x-12&&x<d->x+110) p->vx=clamp(p->vx+FF_FP/2,-6*FF_FP,6*FF_FP);
-        if(d->kind>=FF_WIND_LEFT&&x+11>=d->x&&x-11<d->x+d->w&&y+16>=d->y&&y-16<d->y+d->h) {
-            if(d->kind==FF_WIND_UP) p->vy=clamp(p->vy-5*FF_FP/8,-5*FF_FP,8*FF_FP);
-            else p->vx=clamp(p->vx+(d->kind==FF_WIND_LEFT?-5:5)*FF_FP/8,-6*FF_FP,6*FF_FP);
+        bool in_wind=d->kind==FF_WIND_UP?overlaps(x-9,feet-8,18,9,d):overlaps(x-7,feet-16,14,16,d);
+        if(d->kind>=FF_WIND_LEFT&&in_wind) {
+            if(d->kind==FF_WIND_UP) p->vy=clamp(p->vy-5*FF_FP/8,-100*FF_FP/8,100*FF_FP/8);
+            else p->vx=clamp(p->vx+(d->kind==FF_WIND_LEFT?-5:5)*FF_FP/8,-100*FF_FP/8,100*FF_FP/8);
         }
         if(p->bounce_wait||d->kind<FF_BOUNCE_UP||d->kind>FF_BOUNCE_RIGHT) continue;
-        if(x+12<d->x||x-12>=d->x+d->w||y+16<d->y||y-16>=d->y+d->h) continue;
-        if(d->kind==FF_BOUNCE_UP) p->vy=-9*FF_FP;
-        if(d->kind==FF_BOUNCE_DOWN) p->vy=8*FF_FP;
-        if(d->kind==FF_BOUNCE_LEFT) p->vx=-8*FF_FP;
-        if(d->kind==FF_BOUNCE_RIGHT) p->vx=8*FF_FP;
-        p->grounded=0;p->bounce_wait=15;
+        bool touching=d->kind==FF_BOUNCE_UP?overlaps(x-9,feet-8,18,9,d):
+            d->kind==FF_BOUNCE_DOWN?overlaps(x-7,feet-26,14,12,d):
+            d->kind==FF_BOUNCE_LEFT?overlaps(x+4,feet-21,8,13,d):overlaps(x-12,feet-21,8,13,d);
+        if(!touching) continue;
+        if(d->kind==FF_BOUNCE_UP&&p->vy>0) p->vy=-clamp(p->vy+20*FF_FP/8,0,100*FF_FP/8);
+        else if(d->kind==FF_BOUNCE_DOWN&&p->vy<0) p->vy=100*FF_FP/8;
+        else if(d->kind==FF_BOUNCE_LEFT&&p->vx>0) p->vx=-100*FF_FP/8;
+        else if(d->kind==FF_BOUNCE_RIGHT&&p->vx<0) p->vx=100*FF_FP/8;
+        else continue;
+        p->grounded=0;p->bounce_wait=2;
     }
 }
 static void platform_carry(FF_Player *p,const FF_Arena *a,uint32_t tick) {
@@ -133,7 +138,7 @@ static void platform_carry(FF_Player *p,const FF_Arena *a,uint32_t tick) {
         const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM) continue;
         FF_Point old=ff_device_position(a,i,tick-1),now=ff_device_position(a,i,tick);
         int x=p->x/FF_FP,y=p->y/FF_FP;
-        if(y==old.y&&x+10>=old.x&&x-10<old.x+d->w) {
+        if(y==old.y&&x+8>=old.x&&x-9<old.x+d->w) {
             int next=x+now.x-old.x;
             if(!blocked(a,next,y)) p->x+=FF_FP*(now.x-old.x);
         }
@@ -144,7 +149,7 @@ static void platform_land(FF_Player *p,const FF_Arena *a,uint32_t tick,int32_t o
     for(int i=0;i<a->device_count;++i) {
         const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM) continue;
         FF_Point now=ff_device_position(a,i,tick);int x=p->x/FF_FP;
-        if(old_y<=now.y*FF_FP&&p->y>=now.y*FF_FP&&x+10>=now.x&&x-10<now.x+d->w) {
+        if(old_y<=now.y*FF_FP&&p->y>=now.y*FF_FP&&x+8>=now.x&&x-9<now.x+d->w) {
             p->y=now.y*FF_FP;p->vy=0;p->grounded=1;
         }
     }
@@ -314,7 +319,6 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
         if(p->cooldown) --p->cooldown;
         if(p->punch_ticks) --p->punch_ticks;
         if(p->burn_wait) --p->burn_wait;
-        if(p->swim_wait) --p->swim_wait;
         bool wet=underwater(p,a);
         platform_carry(p,a,g->tick);
         int horizontal=!!(keys&FF_RIGHT)-!!(keys&FF_LEFT);
@@ -326,11 +330,12 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
             p->facing=horizontal;
         } else if(p->vx>0) p->vx=p->vx>FF_FP/8?p->vx-FF_FP/8:0;
         else if(p->vx<0) p->vx=p->vx<-FF_FP/8?p->vx+FF_FP/8:0;
-        p->vy=clamp(p->vy+(wet?FF_FP/10:FF_FP/4),-100*FF_FP/8,wet?2*FF_FP:8*FF_FP);
-        if((keys&FF_JUMP)&&!(p->previous&FF_JUMP)&&p->grounded) {p->vy=-44*FF_FP/8;p->grounded=0;}
+        int gravity=wet?FF_FP/8:FF_FP/4,fall_cap=wet?20*FF_FP/8:8*FF_FP;
+        if(p->vy>fall_cap) p->vy-=gravity;
+        else p->vy=clamp(p->vy+gravity,-100*FF_FP/8,fall_cap);
+        if(!wet&&(keys&FF_JUMP)&&!(p->previous&FF_JUMP)&&p->grounded) {p->vy=-44*FF_FP/8;p->grounded=0;}
         if(wet) {
-            p->vx=clamp(p->vx,-2*FF_FP,2*FF_FP);
-            if((keys&FF_JUMP)&&!p->swim_wait) {p->vy=-3*FF_FP;p->swim_wait=15;}
+            if((keys&FF_JUMP)&&p->vy>-20*FF_FP/8) p->vy=clamp(p->vy-2*FF_FP/8,-20*FF_FP/8,100*FF_FP/8);
         }
         if((keys&FF_FLY)&&p->fuel) {p->vy=clamp(p->vy-FF_FP/2,-5*FF_FP,8*FF_FP);--p->fuel;}
         device_forces(p,a);
@@ -445,7 +450,7 @@ uint32_t ff_game_hash(const FF_Game *g) {
     for(int i=0;i<2;++i) {const FF_Player *p=&g->players[i];
         HASH(p->x);HASH(p->y);HASH(p->vx);HASH(p->vy);HASH(p->facing);HASH(p->health);HASH(p->lives);HASH(p->score);
         HASH(p->fuel);HASH(p->weapon);HASH(p->ammo);HASH(p->grounded);HASH(p->cooldown);HASH(p->punch_ticks);
-        HASH(p->invulnerable);HASH(p->burn_wait);HASH(p->respawn);HASH(p->previous);HASH(p->swim_wait);HASH(p->bounce_wait);
+        HASH(p->invulnerable);HASH(p->burn_wait);HASH(p->respawn);HASH(p->previous);HASH(p->bounce_wait);
     }
     for(int i=0;i<FF_SHOTS;++i) {const FF_Shot *s=&g->shots[i];
         HASH(s->x);HASH(s->y);HASH(s->vx);HASH(s->vy);HASH(s->kind);HASH(s->owner);HASH(s->life);HASH(s->direction);HASH(s->settled);

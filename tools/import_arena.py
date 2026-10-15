@@ -294,6 +294,14 @@ def import_lines(files, docs, frame):
     for kind, name in enumerate(('', 'bullet', 'Flame', 'Rocket')):
         if kind:
             lines.append(f'shot {kind} {first_image(name)}')
+    for a in animations('Flame'):
+        if a['id'] in (0, 12):
+            for d in a['directions']:
+                if d['image_ids']:
+                    for image in d['image_ids']:
+                        image_info(image)
+                        lines.append(f'fire {int(a["id"] == 12)} {image}')
+                    break
     for name, x, y, _ in active_placements:
         if name == 'Bonus' and 0 <= x < W and 0 <= y < 560:
             lines.append(f'bonus {x} {y}')

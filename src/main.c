@@ -153,6 +153,11 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
     }
     for(int i=0;i<2;++i) draw_player(app,a,g,i);
     for(int i=0;i<FF_SHOTS;++i) {const FF_Shot *s=&g->shots[i];if(!s->life) continue;
+        const FF_Sequence *fire=&a->fire_sprites[s->life<=20];
+        if(s->kind==FF_FLAME&&fire->count) {
+            int frame=s->life<=20?(20-s->life)*fire->count/20:(270-s->life)/4%fire->count;
+            sprite(app,a,fire->image[frame],s->x/FF_FP,s->y/FF_FP);continue;
+        }
         if(s->kind==FF_FLAME&&s->life<=20&&s->life%4<2) continue;
         int id=a->shot_images[s->kind];
         if(id>=0) {
@@ -209,6 +214,8 @@ static bool assets_ready(App *app,const FF_Arena *a) {
         for(int i=0;i<s->count;++i) if(!load_image(app,s->image[i])) return false;
     }
     for(int i=0;i<a->blast_sprite.count;++i) if(!load_image(app,a->blast_sprite.image[i])) return false;
+    for(int k=0;k<2;++k) for(int i=0;i<a->fire_sprites[k].count;++i)
+        if(!load_image(app,a->fire_sprites[k].image[i])) return false;
     for(int i=0;i<a->device_count;++i) if(a->devices[i].image>=0&&!load_image(app,a->devices[i].image)) return false;
     for(int i=1;i<6;++i) if(a->pickup_images[i]>=0&&!load_image(app,a->pickup_images[i])) return false;
     for(int i=1;i<4;++i) if(a->shot_images[i]>=0&&!load_image(app,a->shot_images[i])) return false;

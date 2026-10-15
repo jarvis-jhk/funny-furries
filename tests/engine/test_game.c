@@ -122,14 +122,14 @@ static void arena_devices(void) {
     FF_Game g;clean(&g);FF_Player *p=&g.players[0];
     p->x=100*FF_FP;p->y=300*FF_FP;
     arena.device_count=1;arena.devices[0]=(FF_Device){FF_WATER,80,200,48,16,0};
-    tick(&g,0,0,30);CHECK(p->vy<=2*FF_FP);
-    int y=p->y;tick(&g,FF_JUMP,0,1);CHECK(p->vy<0);tick(&g,FF_JUMP,0,20);CHECK(p->y<y);
+    tick(&g,0,0,30);CHECK(p->vy<=20*FF_FP/8);
+    int y=p->y;tick(&g,FF_JUMP,0,45);CHECK(p->vy<0);CHECK(p->y<y);
     clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;
     arena.device_count=1;arena.devices[0]=(FF_Device){FF_FAN_UP,80,350,48,16,0};
     tick(&g,0,0,10);CHECK(p->vy<0);CHECK(p->y<300*FF_FP);
     clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;
     arena.device_count=1;arena.devices[0]=(FF_Device){FF_BOUNCE_UP,80,295,48,16,0};
-    tick(&g,0,0,1);CHECK(p->vy==-9*FF_FP);CHECK(p->bounce_wait>0);
+    tick(&g,0,0,1);CHECK(p->vy==-22*FF_FP/8);CHECK(p->bounce_wait>0);
     clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;p->grounded=1;
     arena.device_count=1;arena.devices[0]=(FF_Device){FF_MOVING_PLATFORM,80,300,48,16,0};
     tick(&g,0,0,10);CHECK(p->x==120*FF_FP);CHECK(p->y==300*FF_FP);CHECK(p->grounded);
@@ -154,6 +154,32 @@ static void marker_collision_and_paths(void) {
     CHECK(ff_device_position(&arena,0,96).x==144);
     CHECK(ff_device_position(&arena,0,160).x==80);
     tick(&g,0,0,160);CHECK(p->x==100*FF_FP&&p->y==300*FF_FP&&p->grounded);
+}
+static void sensor_body_and_directional_bounces(void) {
+    FF_Game g;clean(&g);arena.imported=true;
+    FF_Player *p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;
+    /* The hat's transparent corner is not a solid rectangular collision body. */
+    arena.mask[274][110]=FF_SOLID;arena.mask[300][100]=FF_PLATFORM;
+    tick(&g,FF_RIGHT,0,2);CHECK(p->x>101*FF_FP);
+    CHECK(p->grounded&&p->y==300*FF_FP); // Even a one-pixel top supports the feet.
+    /* A solid pixel inside the narrow head does stop upward travel. */
+    p->vx=0;p->x=100*FF_FP;p->y=300*FF_FP;p->grounded=1;
+    arena.mask[273][100]=FF_SOLID;tick(&g,FF_JUMP,0,1);CHECK(p->vy==0&&p->y==300*FF_FP);
+    clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;p->vx=FF_FP;
+    arena.device_count=1;arena.devices[0]=(FF_Device){FF_BOUNCE_LEFT,100,280,8,32,0};
+    tick(&g,FF_RIGHT,0,1);CHECK(p->vx==-100*FF_FP/8);
+    tick(&g,FF_LEFT,0,1);CHECK(p->vx<-12*FF_FP); // Held input preserves the impulse.
+    CHECK(p->vx<0); // Moving away cannot retrigger the spring.
+    /* Upward spring energy depends on incoming fall speed, plus the stored 20. */
+    clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;p->vy=4*FF_FP;
+    arena.device_count=1;arena.devices[0]=(FF_Device){FF_BOUNCE_UP,80,295,48,16,0};
+    tick(&g,0,0,1);CHECK(p->vy==-54*FF_FP/8);
+    /* Swimming accelerates while held, rather than injecting periodic jumps. */
+    clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;p->vy=0;
+    arena.device_count=1;arena.devices[0]=(FF_Device){FF_WATER,80,200,48,16,0};
+    tick(&g,FF_JUMP,0,1);CHECK(p->vy==-FF_FP/8);
+    tick(&g,FF_JUMP,0,9);CHECK(p->vy==-10*FF_FP/8);
+    tick(&g,0,0,1);CHECK(p->vy==-9*FF_FP/8);
 }
 static void hazards_and_blasts(void) {
     FF_Game g;clean(&g);
@@ -246,4 +272,4 @@ static void determinism(void) {
     b.players[0].previous^=FF_JUMP;CHECK(ff_game_hash(&a)!=ff_game_hash(&b));
     printf("replay=%08x\n",ff_game_hash(&a));
 }
-int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();hazards_and_blasts();reference_jump();wind_and_bonus_regions();determinism();printf("%u game checks passed\n",checks);return 0;}
+int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();sensor_body_and_directional_bounces();hazards_and_blasts();reference_jump();wind_and_bonus_regions();determinism();printf("%u game checks passed\n",checks);return 0;}

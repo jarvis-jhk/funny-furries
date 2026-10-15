@@ -45,7 +45,7 @@ typedef struct {
     int pickup_images[6], shot_images[4];
     int sound_ids[FF_SOUNDS];
     FF_Point bonuses[FF_SPAWNS]; int bonus_count;
-    FF_Sequence hazard_sprites[3][2], blast_sprite;
+    FF_Sequence hazard_sprites[3][2], blast_sprite, fire_sprites[2];
     FF_Device devices[FF_DEVICES]; int device_count;
     FF_Path paths[FF_DEVICES];
     bool imported;
@@ -53,7 +53,7 @@ typedef struct {
 typedef struct {
     int32_t x, y, vx, vy;
     int facing, health, lives, score, fuel, weapon, ammo;
-    int grounded, cooldown, punch_ticks, invulnerable, burn_wait, respawn, swim_wait, bounce_wait;
+    int grounded, cooldown, punch_ticks, invulnerable, burn_wait, respawn, bounce_wait;
     uint8_t previous;
 } FF_Player;
 typedef struct { int32_t x, y, vx, vy; int kind, owner, life, direction, settled; } FF_Shot;

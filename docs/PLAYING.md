@@ -83,8 +83,9 @@ Hidden Wind L/R/up placements supply the fan-force rectangles; only the actual f
 art is drawn. The old approximate reach is retained for asset-free practice data.
 Moving platforms travel one pixel per tick between their surrounding `reverse`
 markers, including player carry in either direction. Their positions are shared by
-rendering and simulation. Swimming, fan forces, bounces and body collision shapes
-still need play comparison. Bombs now spawn from original Bonus points using a seeded
+rendering and simulation. Swimming uses continuous held thrust, springs respond only to approach from
+their active side, and collision follows the original sensor silhouettes.
+These changes still need physical play comparison. Bombs now spawn from original Bonus points using a seeded
 trap timer: falling/bouncing, walking and flying variants can be punched or shot,
 and explosions trigger chains. Contact and blast each deal eight health, with one
 blast hit per player, animated original explosion art and its eighth sound effect.
@@ -102,8 +103,9 @@ controller feel. The follow-up Wine recording measured about 64 pixels of jump
 rise; the native
 jump now rises 63.25 pixels (44/8 initial velocity, 2/8 gravity), and running caps
 at 25/8 pixels/tick. This is a spatial comparison, not a frame-exact timing proof.
-Rocket steering, fan/swim/bounce response, collision bodies and physical controller
-feel remain M1 acceptance work, so the roadmap item stays started by Sol.
+The event-based weapon/device and collision comparisons are recorded in
+[REFERENCE.md](REFERENCE.md). Original extension timing and physical controller
+feel remain M1 acceptance work.
 
 Rockets now turn toward the living opponent in 32 discrete directions and are
 turned by hidden wind regions. Their artwork follows the simulated heading.
@@ -122,3 +124,9 @@ health and pushes back/up; it does not disable the victim's controls. Fists add
 clamped to running speed. These changes follow frame rows 12–25/40–43 and global
 rows 373–396. Fire shape, fall motion and fade duration are approximations; its
 original 250 counter and six-tick damage gate are retained.
+
+New imports include the original looping and ending flame animation frames.
+Existing local imports continue to work with their single flame image; reimport
+into a new output directory for animated fire. SDL virtual-controller checks
+now play a full simultaneous-KO match and its automatic next round through the
+actual game input layer, then exercise separate movement and jumping.

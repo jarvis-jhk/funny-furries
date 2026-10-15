@@ -10,7 +10,11 @@ ice/melee/blast impulses and removes the invented ice control lock. Strong
 impulses now survive the run cap. Four Debug+UBSan suites pass after correcting
 new trajectory fixtures and a run-cap equality oscillation caught by the existing
 jump/run test. Work continues on original collision/device response;
-M1 is not complete.
+Step 3 replaces the blanket body with source sensor silhouettes, directional
+spring contacts/100-speed impulses, held swimming thrust and animated fire.
+Two virtual SDL controllers now drive a full simultaneous-KO/new-round match
+through the actual game/input integration. See docs/REFERENCE.md for evidence
+and approximation boundaries. M1 is not complete.
 
 **Current — 2026-10-15, M1 (`t_mv96vru98gz0q`, Sol):** three tested gameplay
 steps pushed directly to main: `13a99d8` collision markers/platform paths,

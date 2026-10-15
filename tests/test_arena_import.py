@@ -90,6 +90,7 @@ class ArenaImportTests(unittest.TestCase):
             self.assertIn('mask 200 81 31 1', text)  # Transparent corner is open.
             self.assertNotIn('mask 200 300', text)  # Decorative wall stays open.
             self.assertIn('hot 1 4 -1', text)
+            self.assertIn('fire 0 1', text)
             self.assertIn('bonus 120 150', text)
             self.assertIn('hazard 1 0 1', text)
             self.assertIn('hazard 2 1 1', text)
@@ -245,7 +246,7 @@ class ArenaImportTests(unittest.TestCase):
             self.assertEqual(report['layers'], 512)
             self.assertGreaterEqual(report['spawns'], 2)
             text = (root / 'output/arena.ff').read_text()
-            for record in ('sprite 0 0', 'device 12 ', 'bonus ', 'hazard 3 ', 'blast ', 'sound 7 '):
+            for record in ('sprite 0 0', 'device 12 ', 'bonus ', 'hazard 3 ', 'blast ', 'fire 0 ', 'fire 1 ', 'sound 7 '):
                 self.assertIn(record, text)
             self.assertEqual(report['devices'], 38)
             self.assertEqual(report['collision_markers'], 58)

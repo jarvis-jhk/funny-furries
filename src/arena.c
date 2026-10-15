@@ -75,6 +75,10 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
         } else if (sscanf(line,"blast %d %c",&n[0],&tail)==1) {
             if(n[0]<0||n[0]>=FF_IMAGES||a->blast_sprite.count==FF_ANIM_FRAMES) {ok=false;break;}
             a->blast_sprite.image[a->blast_sprite.count++]=n[0];
+        } else if (sscanf(line,"fire %d %d %c",&n[0],&n[1],&tail)==2) {
+            if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_IMAGES) {ok=false;break;}
+            FF_Sequence *s=&a->fire_sprites[n[0]];
+            if(s->count==FF_ANIM_FRAMES) {ok=false;break;} s->image[s->count++]=n[1];
         } else if (sscanf(line,"sound %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<0||n[0]>=FF_SOUNDS||n[1]<0||n[1]>4096) {ok=false;break;} a->sound_ids[n[0]]=n[1];
         } else {ok=false;break;}

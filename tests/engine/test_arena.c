@@ -31,6 +31,9 @@ int main(void) {
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\nblast 1024\n"));
     CHECK(load("FFARENA 1\nspawn 100 100\nspawn 200 100\ndevice 12 80 200 32 128 -1\n"));
     CHECK(arena.devices[0].kind==FF_WIND_UP&&arena.devices[0].image==-1);
+    CHECK(load("FFARENA 1\nspawn 100 100\nspawn 200 100\nfire 0 12\nfire 1 14\n"));
+    CHECK(arena.fire_sprites[0].image[0]==12&&arena.fire_sprites[1].image[0]==14);
+    CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\nfire 2 14\n"));
     CHECK(!load("FFARENA 2\nspawn 100 100\nspawn 200 100\n"));
     CHECK(!load("FFARENA 1\nspawn 100 100\n"));
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\ntruncated"));
