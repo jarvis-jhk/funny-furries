@@ -1,5 +1,14 @@
 # Notes
 
+**Active — 2026-10-15, M1 (`t_mv97y2eiae2ti`, Sol):** clean checkout/fetched origin,
+no open PRs/issues or continuation. Implemented deterministic homing rockets,
+wind steering and heading rendering from original global rows 362–369, plus
+vertical/diagonal collision substeps without fractional displacement loss.
+One native direction step/tick remains a turn-rate approximation. Four
+Debug+UBSan suites and synthetic importer/renderer checks pass. Work continues
+in this session on persistent flame and original movement/device response;
+M1 is not complete.
+
 **Current — 2026-10-15, M1 (`t_mv96vru98gz0q`, Sol):** three tested gameplay
 steps pushed directly to main: `13a99d8` collision markers/platform paths,
 `0bbc9f3` bomb traps/explosions/reference movement, `faa2d2c` wind regions/bonuses.

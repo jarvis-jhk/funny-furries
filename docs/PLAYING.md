@@ -104,3 +104,11 @@ jump now rises 63.25 pixels (44/8 initial velocity, 2/8 gravity), and running ca
 at 25/8 pixels/tick. This is a spatial comparison, not a frame-exact timing proof.
 Rocket steering, fan/swim/bounce response, collision bodies and physical controller
 feel remain M1 acceptance work, so the roadmap item stays started by Sol.
+
+Rockets now turn toward the living opponent in 32 discrete directions and are
+turned by hidden wind regions. Their artwork follows the simulated heading.
+Global rows 362–369 supply the targeting, wind steering and eight-point direct
+hit; frame rows 18/19 supply speed 57 and cooldown 50. The native turn currently
+uses one direction step per tick. This is an event-based approximation pending
+measured original turn-rate/speed comparison. Vertical and diagonal shots use
+pixel substeps, including one-pixel walls, and preserve fractional displacement.

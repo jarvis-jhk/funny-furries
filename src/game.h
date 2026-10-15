@@ -56,7 +56,7 @@ typedef struct {
     int grounded, cooldown, punch_ticks, invulnerable, frozen, respawn, swim_wait, bounce_wait;
     uint8_t previous;
 } FF_Player;
-typedef struct { int32_t x, y, vx, vy; int kind, owner, life; } FF_Shot;
+typedef struct { int32_t x, y, vx, vy; int kind, owner, life, direction; } FF_Shot;
 typedef struct { int x, y, kind, active, timer; } FF_Pickup;
 typedef struct { int32_t x, y, vx, vy; int kind, life, grounded; } FF_Hazard;
 typedef struct { int32_t x, y; int life; unsigned hit; } FF_Blast;

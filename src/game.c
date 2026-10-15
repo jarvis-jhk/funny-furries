@@ -154,12 +154,41 @@ static void shoot(FF_Game *g,FF_Player *p,int owner) {
     for(int i=0;i<FF_SHOTS;++i) if(!g->shots[i].life) {
         int kind=p->weapon;
         g->shots[i]=(FF_Shot){p->x+p->facing*16*FF_FP,p->y-18*FF_FP,
-            p->facing*(kind==FF_ICE?100:kind==FF_ROCKET?57:40)*FF_FP/8,0,kind,owner,kind==FF_FLAME?12:100};
+            p->facing*(kind==FF_ICE?100:kind==FF_ROCKET?57:40)*FF_FP/8,0,kind,owner,kind==FF_FLAME?12:100,p->facing<0?16:0};
         --p->ammo;p->cooldown=kind==FF_ROCKET?50:8;
         g->sounds|=kind==FF_ICE?FF_SOUND_ICE:kind==FF_ROCKET?FF_SOUND_ROCKET:FF_SOUND_FLAME;
         if(!p->ammo) p->weapon=FF_FISTS;
         return;
     }
+}
+/* CnC direction 0 is right and 8 is up. Fixed vectors keep replay portable. */
+static const int direction_x[32]={256,251,237,213,181,142,98,50,0,-50,-98,-142,-181,-213,-237,-251,
+                                 -256,-251,-237,-213,-181,-142,-98,-50,0,50,98,142,181,213,237,251};
+static int direction_y(int direction) {return -direction_x[(direction+24)&31];}
+static int toward(int32_t dx,int32_t dy) {
+    int best=0;int64_t score=INT64_MIN;
+    for(int i=0;i<32;++i) {
+        int64_t dot=(int64_t)dx*direction_x[i]+(int64_t)dy*direction_y(i);
+        if(dot>score) {score=dot;best=i;}
+    }
+    return best;
+}
+static int turn(int direction,int target) {
+    int delta=(target-direction+32)&31;
+    if(delta) direction=(direction+(delta<=16?1:31))&31;
+    return direction;
+}
+static void rocket_steer(FF_Shot *s,const FF_Game *g,const FF_Arena *a) {
+    const FF_Player *target=&g->players[1-s->owner];
+    if(!target->respawn&&target->health>0)
+        s->direction=turn(s->direction,toward(target->x-s->x,target->y-16*FF_FP-s->y));
+    for(int i=0;i<a->device_count;++i) {
+        const FF_Device *d=&a->devices[i];
+        if(d->kind<FF_WIND_LEFT||s->x<d->x*FF_FP||s->x>=(d->x+d->w)*FF_FP||
+           s->y<d->y*FF_FP||s->y>=(d->y+d->h)*FF_FP) continue;
+        s->direction=turn(s->direction,d->kind==FF_WIND_UP?8:d->kind==FF_WIND_LEFT?16:0);
+    }
+    s->vx=direction_x[s->direction]*57/8;s->vy=direction_y(s->direction)*57/8;
 }
 static void blast(FF_Game *g,int32_t x,int32_t y) {
     for(int i=0;i<FF_BLASTS;++i) if(!g->blasts[i].life) {
@@ -323,13 +352,15 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
     hazard_tick(g,a,damage);
     for(int i=0;i<FF_SHOTS;++i) {
         FF_Shot *s=&g->shots[i];if(!s->life) continue;
+        if(s->kind==FF_ROCKET) rocket_steer(s,g,a);
         bool impact=false;int target=-1;
         /* Substeps keep fast shots from tunnelling through a wall or player. */
-        int steps=abs(s->vx)/FF_FP;if(steps<1) steps=1;
+        int distance=abs(s->vx)>abs(s->vy)?abs(s->vx):abs(s->vy);
+        int steps=distance/FF_FP+1;int32_t start_x=s->x,start_y=s->y;
         for(int j=0;j<steps;++j) {
-            s->x+=s->vx/steps;s->y+=s->vy/steps;
+            s->x=start_x+s->vx*(j+1)/steps;s->y=start_y+s->vy*(j+1)/steps;
             int x=s->x/FF_FP,y=s->y/FF_FP;
-            if(tile(a,x,y)==FF_SOLID||x<0||x>=FF_W||y>=FF_H) {impact=true;break;}
+            if(tile(a,x,y)==FF_SOLID||x<0||x>=FF_W||y<0||y>=560) {impact=true;break;}
             for(int h=0;h<FF_HAZARDS;++h) {
                 FF_Hazard *b=&g->hazards[h];
                 if(b->life&&near(s->x,s->y,b->x,b->y,10)) {b->life=0;blast(g,b->x,b->y);impact=true;break;}
@@ -391,7 +422,7 @@ uint32_t ff_game_hash(const FF_Game *g) {
         HASH(p->invulnerable);HASH(p->frozen);HASH(p->respawn);HASH(p->previous);HASH(p->swim_wait);HASH(p->bounce_wait);
     }
     for(int i=0;i<FF_SHOTS;++i) {const FF_Shot *s=&g->shots[i];
-        HASH(s->x);HASH(s->y);HASH(s->vx);HASH(s->vy);HASH(s->kind);HASH(s->owner);HASH(s->life);
+        HASH(s->x);HASH(s->y);HASH(s->vx);HASH(s->vy);HASH(s->kind);HASH(s->owner);HASH(s->life);HASH(s->direction);
     }
     for(int i=0;i<FF_PICKUPS;++i) {const FF_Pickup *p=&g->pickups[i];
         HASH(p->x);HASH(p->y);HASH(p->kind);HASH(p->active);HASH(p->timer);

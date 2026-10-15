@@ -58,6 +58,32 @@ static void weapons(void) {
     clean(&g);g.players[0].x=300*FF_FP;g.players[1].x=340*FF_FP;g.players[0].y=g.players[1].y=560*FF_FP;
     g.players[0].weapon=FF_FLAME;g.players[0].ammo=15;tick(&g,FF_FIRE,0,25);CHECK(g.players[1].health<100);CHECK(g.players[0].ammo<15);
 }
+static void homing_rockets(void) {
+    FF_Game g;clean(&g);memset(arena.tiles,0,sizeof(arena.tiles));
+    FF_Player *p=&g.players[0],*target=&g.players[1];
+    p->x=200*FF_FP;p->y=400*FF_FP;target->x=600*FF_FP;target->y=200*FF_FP;
+    p->weapon=FF_ROCKET;p->ammo=1;tick(&g,FF_FIRE,0,1);
+    CHECK(g.shots[0].life&&g.shots[0].vy<0&&g.shots[0].vx>0);
+    int old_y=g.shots[0].y;tick(&g,0,0,5);CHECK(g.shots[0].y<old_y);
+    /* A dead/respawning opponent is never a new homing target. */
+    target->respawn=60;int direction=g.shots[0].direction;
+    tick(&g,0,0,1);CHECK(g.shots[0].direction==direction);
+    /* Crossing a wind volume turns a rocket even with no live target. */
+    arena.device_count=1;arena.devices[0]=(FF_Device){FF_WIND_UP,0,0,800,560,-1};
+    tick(&g,0,0,1);CHECK(g.shots[0].direction==direction+1);
+    /* A steep shot cannot tunnel through a one-pixel ceiling. */
+    clean(&g);arena.imported=true;
+    memset(&arena.mask[200][80],FF_SOLID,100);
+    g.players[0].x=600*FF_FP;g.players[1].respawn=60;
+    g.shots[0]=(FF_Shot){120*FF_FP,206*FF_FP,0,-57*FF_FP/8,FF_ROCKET,0,100,8};
+    tick(&g,0,0,1);CHECK(!g.shots[0].life&&g.blasts[0].life);
+    CHECK(g.blasts[0].y>=200*FF_FP&&g.blasts[0].y<201*FF_FP);
+    /* Substeps preserve the exact displacement of a fractional-speed shot. */
+    clean(&g);g.players[1].respawn=60;
+    g.shots[0]=(FF_Shot){300*FF_FP,100*FF_FP,100*FF_FP/8,0,FF_ICE,0,100,0};
+    tick(&g,0,0,1);CHECK(g.shots[0].x==300*FF_FP+100*FF_FP/8);
+    FF_Game replay=g;replay.shots[0].direction=1;CHECK(ff_game_hash(&g)!=ff_game_hash(&replay));
+}
 static void bonuses(void) {
     FF_Game g;clean(&g);FF_Player *p=&g.players[0];p->y=560*FF_FP;p->health=80;
     g.pickups[0]=(FF_Pickup){p->x/FF_FP,544,FF_HEALTH,1,0};tick(&g,0,0,1);CHECK(p->health==100);CHECK(!g.pickups[0].active);
@@ -195,4 +221,4 @@ static void determinism(void) {
     b.players[0].previous^=FF_JUMP;CHECK(ff_game_hash(&a)!=ff_game_hash(&b));
     printf("replay=%08x\n",ff_game_hash(&a));
 }
-int main(void) {physics();melee_round();weapons();bonuses();arena_devices();marker_collision_and_paths();hazards_and_blasts();reference_jump();wind_and_bonus_regions();determinism();printf("%u game checks passed\n",checks);return 0;}
+int main(void) {physics();melee_round();weapons();homing_rockets();bonuses();arena_devices();marker_collision_and_paths();hazards_and_blasts();reference_jump();wind_and_bonus_regions();determinism();printf("%u game checks passed\n",checks);return 0;}

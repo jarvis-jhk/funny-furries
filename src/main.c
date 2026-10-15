@@ -158,9 +158,15 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
         if(id>=0) {
             Image *im=load_image(app,id);
             if(im) {
-                bool left=s->vx<0;int anchor=left?im->w-1-a->hot_x[id]:a->hot_x[id];
-                SDL_Rect dest={s->x/FF_FP-anchor,s->y/FF_FP-a->hot_y[id],im->w,im->h};
-                SDL_RenderCopyEx(app->renderer,im->texture,NULL,&dest,0,NULL,left?SDL_FLIP_HORIZONTAL:SDL_FLIP_NONE);
+                if(s->kind==FF_ROCKET) {
+                    SDL_Point origin={a->hot_x[id],a->hot_y[id]};
+                    SDL_Rect dest={s->x/FF_FP-origin.x,s->y/FF_FP-origin.y,im->w,im->h};
+                    SDL_RenderCopyEx(app->renderer,im->texture,NULL,&dest,-s->direction*11.25,&origin,SDL_FLIP_NONE);
+                } else {
+                    bool left=s->vx<0;int anchor=left?im->w-1-a->hot_x[id]:a->hot_x[id];
+                    SDL_Rect dest={s->x/FF_FP-anchor,s->y/FF_FP-a->hot_y[id],im->w,im->h};
+                    SDL_RenderCopyEx(app->renderer,im->texture,NULL,&dest,0,NULL,left?SDL_FLIP_HORIZONTAL:SDL_FLIP_NONE);
+                }
             }
         }
         else {color(app,s->kind==FF_ICE?150:255,s->kind==FF_ICE?230:130,80);rect(app,s->x/FF_FP-4,s->y/FF_FP-3,8,6);}
