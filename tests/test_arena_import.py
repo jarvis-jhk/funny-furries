@@ -91,6 +91,27 @@ class ArenaImportTests(unittest.TestCase):
                 arena.import_arena(root / 'bundle', root / 'output', 0)
             self.assertEqual((root / 'output/arena.ff').read_text(), 'changed')
 
+    def test_moving_platform_uses_visible_partner_art(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            docs = fixture(root / 'bundle')
+            _, files, _ = arena.checked_bundle(root / 'bundle')
+            globals_ = docs['project-index.json']['global_object_lists'][0]
+            animations = docs['animations.json']['global_object_lists'][0]['objects']
+            for name, image in [('mph', 1), ('mph 2', 2)]:
+                ident = len(globals_)
+                globals_.append({'id': ident, 'name': name, 'type': 2})
+                animations.append({'id': ident, 'active_data': [{'animations': [{'id': 0, 'directions': [{'id': 0, 'image_ids': [image]}]}]}]})
+            docs['image-manifest.json']['banks'][0]['entries'].append({'id': 2, 'file': 'image-21-2.png', 'image': {'hot_spot_raw_u16': [4, 0]}})
+            files['image-21-2.png'] = files['image-21-1.png']
+            docs['project-index.json']['frames'][0]['object_lists'][0].append({'id': 4, 'name': 'mph', 'type': 2, 'global': True})
+            raw = bytearray(32)
+            struct.pack_into('<Hhh', raw, 0, 4, 200, 300)
+            docs['frame-layout.json']['frames'][0]['placements'][0]['records'].append({'raw_hex': raw.hex()})
+            text, _, report = arena.import_lines(files, docs, 0)
+            self.assertIn('device 9 196 300 32 16 2', text)
+            self.assertEqual(report['devices'], 1)
+
     def test_invalid_bundle_no_output(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

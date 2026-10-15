@@ -253,7 +253,7 @@ def import_lines(files, docs, frame):
     for name, x, y in active_placements:
         if name not in device_kinds:
             continue
-        ident = first_image(name)
+        ident = first_image('mph 2' if name == 'mph' else name)
         width, height, _ = image_info(ident)
         hx, hy = map(signed16, images[ident]['image']['hot_spot_raw_u16'])
         lines.append(f'device {device_kinds[name]} {x-hx} {y-hy} {width} {height} {ident}')
