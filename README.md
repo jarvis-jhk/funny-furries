@@ -10,6 +10,7 @@ python3 tools/export_project.py orig/game.cca --klikback-src /path/to/KlikBack/s
 The [combined research bundle](docs/PROJECT-BUNDLE.md) contains lossless event
 structure, object artwork metadata, PNG/WAV/MIDI files and raw placement data.
 See the [local project index](docs/EXPORTER.md) for reader requirements.
-A native SDL2 development prototype now plays an asset-free 1v1 practice arena.
+A native SDL2 development prototype now plays 1v1 in an asset-free practice arena
+or the first original arena imported locally from your own copy.
 See [building and controls](docs/PLAYING.md). Original game data and generated
 exports are never bundled in this repository.

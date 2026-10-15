@@ -1,12 +1,36 @@
 # Notes
 
-**Current — 2026-10-15, M1 (`t_mv95gejy6khqq`, Sol):** native C/SDL2 engine now
-exists: deterministic fixed tick, two-player keyboard/controller input, practice
-arena, three weapons, melee, bonuses, lives/respawn/wins and HUD. Debug+UBSan
-CTest and real offscreen SDL smoke pass locally. Movement/timing are provisional;
-this is not original-feel acceptance. Next within this session: import first
-original arena/artwork/audio, then exercise the complete local-data game path.
-No release, hardware claim, schedule or CI continuation.
+**Current — 2026-10-15, M1 (`t_mv95gejy6khqq`, Sol):** first native playable
+prototype, direct main convention. Step 1 `45545de`: C11/SDL2 deterministic 50 Hz
+1v1, keyboard/two controller seats, three weapons, melee, pickups, lives/respawn/
+wins, HUD and private opt-in fault courier. Both initial CI workflows green
+(native 38692895384, exporter 38692895418). Step 2 adds atomic local original-arena
+import, animation/audio, per-pixel foreground mask, water/swimming, fans, bouncers,
+moving platforms/carry and cached scenery rendering. See `docs/PLAYING.md`.
+Original content stays ignored; no release or hardware claim.
+
+Local final validation: Debug+UBSan four CTests pass (simulation/replay, bounded
+arena format, two real SDL virtual pads/hotplug/focus, local HTTP fault courier).
+485 Python cases: 424 pass/61 optional fixtures skipped; all nine new import
+cases also pass with the original bundle and real native renderer enabled.
+A 3000-tick original-arena offscreen run succeeds, checksum `8b5066e8`.
+Actual agent TypeScript compiler is required before each code commit. Native
+and exporter CI for the final source will be checked within this session;
+no continuation or new schedule is being created. Evidence: agent state
+`data/furries/arena-prototype/` (never publish original screenshots/assets).
+
+**Next:** keep working on `furries-1v1-arena` (started/sol); the combined goal is
+set. Level 1 is storage frame 3: 512 scenery layers, nine spawn candidates,
+34 devices, seven sounds. Global-flagged local backdrop headers have stale image
+handles: select global header via +40 and require name/type agreement. Wine
+actually ran the original and level 1 was visually compared; blue is P1/first
+controller/arrows, red P2/second controller/F-H. Movement, collision terrain
+classification, weapon timings, fan/swim/bounce constants and platform paths are
+provisional. Next session should calibrate these while playing the original,
+replace the named-terrain approximation with its `up`/collision-marker behaviour,
+and add bomb hazards; avoid new byte-level exporter proofs. Physical two-pad feel
+still needs acceptance before marking M1 done. Start with `docs/PLAYING.md`; local
+import for the current code is `export/arena-1-final`, built by the importer.
 
 **2026-10-14 — direction change (Jan, t_mv8apsn318lf2j):** the M0 exporter is closed. ~60 sessions
 went into proving single Click & Create evaluator handlers byte by byte; for a game this simple that

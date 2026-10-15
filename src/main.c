@@ -10,7 +10,7 @@
 
 typedef struct { SDL_Texture *texture; int w,h; } Image;
 typedef struct {
-    SDL_Window *window;SDL_Renderer *renderer; FF_Input input;
+    SDL_Window *window;SDL_Renderer *renderer;SDL_Texture *scene,*backdrop; FF_Input input;
     Image images[FF_IMAGES]; Mix_Chunk *sounds[7]; bool audio;
     const char *assets;
 } App;
@@ -104,34 +104,40 @@ static void draw_player(App *app,const FF_Arena *a,const FF_Game *g,int i) {
         for(int part=0;part<FF_PARTS;++part) {
             int index=order[part];int active_anim=index==2&&p->punch_ticks?12:anim;
             if(index==4&&p->weapon==FF_FISTS) continue;
+            if(index==4) active_anim=p->weapon==FF_ICE?13:p->weapon==FF_ROCKET?14:15;
             sprite(app,a,animation_image(a,i,index,active_anim,dir,g->tick),x,y-16);
         }
     } else {
-        color(app,i?70:234,i?157:83,i?243:74);rect(app,x-12,y-31,24,26);
+        color(app,i?234:70,i?83:157,i?74:243);rect(app,x-12,y-31,24,26);
         color(app,240,245,255);rect(app,x-13,y-31,26,4);
         color(app,30,38,57);rect(app,x+(dir?-8:4),y-21,4,4);
-        color(app,i?80:255,i?170:110,i?250:100);
+        color(app,i?255:80,i?110:170,i?100:250);
         rect(app,x-14,y-5,11,5);rect(app,x+3,y-5,11,5);
         if(p->punch_ticks) rect(app,x+(dir?-30:12),y-22,18,10);
     }
     if(p->frozen) {color(app,150,240,255);SDL_Rect r={x-14,y-34,28,34};SDL_RenderDrawRect(app->renderer,&r);}
 }
 static void hud(App *app,const FF_Game *g) {
-    color(app,12,20,33);rect(app,0,0,800,64);
+    color(app,12,20,33);rect(app,0,560,800,40);
     const char *weapons[]={"FISTS","ICE","FLAME","ROCKET"};char s[120];
     for(int i=0;i<2;++i) {
         const FF_Player *p=&g->players[i];int x=i?426:16;
-        color(app,i?90:250,i?170:100,i?255:94);
-        snprintf(s,sizeof(s),"%s  LIVES %d  WINS %d",i?"BLUE":"RED",p->lives,p->score);text(app,x,7,2,s);
-        color(app,45,54,66);rect(app,x,23,350,10);
-        color(app,i?55:240,i?155:65,i?250:75);rect(app,x,23,p->health*350/100,10);
-        color(app,225,233,242);snprintf(s,sizeof(s),"%s %d  HP %d",weapons[p->weapon],p->ammo,p->health);text(app,x,39,1,s);
-        color(app,220,194,75);rect(app,x+195,39,p->fuel/2,5);
+        color(app,i?250:90,i?100:170,i?94:255);
+        snprintf(s,sizeof(s),"%s  LIVES %d  WINS %d",i?"RED":"BLUE",p->lives,p->score);text(app,x,564,1,s);
+        color(app,45,54,66);rect(app,x,575,350,8);
+        color(app,i?240:55,i?65:155,i?75:250);rect(app,x,575,p->health*350/100,8);
+        color(app,225,233,242);snprintf(s,sizeof(s),"%s %d  HP %d",weapons[p->weapon],p->ammo,p->health);text(app,x,590,1,s);
+        color(app,220,194,75);rect(app,x+195,590,p->fuel/2,5);
     }
-    color(app,222,235,244);text(app,220,584,1,"F1 HELP  P PAUSE  R NEW MATCH  ESC QUIT");
+
 }
 static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paused) {
-    background(app,a);
+    SDL_RenderCopy(app->renderer,app->backdrop,NULL,NULL);
+    for(int i=0;i<a->device_count;++i) {
+        const FF_Device *d=&a->devices[i];FF_Point pos=ff_device_position(d,g->tick);
+        Image *im=load_image(app,d->image);
+        if(im) {SDL_Rect dest={pos.x,pos.y,im->w,im->h};SDL_RenderCopy(app->renderer,im->texture,NULL,&dest);}
+    }
     for(int i=0;i<FF_PICKUPS;++i) {const FF_Pickup *p=&g->pickups[i];if(!p->active) continue;
         int id=a->pickup_images[p->kind];
         if(id>=0) sprite(app,a,id,p->x,p->y);
@@ -141,7 +147,14 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
     for(int i=0;i<2;++i) draw_player(app,a,g,i);
     for(int i=0;i<FF_SHOTS;++i) {const FF_Shot *s=&g->shots[i];if(!s->life) continue;
         int id=a->shot_images[s->kind];
-        if(id>=0) sprite(app,a,id,s->x/FF_FP,s->y/FF_FP);
+        if(id>=0) {
+            Image *im=load_image(app,id);
+            if(im) {
+                bool left=s->vx<0;int anchor=left?im->w-1-a->hot_x[id]:a->hot_x[id];
+                SDL_Rect dest={s->x/FF_FP-anchor,s->y/FF_FP-a->hot_y[id],im->w,im->h};
+                SDL_RenderCopyEx(app->renderer,im->texture,NULL,&dest,0,NULL,left?SDL_FLIP_HORIZONTAL:SDL_FLIP_NONE);
+            }
+        }
         else {color(app,s->kind==FF_ICE?150:255,s->kind==FF_ICE?230:130,80);rect(app,s->x/FF_FP-4,s->y/FF_FP-3,8,6);}
     }
     hud(app,g);
@@ -157,7 +170,7 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
             text(app,125,346,2,"      B/RT FIRE  Y/LT JETPACK");
             text(app,125,382,2,"3 LIVES PER MATCH  F1 TO PLAY");
         } else if(paused) text(app,240,270,4,"PAUSED - P TO PLAY");
-        else {text(app,225,252,4,g->winner==2?"DRAW":g->winner==0?"RED WINS":"BLUE WINS");text(app,210,302,2,"NEXT ROUND STARTS SHORTLY");}
+        else {text(app,225,252,4,g->winner==2?"DRAW":g->winner==0?"BLUE WINS":"RED WINS");text(app,210,302,2,"NEXT ROUND STARTS SHORTLY");}
     }
 }
 static bool assets_ready(App *app,const FF_Arena *a) {
@@ -166,6 +179,7 @@ static bool assets_ready(App *app,const FF_Arena *a) {
         const FF_Sequence *s=&a->sprites[p][part][k][d];
         for(int i=0;i<s->count;++i) if(!load_image(app,s->image[i])) return false;
     }
+    for(int i=0;i<a->device_count;++i) if(!load_image(app,a->devices[i].image)) return false;
     for(int i=1;i<6;++i) if(a->pickup_images[i]>=0&&!load_image(app,a->pickup_images[i])) return false;
     for(int i=1;i<4;++i) if(a->shot_images[i]>=0&&!load_image(app,a->shot_images[i])) return false;
     return true;
@@ -199,7 +213,13 @@ int main(int argc,char **argv) {
     app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
     if(!app.renderer) app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_SOFTWARE);
     if(!app.renderer||SDL_RenderSetLogicalSize(app.renderer,FF_W,FF_H)<0) goto fail;
+    app.scene=SDL_CreateTexture(app.renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,FF_W,FF_H);
+    if(!app.scene) goto fail;
     if(data&&!assets_ready(&app,&arena)) {fprintf(stderr,"Incomplete local image import.\n");result=2;goto cleanup;}
+    app.backdrop=SDL_CreateTexture(app.renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,FF_W,FF_H);
+    if(!app.backdrop||SDL_SetRenderTarget(app.renderer,app.backdrop)<0) goto fail;
+    background(&app,&arena);
+    if(SDL_SetRenderTarget(app.renderer,NULL)<0) goto fail;
     app.audio=Mix_OpenAudio(44100,AUDIO_S16SYS,2,1024)==0;
     if(app.audio&&data) for(int i=0;i<7;++i) if(arena.sound_ids[i]>=0) {
         char path[4096];snprintf(path,sizeof(path),"%s/sound-23-%d.wav",data,arena.sound_ids[i]);
@@ -239,7 +259,11 @@ int main(int argc,char **argv) {
             if(app.audio) for(int i=0;i<7;++i) if((game.sounds&(1u<<i))&&app.sounds[i]) Mix_PlayChannel(-1,app.sounds[i],0);
             if(auto_play&&game.tick>=(uint32_t)ticks) {running=false;break;}
         }
+        if(SDL_SetRenderTarget(app.renderer,app.scene)<0) goto fail;
         draw(&app,&arena,&game,help,paused);
+        if(SDL_SetRenderTarget(app.renderer,NULL)<0) goto fail;
+        color(&app,0,0,0);SDL_RenderClear(app.renderer);
+        if(SDL_RenderCopy(app.renderer,app.scene,NULL,NULL)<0) goto fail;
         if(!running&&screenshot) {
             int w,h;SDL_GetRendererOutputSize(app.renderer,&w,&h);
             SDL_Surface *s=SDL_CreateRGBSurfaceWithFormat(0,w,h,32,SDL_PIXELFORMAT_RGBA32);
@@ -258,6 +282,8 @@ cleanup:
     for(int i=0;i<FF_IMAGES;++i) if(app.images[i].texture) SDL_DestroyTexture(app.images[i].texture);
     for(int i=0;i<7;++i) if(app.sounds[i]) Mix_FreeChunk(app.sounds[i]);
     if(app.audio) Mix_CloseAudio();
+    if(app.scene) SDL_DestroyTexture(app.scene);
+    if(app.backdrop) SDL_DestroyTexture(app.backdrop);
     if(app.renderer) SDL_DestroyRenderer(app.renderer);
     if(app.window) SDL_DestroyWindow(app.window);
     IMG_Quit();SDL_Quit();return result;

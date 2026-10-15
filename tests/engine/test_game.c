@@ -60,6 +60,26 @@ static void bonuses(void) {
     g.pickups[0]=(FF_Pickup){p->x/FF_FP,544,FF_FUEL,1,0};tick(&g,0,0,1);CHECK(p->fuel==150);
     int y=p->y;tick(&g,FF_FLY,0,30);CHECK(p->y<y);CHECK(p->fuel==120);
 }
+static void arena_devices(void) {
+    FF_Game g;clean(&g);FF_Player *p=&g.players[0];
+    p->x=100*FF_FP;p->y=300*FF_FP;
+    arena.device_count=1;arena.devices[0]=(FF_Device){FF_WATER,80,200,48,16,0};
+    tick(&g,0,0,30);CHECK(p->vy<=2*FF_FP);
+    int y=p->y;tick(&g,FF_JUMP,0,1);CHECK(p->vy<0);tick(&g,FF_JUMP,0,20);CHECK(p->y<y);
+    clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;
+    arena.device_count=1;arena.devices[0]=(FF_Device){FF_FAN_UP,80,350,48,16,0};
+    tick(&g,0,0,10);CHECK(p->vy<0);CHECK(p->y<300*FF_FP);
+    clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;
+    arena.device_count=1;arena.devices[0]=(FF_Device){FF_BOUNCE_UP,80,295,48,16,0};
+    tick(&g,0,0,1);CHECK(p->vy==-9*FF_FP);CHECK(p->bounce_wait>0);
+    clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;p->grounded=1;
+    arena.device_count=1;arena.devices[0]=(FF_Device){FF_MOVING_PLATFORM,80,300,48,16,0};
+    tick(&g,0,0,10);CHECK(p->x==120*FF_FP);CHECK(p->y==300*FF_FP);CHECK(p->grounded);
+    tick(&g,FF_JUMP,0,1);CHECK(p->vy<0);CHECK(p->y<300*FF_FP);
+    CHECK(ff_device_position(&arena.devices[0],0).x==80);
+    CHECK(ff_device_position(&arena.devices[0],64).x==208);
+    CHECK(ff_device_position(&arena.devices[0],128).x==80);
+}
 static void determinism(void) {
     FF_Game a,b;clean(&a);b=a;
     uint32_t r=17;
@@ -73,4 +93,4 @@ static void determinism(void) {
     b.players[0].previous^=FF_JUMP;CHECK(ff_game_hash(&a)!=ff_game_hash(&b));
     printf("replay=%08x\n",ff_game_hash(&a));
 }
-int main(void) {physics();melee_round();weapons();bonuses();determinism();printf("%u game checks passed\n",checks);return 0;}
+int main(void) {physics();melee_round();weapons();bonuses();arena_devices();determinism();printf("%u game checks passed\n",checks);return 0;}

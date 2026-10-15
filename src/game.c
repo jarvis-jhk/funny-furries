@@ -10,10 +10,15 @@ static int floor_pixel(int32_t x) {return x>=0?x/FF_FP:-(((-x)+FF_FP-1)/FF_FP);}
 static int tile(const FF_Arena *a,int x,int y) {
     if(x<0||x>=FF_W||y<0) return FF_SOLID;
     if(y>=FF_ROWS*FF_TILE) return 0;
-    return a->tiles[y/FF_TILE][x/FF_TILE];
+    return a->imported?(y<FF_H?a->mask[y][x]:0):a->tiles[y/FF_TILE][x/FF_TILE];
 }
 static bool blocked(const FF_Arena *a,int x,int y) {
     if(x-11<0||x+11>=FF_W||y-32<0) return true;
+    if(a->imported) {
+        for(int yy=y-32;yy<y&&yy<FF_H;++yy)
+            for(int xx=x-11;xx<=x+11;++xx) if(a->mask[yy][xx]==FF_SOLID) return true;
+        return false;
+    }
     for(int row=(y-32)/FF_TILE;row<=(y-1)/FF_TILE;++row)
         for(int col=(x-11)/FF_TILE;col<=(x+11)/FF_TILE;++col)
             if(tile(a,col*FF_TILE,row*FF_TILE)==FF_SOLID) return true;
@@ -64,7 +69,10 @@ static void move_player(FF_Player *p,const FF_Arena *a) {
         if(step>0) {
             int left=tile(a,x-10,yy-1),right=tile(a,x+10,yy-1);
             /* One-way tops catch only a crossing from above. */
-            if((yy-1)%FF_TILE==0&&(left==FF_PLATFORM||right==FF_PLATFORM)) hit=true;
+            if(a->imported) {
+                for(int xx=x-10;xx<=x+10;++xx)
+                    if(tile(a,xx,yy-1)==FF_PLATFORM&&tile(a,xx,yy-2)!=FF_PLATFORM) hit=true;
+            } else if((yy-1)%FF_TILE==0&&(left==FF_PLATFORM||right==FF_PLATFORM)) hit=true;
         }
         if(hit) {next=(yy-step)*FF_FP;p->vy=0;p->grounded=step>0;break;}
     }
@@ -72,9 +80,64 @@ static void move_player(FF_Player *p,const FF_Arena *a) {
     if(!p->grounded&&p->vy>=0) {
         y=floor_pixel(p->y);
         p->grounded=blocked(a,x,y+1)||
-            (y%FF_TILE==0&&(tile(a,x-10,y)==FF_PLATFORM||tile(a,x+10,y)==FF_PLATFORM));
+            ((a->imported||y%FF_TILE==0)&&(tile(a,x-10,y)==FF_PLATFORM||tile(a,x+10,y)==FF_PLATFORM));
     }
     if(p->grounded) {p->y=floor_pixel(p->y)*FF_FP;p->vy=0;}
+}
+FF_Point ff_device_position(const FF_Device *d,uint32_t tick) {
+    int travel=0;
+    if(d->kind==FF_MOVING_PLATFORM) {
+        int phase=(int)(tick%128u);
+        travel=2*(phase<64?phase:128-phase);
+    }
+    return (FF_Point){d->x+travel,d->y};
+}
+static bool underwater(const FF_Player *p,const FF_Arena *a) {
+    int x=p->x/FF_FP,y=p->y/FF_FP-16;
+    for(int i=0;i<a->device_count;++i) {
+        const FF_Device *d=&a->devices[i];
+        if(d->kind==FF_WATER&&x>=d->x&&x<d->x+d->w&&y>=d->y&&y<560) return true;
+    }
+    return false;
+}
+static void device_forces(FF_Player *p,const FF_Arena *a) {
+    int x=p->x/FF_FP,y=p->y/FF_FP-16;
+    if(p->bounce_wait) --p->bounce_wait;
+    for(int i=0;i<a->device_count;++i) {
+        const FF_Device *d=&a->devices[i];
+        if(d->kind==FF_FAN_UP&&x>=d->x&&x<d->x+d->w&&y>d->y-110&&y<d->y+12) p->vy=clamp(p->vy-FF_FP/2,-5*FF_FP,8*FF_FP);
+        if(d->kind==FF_FAN_LEFT&&y>=d->y&&y<d->y+d->h&&x>d->x-110&&x<d->x+12) p->vx=clamp(p->vx-FF_FP/2,-6*FF_FP,6*FF_FP);
+        if(d->kind==FF_FAN_RIGHT&&y>=d->y&&y<d->y+d->h&&x>d->x-12&&x<d->x+110) p->vx=clamp(p->vx+FF_FP/2,-6*FF_FP,6*FF_FP);
+        if(p->bounce_wait||d->kind<FF_BOUNCE_UP||d->kind>FF_BOUNCE_RIGHT) continue;
+        if(x+12<d->x||x-12>=d->x+d->w||y+16<d->y||y-16>=d->y+d->h) continue;
+        if(d->kind==FF_BOUNCE_UP) p->vy=-9*FF_FP;
+        if(d->kind==FF_BOUNCE_DOWN) p->vy=8*FF_FP;
+        if(d->kind==FF_BOUNCE_LEFT) p->vx=-8*FF_FP;
+        if(d->kind==FF_BOUNCE_RIGHT) p->vx=8*FF_FP;
+        p->grounded=0;p->bounce_wait=15;
+    }
+}
+static void platform_carry(FF_Player *p,const FF_Arena *a,uint32_t tick) {
+    if(!p->grounded) return;
+    for(int i=0;i<a->device_count;++i) {
+        const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM) continue;
+        FF_Point old=ff_device_position(d,tick-1),now=ff_device_position(d,tick);
+        int x=p->x/FF_FP,y=p->y/FF_FP;
+        if(y==old.y&&x+10>=old.x&&x-10<old.x+d->w) {
+            int next=x+now.x-old.x;
+            if(!blocked(a,next,y)) p->x+=FF_FP*(now.x-old.x);
+        }
+    }
+}
+static void platform_land(FF_Player *p,const FF_Arena *a,uint32_t tick,int32_t old_y) {
+    if(p->vy<0) return;
+    for(int i=0;i<a->device_count;++i) {
+        const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM) continue;
+        FF_Point now=ff_device_position(d,tick);int x=p->x/FF_FP;
+        if(old_y<=now.y*FF_FP&&p->y>=now.y*FF_FP&&x+10>=now.x&&x-10<now.x+d->w) {
+            p->y=now.y*FF_FP;p->vy=0;p->grounded=1;
+        }
+    }
 }
 static void shoot(FF_Game *g,FF_Player *p,int owner) {
     if(p->weapon==FF_FISTS||p->ammo<=0||p->cooldown) return;
@@ -115,14 +178,24 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
         if(p->cooldown) --p->cooldown;
         if(p->punch_ticks) --p->punch_ticks;
         if(p->frozen) {--p->frozen;keys=0;}
+        if(p->swim_wait) --p->swim_wait;
+        bool wet=underwater(p,a);
+        platform_carry(p,a,g->tick);
         int horizontal=!!(keys&FF_RIGHT)-!!(keys&FF_LEFT);
         if(horizontal) {p->vx=clamp(p->vx+horizontal*FF_FP/4,-4*FF_FP,4*FF_FP);p->facing=horizontal;}
         else if(p->vx>0) p->vx=clamp(p->vx-FF_FP/8,0,4*FF_FP);
         else if(p->vx<0) p->vx=clamp(p->vx+FF_FP/8,-4*FF_FP,0);
         if((keys&FF_JUMP)&&!(p->previous&FF_JUMP)&&p->grounded) {p->vy=-7*FF_FP;p->grounded=0;}
-        p->vy=clamp(p->vy+FF_FP/4,-9*FF_FP,8*FF_FP);
+        p->vy=clamp(p->vy+(wet?FF_FP/10:FF_FP/4),-9*FF_FP,wet?2*FF_FP:8*FF_FP);
+        if(wet) {
+            p->vx=clamp(p->vx,-2*FF_FP,2*FF_FP);
+            if((keys&FF_JUMP)&&!p->swim_wait) {p->vy=-3*FF_FP;p->swim_wait=15;}
+        }
         if((keys&FF_FLY)&&p->fuel) {p->vy=clamp(p->vy-FF_FP/2,-5*FF_FP,8*FF_FP);--p->fuel;}
+        device_forces(p,a);
+        int32_t old_y=p->y;
         move_player(p,a);
+        platform_land(p,a,g->tick,old_y);
         if((keys&FF_PUNCH)&&!(p->previous&FF_PUNCH)&&!p->cooldown) {
             p->punch_ticks=8;p->cooldown=18;g->sounds|=FF_SOUND_PUNCH;
             FF_Player *other=&g->players[1-i];
@@ -202,7 +275,7 @@ uint32_t ff_game_hash(const FF_Game *g) {
     for(int i=0;i<2;++i) {const FF_Player *p=&g->players[i];
         HASH(p->x);HASH(p->y);HASH(p->vx);HASH(p->vy);HASH(p->facing);HASH(p->health);HASH(p->lives);HASH(p->score);
         HASH(p->fuel);HASH(p->weapon);HASH(p->ammo);HASH(p->grounded);HASH(p->cooldown);HASH(p->punch_ticks);
-        HASH(p->invulnerable);HASH(p->frozen);HASH(p->respawn);HASH(p->previous);
+        HASH(p->invulnerable);HASH(p->frozen);HASH(p->respawn);HASH(p->previous);HASH(p->swim_wait);HASH(p->bounce_wait);
     }
     for(int i=0;i<FF_SHOTS;++i) {const FF_Shot *s=&g->shots[i];
         HASH(s->x);HASH(s->y);HASH(s->vx);HASH(s->vy);HASH(s->kind);HASH(s->owner);HASH(s->life);

@@ -29,14 +29,17 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
     char line[1024]; int version=0, lines=0; bool ok=true;
     while (fgets(line,sizeof(line),f)) {
         ++lines; int n[10]; unsigned c[2]; char tail;
-        if (!strchr(line,'\n') || lines>20000) { ok=false; break; }
+        if (!strchr(line,'\n') || lines>60000) { ok=false; break; }
         if (lines==1) { ok=sscanf(line,"FFARENA %d %c",&version,&tail)==1 && version==1; if (!ok) break; continue; }
         if (line[0]=='#' || line[0]=='\n') continue;
         if (sscanf(line,"tile %d %d %d %c",&n[0],&n[1],&n[2],&tail)==3) {
             if(n[0]<0||n[0]>=FF_COLS||n[1]<0||n[1]>=FF_ROWS||n[2]<1||n[2]>2) {ok=false;break;}
             a->tiles[n[1]][n[0]]=(uint8_t)n[2];
+        } else if (sscanf(line,"mask %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&tail)==4) {
+            if(n[0]<0||n[0]>=FF_H||n[1]<0||n[1]>=FF_W||n[2]<1||n[2]>FF_W-n[1]||n[3]<1||n[3]>2) {ok=false;break;}
+            memset(&a->mask[n[0]][n[1]],n[3],(size_t)n[2]);
         } else if (sscanf(line,"spawn %d %d %c",&n[0],&n[1],&tail)==2) {
-            if(a->spawn_count==FF_SPAWNS||n[0]<12||n[0]>788||n[1]<40||n[1]>560) {ok=false;break;}
+            if(a->spawn_count==FF_SPAWNS||n[0]<12||n[0]>788||n[1]<32||n[1]>560) {ok=false;break;}
             a->spawns[a->spawn_count++]=(FF_Point){n[0],n[1]};
         } else if (sscanf(line,"layer %d %d %d %d %d %d %x %x %c",&n[0],&n[1],&n[2],&n[3],&n[4],&n[5],&c[0],&c[1],&tail)==8) {
             if(a->layer_count==FF_LAYERS||n[0]<-1||n[0]>=FF_IMAGES||n[1]<-32768||n[1]>32767||n[2]<-32768||n[2]>32767||n[3]<1||n[3]>4096||n[4]<1||n[4]>4096||n[5]<0||n[5]>4) {ok=false;break;}
@@ -52,6 +55,9 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
             if(n[0]<0||n[0]>5||n[1]<0||n[1]>=FF_IMAGES) {ok=false;break;} a->pickup_images[n[0]]=n[1];
         } else if (sscanf(line,"shot %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<1||n[0]>3||n[1]<0||n[1]>=FF_IMAGES) {ok=false;break;} a->shot_images[n[0]]=n[1];
+        } else if (sscanf(line,"device %d %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&n[5],&tail)==6) {
+            if(a->device_count==FF_DEVICES||n[0]<1||n[0]>9||n[1]<-4096||n[1]>4096||n[2]<-4096||n[2]>4096||n[3]<1||n[3]>1024||n[4]<1||n[4]>1024||n[5]<0||n[5]>=FF_IMAGES) {ok=false;break;}
+            a->devices[a->device_count++]=(FF_Device){n[0],n[1],n[2],n[3],n[4],n[5]};
         } else if (sscanf(line,"sound %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<0||n[0]>6||n[1]<0||n[1]>4096) {ok=false;break;} a->sound_ids[n[0]]=n[1];
         } else {ok=false;break;}

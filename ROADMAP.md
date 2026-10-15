@@ -137,6 +137,8 @@ Work in big steps: one session should move a whole milestone item forward, not o
 ## M1 — One arena 1v1
 Done when: one arena plays 1v1 on keyboard + two controllers and feels like the original.
 Aim for this in two or three large sessions.
+- [x] Native fixed-tick 1v1 prototype: movement, melee/three weapons, pickups,
+      lives/respawns/wins, keyboard/two controller seats, local original arena/art/audio.
 - [ ] SDL2 engine plays one arena 1 vs 1 like the original (same jumps, trajectories, weapons),
       fixed tick, deterministic, keyboard + two controllers.
 

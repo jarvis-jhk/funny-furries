@@ -15,6 +15,10 @@ jobs:
         run: cmake --build build/native -j2
       - name: Test deterministic matches, controllers and fault delivery
         run: ctest --test-dir build/native --output-on-failure
+      - name: Import synthetic local assets and run two identical matches
+        env:
+          FF_NATIVE_GAME: ${{ github.workspace }}/build/native/funny-furries
+        run: python3 -m unittest discover -s tests -p test_arena_import.py -v
       - name: Run the actual renderer and game loop
         env:
           SDL_VIDEODRIVER: dummy

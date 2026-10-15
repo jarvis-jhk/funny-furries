@@ -9,7 +9,7 @@ int main(void) {
     FF_Input input;ff_input_init(&input);uint8_t keys[2];SDL_Event e;
     SDL_zero(e);e.type=SDL_KEYDOWN;e.key.keysym.scancode=SDL_SCANCODE_F;ff_input_event(&input,&e);
     e.key.keysym.scancode=SDL_SCANCODE_UP;ff_input_event(&input,&e);ff_input_read(&input,keys);
-    CHECK(keys[0]==FF_LEFT);CHECK(keys[1]==FF_JUMP);
+    CHECK(keys[0]==FF_JUMP);CHECK(keys[1]==FF_LEFT);
     SDL_zero(e);e.type=SDL_WINDOWEVENT;e.window.event=SDL_WINDOWEVENT_FOCUS_LOST;ff_input_event(&input,&e);ff_input_read(&input,keys);CHECK(!keys[0]&&!keys[1]);
     e.window.event=SDL_WINDOWEVENT_FOCUS_GAINED;ff_input_event(&input,&e);ff_input_read(&input,keys);CHECK(!keys[0]&&!keys[1]);
     SDL_VirtualJoystickDesc desc;SDL_zero(desc);desc.version=SDL_VIRTUAL_JOYSTICK_DESC_VERSION;

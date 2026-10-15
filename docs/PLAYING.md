@@ -41,3 +41,45 @@ No endpoint or identity is compiled into the game. Invalid options/imports are u
 errors and are not reported. Delivery is best-effort and needs `curl` on PATH.
 The public ntfy/issue bridge and Windows/Deck packaging belong to M2; this prototype
 has only been built/run on Linux.
+
+## Play the first original arena locally
+
+First create the research bundle from your own decompiled CnC project, using the
+[exporter instructions](PROJECT-BUNDLE.md). Then import that bundle:
+
+```
+python3 tools/import_arena.py --bundle export/<source-sha256>/research-v1
+build/native/funny-furries --data export/arena-1
+```
+
+The importer defaults to storage frame 3 (the original menu's level 1), with
+512 scenery layers, multipart red/blue animations, all three weapon/pickup
+sprites and seven sound effects. Original PNG/WAV files are copied into an atomic,
+immutable local directory. Repeating the command verifies identical contents;
+changed output is refused. Supply `--output export/another-name` after changing
+the importer. Input files, filenames and hashes are checked before publication.
+Every original artifact remains ignored. Nothing is downloaded, bundled in git,
+or redistributed. `--frame` can select another 800x600 frame for research; only
+frame 3 has been exercised as the M1 arena.
+
+Local global-flagged backdrop headers have stale artwork handles. The importer
+uses header word +40 to select the global header and requires its name/type to
+match; a mismatch is refused. This fixes the visibly incorrect local-header
+scenery observed during development. It is specific to the supported project,
+not a general global-object runtime resolver.
+
+Collision masks use exported alpha for named terrain (snow, metal and Ice).
+Decorative trees, brick backgrounds, lights and water do not block players.
+This is an explicit engine approximation, not a newly proven file-format meaning.
+Nine available placement/Start candidates are filtered against this mask. The
+arena also imports water surfaces, fans, directional bouncers and two moving
+platforms from active placements/artwork. Rendering and simulation share platform
+positions; platform carry, water swimming, fan force and bounces are deterministic.
+Platform range/speed, force volumes and swim/bounce constants are provisional.
+Bomb enemies and original `up` collision-marker animation selection are not ported.
+
+The original Windows game was actually opened under Wine and level 1 selected for
+visual comparison. Its scenery and the prototype agree after linking globals;
+our HUD replaces the lower scoreboard. This observation does not establish equal
+jump arcs, movement acceleration, weapon timing, moving-platform paths or physical
+controller feel. Those remain M1 acceptance work, so the roadmap item stays started by Sol.

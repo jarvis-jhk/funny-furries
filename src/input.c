@@ -15,14 +15,14 @@ void ff_input_close(FF_Input *in) {
     memset(in,0,sizeof(*in));
 }
 static uint8_t key_binding(SDL_Scancode key,int *player) {
-    *player=0;
+    *player=1;
     switch(key) {
     case SDL_SCANCODE_F:return FF_LEFT;case SDL_SCANCODE_H:return FF_RIGHT;
     case SDL_SCANCODE_T:return FF_JUMP;case SDL_SCANCODE_Z:return FF_PUNCH;
     case SDL_SCANCODE_A:return FF_FIRE;case SDL_SCANCODE_Q:return FF_FLY;
     default:break;
     }
-    *player=1;
+    *player=0;
     switch(key) {
     case SDL_SCANCODE_LEFT:return FF_LEFT;case SDL_SCANCODE_RIGHT:return FF_RIGHT;
     case SDL_SCANCODE_UP:return FF_JUMP;case SDL_SCANCODE_RCTRL:case SDL_SCANCODE_LCTRL:return FF_PUNCH;
