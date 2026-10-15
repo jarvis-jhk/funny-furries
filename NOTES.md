@@ -5,8 +5,11 @@ no open PRs/issues or continuation. Implemented deterministic homing rockets,
 wind steering and heading rendering from original global rows 362–369, plus
 vertical/diagonal collision substeps without fractional displacement loss.
 One native direction step/tick remains a turn-rate approximation. Four
-Debug+UBSan suites and synthetic importer/renderer checks pass. Work continues
-in this session on persistent flame and original movement/device response;
+Debug+UBSan suites and synthetic importer/renderer checks pass. Step 2 adds persistent terrain fire, six-tick burning gates, original
+ice/melee/blast impulses and removes the invented ice control lock. Strong
+impulses now survive the run cap. Four Debug+UBSan suites pass after correcting
+new trajectory fixtures and a run-cap equality oscillation caught by the existing
+jump/run test. Work continues on original collision/device response;
 M1 is not complete.
 
 **Current — 2026-10-15, M1 (`t_mv96vru98gz0q`, Sol):** three tested gameplay

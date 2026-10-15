@@ -112,3 +112,13 @@ hit; frame rows 18/19 supply speed 57 and cooldown 50. The native turn currently
 uses one direction step per tick. This is an event-based approximation pending
 measured original turn-rate/speed comparison. Vertical and diagonal shots use
 pixel substeps, including one-pixel walls, and preserve fractional displacement.
+
+The flamethrower leaves falling fire that stops on terrain and burns for about
+250 ticks, then fades. Contact costs four health every six ticks, shared across
+all overlapping flames. Settled fire can also burn its owner. Ice deals six
+health and pushes back/up; it does not disable the victim's controls. Fists add
+22/8 horizontal and 12/8 upward velocity; ice adds 6/8 and 7/8; explosions push
+50/8 away on both axes. External impulses decay instead of being immediately
+clamped to running speed. These changes follow frame rows 12–25/40–43 and global
+rows 373–396. Fire shape, fall motion and fade duration are approximations; its
+original 250 counter and six-tick damage gate are retained.

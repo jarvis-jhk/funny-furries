@@ -115,7 +115,6 @@ static void draw_player(App *app,const FF_Arena *a,const FF_Game *g,int i) {
         rect(app,x-14,y-5,11,5);rect(app,x+3,y-5,11,5);
         if(p->punch_ticks) rect(app,x+(dir?-30:12),y-22,18,10);
     }
-    if(p->frozen) {color(app,150,240,255);SDL_Rect r={x-14,y-34,28,34};SDL_RenderDrawRect(app->renderer,&r);}
 }
 static void hud(App *app,const FF_Game *g) {
     color(app,12,20,33);rect(app,0,560,800,40);
@@ -154,6 +153,7 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
     }
     for(int i=0;i<2;++i) draw_player(app,a,g,i);
     for(int i=0;i<FF_SHOTS;++i) {const FF_Shot *s=&g->shots[i];if(!s->life) continue;
+        if(s->kind==FF_FLAME&&s->life<=20&&s->life%4<2) continue;
         int id=a->shot_images[s->kind];
         if(id>=0) {
             Image *im=load_image(app,id);

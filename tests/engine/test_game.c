@@ -41,7 +41,7 @@ static void melee_round(void) {
 static void weapons(void) {
     FF_Game g;clean(&g);g.players[0].x=300*FF_FP;g.players[1].x=360*FF_FP;g.players[0].y=g.players[1].y=560*FF_FP;
     g.players[0].weapon=FF_ICE;g.players[0].ammo=1;
-    tick(&g,FF_FIRE,0,8);CHECK(g.players[1].health==94);CHECK(g.players[1].frozen>0);CHECK(g.players[0].ammo==0);CHECK(g.players[0].weapon==FF_FISTS);
+    tick(&g,FF_FIRE,0,8);CHECK(g.players[1].health==94);CHECK(g.players[0].ammo==0);CHECK(g.players[0].weapon==FF_FISTS);
     clean(&g);g.players[0].x=300*FF_FP;g.players[1].x=360*FF_FP;g.players[0].y=g.players[1].y=560*FF_FP;
     g.players[0].weapon=FF_ROCKET;g.players[0].ammo=1;tick(&g,FF_FIRE,0,12);CHECK(g.players[1].health==84);
     /* Frame-3 shooting rows set eight ticks for ice/flame and fifty for rockets. */
@@ -75,14 +75,39 @@ static void homing_rockets(void) {
     clean(&g);arena.imported=true;
     memset(&arena.mask[200][80],FF_SOLID,100);
     g.players[0].x=600*FF_FP;g.players[1].respawn=60;
-    g.shots[0]=(FF_Shot){120*FF_FP,206*FF_FP,0,-57*FF_FP/8,FF_ROCKET,0,100,8};
+    g.shots[0]=(FF_Shot){120*FF_FP,206*FF_FP,0,-57*FF_FP/8,FF_ROCKET,0,100,8,0};
     tick(&g,0,0,1);CHECK(!g.shots[0].life&&g.blasts[0].life);
     CHECK(g.blasts[0].y>=200*FF_FP&&g.blasts[0].y<201*FF_FP);
     /* Substeps preserve the exact displacement of a fractional-speed shot. */
     clean(&g);g.players[1].respawn=60;
-    g.shots[0]=(FF_Shot){300*FF_FP,100*FF_FP,100*FF_FP/8,0,FF_ICE,0,100,0};
+    g.shots[0]=(FF_Shot){300*FF_FP,100*FF_FP,100*FF_FP/8,0,FF_ICE,0,100,0,0};
     tick(&g,0,0,1);CHECK(g.shots[0].x==300*FF_FP+100*FF_FP/8);
     FF_Game replay=g;replay.shots[0].direction=1;CHECK(ff_game_hash(&g)!=ff_game_hash(&replay));
+}
+static void persistent_flame_and_impulses(void) {
+    FF_Game g;clean(&g);
+    for(int i=0;i<2;++i) {g.players[i].x=(300+80*i)*FF_FP;g.players[i].y=560*FF_FP;}
+    g.players[0].weapon=FF_FLAME;g.players[0].ammo=1;
+    tick(&g,FF_FIRE,0,25);
+    CHECK(g.shots[0].life>200&&g.shots[0].settled);
+    CHECK(g.players[1].health<=88&&g.players[0].health==100);
+    /* A fire patch hurts its owner too; overlapping patches share a six-tick gate. */
+    clean(&g);g.players[0].x=300*FF_FP;g.players[0].y=560*FF_FP;
+    g.shots[0]=(FF_Shot){300*FF_FP,559*FF_FP,0,0,FF_FLAME,0,270,0,1};
+    g.shots[1]=g.shots[0];tick(&g,0,0,1);CHECK(g.players[0].health==96);
+    tick(&g,0,0,5);CHECK(g.players[0].health==96);
+    tick(&g,0,0,1);CHECK(g.players[0].health==92);
+    g.shots[0].life=g.shots[1].life=20;tick(&g,0,0,25);
+    CHECK(!g.shots[0].life&&g.players[0].health==92);
+    /* Ice knocks back and up, with controls available on the very next tick. */
+    clean(&g);g.players[0].x=300*FF_FP;g.players[1].x=340*FF_FP;
+    g.players[0].y=g.players[1].y=560*FF_FP;
+    g.players[0].weapon=FF_ICE;g.players[0].ammo=1;
+    tick(&g,FF_FIRE,0,1);CHECK(g.players[1].health==94&&g.players[1].vy<0);
+    tick(&g,0,FF_LEFT,1);CHECK(g.players[1].facing==-1);
+    /* External impulses decay instead of vanishing at the run speed cap. */
+    clean(&g);g.players[0].x=300*FF_FP;g.players[0].y=400*FF_FP;
+    g.players[0].vx=10*FF_FP;tick(&g,FF_RIGHT,0,1);CHECK(g.players[0].vx>9*FF_FP);
 }
 static void bonuses(void) {
     FF_Game g;clean(&g);FF_Player *p=&g.players[0];p->y=560*FF_FP;p->health=80;
@@ -221,4 +246,4 @@ static void determinism(void) {
     b.players[0].previous^=FF_JUMP;CHECK(ff_game_hash(&a)!=ff_game_hash(&b));
     printf("replay=%08x\n",ff_game_hash(&a));
 }
-int main(void) {physics();melee_round();weapons();homing_rockets();bonuses();arena_devices();marker_collision_and_paths();hazards_and_blasts();reference_jump();wind_and_bonus_regions();determinism();printf("%u game checks passed\n",checks);return 0;}
+int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();hazards_and_blasts();reference_jump();wind_and_bonus_regions();determinism();printf("%u game checks passed\n",checks);return 0;}
