@@ -1,89 +1,44 @@
 # Notes
 
-**Current — 2026-10-15, M1 (`t_mv95gejy6khqq`, Sol):** first native playable
-prototype, direct main convention. Step 1 `45545de`: C11/SDL2 deterministic 50 Hz
-1v1, keyboard/two controller seats, three weapons, melee, pickups, lives/respawn/
-wins, HUD and private opt-in fault courier. Both initial CI workflows green
-(native 38692895384, exporter 38692895418). Step 2 adds atomic local original-arena
-import, animation/audio, per-pixel foreground mask, water/swimming, fans, bouncers,
-moving platforms/carry and cached scenery rendering. See `docs/PLAYING.md`.
-Original content stays ignored; no release or hardware claim.
+**Current — 2026-10-15, M1 (`t_mv96vru98gz0q`, Sol):** three tested gameplay
+steps pushed directly to main: `13a99d8` collision markers/platform paths,
+`0bbc9f3` bomb traps/explosions/reference movement, `faa2d2c` wind regions/bonuses.
+Storage frame 3 now imports 512 layers, 58 one-way surfaces (30 `up`, 28 active
+ice), 16 initial/Start candidates, 38 devices, 24 Bonus points and eight sounds.
+`up` uses placement +24 direction and overlapping start `Changer`; platform
+turn points come from `reverse` at one pixel/tick. Visible art and forces are
+separate: hidden Wind L/R/up rectangles are never drawn. See `docs/PLAYING.md`.
 
-Local final validation: Debug+UBSan four CTests pass (simulation/replay, bounded
-arena format, two real SDL virtual pads/hotplug/focus, local HTTP fault courier).
-485 Python cases: 424 pass/61 optional fixtures skipped; all ten new import
-cases also pass with the original bundle and real native renderer enabled.
-A 3000-tick original-arena offscreen run succeeds, checksum `8b5066e8`.
-Actual agent TypeScript compiler passed before both code commits. Source
-`6e11b00` pushed main; both exact-source CI workflows are green: native
-[38694987076](https://github.com/jarvis-jhk/funny-furries/actions/runs/38694987076)
-and exporter [38694987141](https://github.com/jarvis-jhk/funny-furries/actions/runs/38694987141).
-Downloaded job logs verify actual source output, four native suites, synthetic
-import/renderer, smoke and 485 Python cases. No unfinished CI or continuation;
-no new schedule. Evidence: agent state
-`data/furries/arena-prototype/` (never publish original screenshots/assets).
+Three bomb types spawn on seeded trap timing, react to punches/projectiles and
+chain explosions. Contact/blast each deal eight health; blasts hit each player
+once and use imported animation/audio. Imported pickups now use the global
+bonus timer/Bonus points; practice keeps immediate pickups. Original shooting
+rows supply 8/50/8 cooldowns and 100/57/40 speed settings. Wine level-1 jump
+recordings measured about 64 px of rise; native now gives 63.25 px, run cap25/8.
+This is spatial evidence, not equal original frame timing or completed feel.
 
-Final visual review also corrected the moving platform's render sprite: `mph` is
-the hidden red collision helper; its `mph 2` partner supplies the striped visible
-artwork. A focused synthetic test covers that distinction. Ten importer tests and
-the 3000-tick original-arena run pass after this correction; simulation checksum
-is unchanged. Correction `e35356d` pushed main; native
-[38695446644](https://github.com/jarvis-jhk/funny-furries/actions/runs/38695446644)
-and exporter [38695446777](https://github.com/jarvis-jhk/funny-furries/actions/runs/38695446777)
-both green on that exact source. Actual git output and test results checked in
-downloaded logs: four native suites, ten importer cases (one original skipped in
-CI), 486 Python cases (425 pass/61 optional skipped), practice renderer smoke.
-All ten importer cases ran locally with original/native enabled. No in-flight
-implementation or CI continuation; this is the session checkpoint, not M1 completion.
+Validation on source `faa2d2cf75436767f97b2c800a864cd4e860e555`: all four
+Debug+UBSan CTests, all 11 importer cases with original/native enabled, and an
+actual imported 10000-tick renderer run (`99d17fdc`) pass. Agent tsc passed before
+every code commit. Exact-source CI native
+[38698187598](https://github.com/jarvis-jhk/funny-furries/actions/runs/38698187598)
+and exporter
+[38698187624](https://github.com/jarvis-jhk/funny-furries/actions/runs/38698187624)
+both green; downloaded logs verify actual source output, native suites, hidden
+wind synthetic renderer, practice smoke and 487 Python cases (426 pass/61 optional
+skip). The local full Python run before the final wind step passed 427/487 with
+native enabled (60 skips); final CI covers that step. No in-flight implementation,
+CI continuation, release or new schedule. State/logs: agent
+`data/furries/arena-fidelity/`; prior prototype evidence remains untouched.
 
-**Next:** keep working on `furries-1v1-arena` (started/sol); the combined goal is
-set. Level 1 is storage frame 3: 512 scenery layers, nine spawn candidates,
-34 devices, seven sounds. Global-flagged local backdrop headers have stale image
-handles: select global header via +40 and require name/type agreement. Wine
-actually ran the original and level 1 was visually compared; blue is P1/first
-controller/arrows, red P2/second controller/F-H. Movement, collision terrain
-classification, weapon timings, fan/swim/bounce constants and platform paths are
-provisional. Next session should calibrate these while playing the original,
-replace the named-terrain approximation with its `up`/collision-marker behaviour,
-and add bomb hazards; avoid new byte-level exporter proofs. Physical two-pad feel
-still needs acceptance before marking M1 done. Start with `docs/PLAYING.md`; local
-import for the current code is `export/arena-1-final2`, built by the importer.
-`export/run-local.sh` launches it with the private fault endpoint configured;
-keep that ignored launcher private too.
-
-**2026-10-15 follow-up (`t_mv96vru98gz0q`, Sol):** clean/fetched main, no open
-PRs/issues or in-flight work. First tested step replaces named solid-snow collision
-with backdrop obstacle bits plus hidden `up`/active ice alpha surfaces. Placement
-+24 directions and start `Changer` overlaps select long/short markers. Platform
-paths now use the surrounding original `reverse` markers at 1 pixel/tick, rather
-than an arbitrary 128-pixel/2-pixel triangle; carry is shared with rendering.
-Four Debug+UBSan CTests pass; all 11 importer tests pass with original/native
-renderer enabled; actual agent tsc passes. Local import `export/arena-markers`
-retains 512 layers, 16 initial/Start candidates and 34 devices. Imported
-3000-tick renderer smoke passes (hash `4e6a455b`). Next gameplay step continues
-in this session; final source CI will be checked after those changes.
-
-Second tested step adds falling/bouncing, walking and flying bomb traps from the
-original Bonus points, seeded trap scheduling, punch/projectile detonation, chain
-reactions, visible animated blasts and the original eighth sound. Contact/blast
-both deal eight health, with independent once-per-blast hits for each player.
-Wine reference captures measured ~64 px of jump rise; native now gives 63.25 px,
-with 25/8 run cap. Stored shot settings/cooldowns replace initial guesses. Hazard
-motion/lifetime/blast shapes and original time/steering remain provisional.
-Four Debug+UBSan suites, all 11 original/native importer cases, full 487-case Python
-suite (427 pass/60 optional skip with native renderer enabled) and actual agent tsc pass. The original import
-`export/arena-hazards` loads all artwork/audio; 5000-tick renderer smoke passes on
-the pre-cooldown revision (`11402a4b`). Follow-up final smoke/CI pending this session.
-
-Third tested step imports the four hidden Wind L/R/up force regions (38 total
-devices); no hidden artwork is rendered or required as a native texture. The
-original-data renderer caught that texture gate initially; the synthetic renderer
-fixture now includes a hidden wind volume and exercises it in CI. Imported pickups
-now follow seeded global bonus timing at the 24 original Bonus points instead of
-appearing at player spawns or using fixed per-item respawns. Four Debug+UBSan suites
-and all 11 original/native importer cases pass; final imported 10000-tick smoke
-passes (`99d17fdc`) and actual agent tsc passes before commit. Current local import:
-`export/arena-wind`. Final source CI is checked below before session end.
+**Next:** `furries-1v1-arena` stays started/sol. Compare original rocket steering,
+actual weapon/device response, collision bodies and timing during play; then
+physical two-pad acceptance. Bomb motion/lifetimes/blast shapes, swim/bounce
+forces and original RNG/selection order remain approximations. Do not mark M1
+done on current evidence. Local import `export/arena-wind`; ignored private
+`export/run-local.sh` uses it with fault reporting. Keep original assets,
+recordings and that private launcher out of git/releases. This is a clean session
+checkpoint, not a request to add more byte-level exporter proofs.
 
 **2026-10-14 — direction change (Jan, t_mv8apsn318lf2j):** the M0 exporter is closed. ~60 sessions
 went into proving single Click & Create evaluator handlers byte by byte; for a game this simple that

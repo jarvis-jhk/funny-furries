@@ -25,7 +25,8 @@ unplugging one preserves the other and a replacement takes the free seat.
 Combat supports fists, ice, flame, rockets, health/fuel pickups, finite ammo,
 three lives, invulnerable respawns, match wins and automatic new rounds. Yellow
 practice pickups are labelled I/F/R/H/J. Health/damage and ammo quantities follow
-the original help file; movement constants and timings still need acceptance. Frame-3 shooting rows now
+the original help file; movement constants and timings still need acceptance.
+Frame-3 shooting rows now
 supply ice/flame cooldowns of eight ticks and rocket cooldowns of fifty; shot
 speeds use their stored 100/57/40 speed settings at the engine's 1/8 scale. The
 practice level is ours and is not an original arena.
@@ -87,7 +88,8 @@ still need play comparison. Bombs now spawn from original Bonus points using a s
 trap timer: falling/bouncing, walking and flying variants can be punched or shot,
 and explosions trigger chains. Contact and blast each deal eight health, with one
 blast hit per player, animated original explosion art and its eighth sound effect.
-Hazard movement, lifetimes and explosion collision shapes remain approximations. Imported bonuses use those same 24 original Bonus points,
+Hazard movement, lifetimes and explosion collision shapes remain approximations.
+Imported bonuses use those same 24 original Bonus points,
 with an initial 300..599-tick delay and later 100..999-tick intervals; traps use
 400..799 initially, then 200..1099. Practice still begins with immediate pickups.
 These ranges follow the readable event constants; RNG/selection order is ours.
@@ -96,7 +98,8 @@ The original Windows game was actually opened under Wine and level 1 selected fo
 visual comparison. Its scenery and the prototype agree after linking globals;
 our HUD replaces the lower scoreboard. This observation does not establish equal
 jump arcs, movement acceleration, weapon timing, moving-platform paths or physical
-controller feel. The follow-up Wine recording measured about 64 pixels of jump rise; the native
+controller feel. The follow-up Wine recording measured about 64 pixels of jump
+rise; the native
 jump now rises 63.25 pixels (44/8 initial velocity, 2/8 gravity), and running caps
 at 25/8 pixels/tick. This is a spatial comparison, not a frame-exact timing proof.
 Rocket steering, fan/swim/bounce response, collision bodies and physical controller
