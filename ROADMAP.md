@@ -162,5 +162,16 @@ in sync.
 - [x] Own rollback (no GGPO/GekkoNet needed: the simulation is one plain struct), join code, online
       lobby, STUN + ntfy hole punching, LAN broadcast, desync checksums. Shipped v0.3.0 prerelease
       2026-10-16; play across two real home networks is feedback.
-- [ ] Relay fallback for carrier-grade NAT. Needs a public UDP relay; JARVIS's VPS is not usable
-      (no public UDP, and Jan's domains must not appear in releases). Open until there is demand.
+- [ ] Warpzone integration (combined roadmap `furries-warpzone-online`): move the online transport
+      onto Warpzone (github.com/jarvis-jhk/warpzone, docs/integration.md) instead of building our own
+      relay. Keep our rollback/netplay logic; swap `net.c` sockets/STUN/ntfy for `wz_send`/`wz_broadcast`
+      (star around the host, as now). Tier 1: `--warpzone-join <room>` / `--warpzone-host` through
+      `wz_handle_launch`. Tier 2: username prompt, host screen (public/unlisted, open/code/approve,
+      presets 1v1/ffa/2v2, metadata arena/mode), room list, code entry, knocks, direct/relayed + RTT,
+      `wz_set_closed` at match start. Tier 3: ranked queues 1v1/ffa/2v2 with `wz_report_match`
+      placements + `ff_game_hash` final-state hash; mod sync (categories arena/skin/weapon/sound) once
+      mods exist. The relay fallback for carrier-grade NAT comes with it. `warpzone.virtualtabletop.io`
+      is the one Jan domain allowed in this repo. Our own join codes stay as the no-server fallback.
+      Prerequisite: a libwarpzone release (none published on 2026-10-16) or building warpzone-capi
+      from source in CI for Linux and MinGW. Descriptor `games/funny-furries.toml` lives in the
+      warpzone repo (fixed in jarvis-jhk/warpzone#1); raise `tier` there as each tier ships.

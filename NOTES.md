@@ -1,6 +1,18 @@
 # Notes
 
 
+**2026-10-16, Warpzone handoff (`t_mvavxt8f24wdj9`, report API from the warpzone laptop worker):**
+Warpzone (jarvis-jhk/warpzone, lane 🌀 warpzone) is the shared online layer for all JARVIS games.
+Descriptor `games/funny-furries.toml` checked against v0.3.0: asset names, exec paths and SHA256SUMS
+right; `import_args` `--import` was ambiguous to tools/launcher.py (argparse prefix of --import-copy/
+--import-only, exits 2) → `--import-copy {path}`; `present` = `selected.json` in the data dir (Linux
+and Windows); known ZIP/CCA fingerprints and the Kliktopia page added. PR jarvis-jhk/warpzone#1.
+The game has no updater of its own, so `.warpzone-managed` needs nothing until one exists — an
+updater added later must stay silent when that file is in the install dir. The integration itself
+is ROADMAP M3 / combined item `furries-warpzone-online` (open, last in the list). No libwarpzone
+release exists yet. Rule from the handoff: warpzone.virtualtabletop.io is the only Jan domain
+allowed in this repo; no chat or free-text player content.
+
 **Current — 2026-10-16, v0.3.0 online prerelease (`t_mvattm341e3ere`, Opus):**
 https://github.com/jarvis-jhk/funny-furries/releases/tag/v0.3.0 (tag = `6200b4e`), URL sent to Jan;
 item `furries-rollback-online` done. CI on 6200b4e: native 38892396286 (Linux, Windows, Linux/Windows
