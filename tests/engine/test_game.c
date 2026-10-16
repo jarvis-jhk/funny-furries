@@ -5,7 +5,7 @@
 #define CHECK(c) do {if(!(c)) {fprintf(stderr,"%s:%d: %s\n",__FILE__,__LINE__,#c);exit(1);} ++checks;} while(0)
 static unsigned checks;
 static FF_Arena arena;
-static void tick(FF_Game *g,int a,int b,int n) {uint8_t in[2]={(uint8_t)a,(uint8_t)b};while(n--) ff_game_tick(g,&arena,in);}
+static void tick(FF_Game *g,int a,int b,int n) {uint8_t in[FF_PLAYERS]={(uint8_t)a,(uint8_t)b};while(n--) ff_game_tick(g,&arena,in);}
 static void clean(FF_Game *g) {ff_arena_practice(&arena);arena.bonus_count=0;ff_game_init(g,&arena,1);memset(g->pickups,0,sizeof(g->pickups));for(int i=0;i<2;++i) g->players[i].invulnerable=0;}
 static void physics(void) {
     FF_Game g;clean(&g);tick(&g,0,0,100);
@@ -290,11 +290,68 @@ static void wind_and_bonus_regions(void) {
     /* Consumed imported bonuses wait for the global timer, not a per-item respawn. */
     g.pickup_wait=500;tick(&g,0,0,301);CHECK(!g.pickups[0].kind);
 }
+static void place(FF_Game *g,int i,int x) {FF_Player *p=&g->players[i];p->x=x*FF_FP;p->y=560*FF_FP;p->vx=p->vy=0;p->invulnerable=0;p->grounded=1;}
+static void tick4(FF_Game *g,const uint8_t in[FF_PLAYERS],int n) {while(n--) ff_game_tick(g,&arena,in);}
+static void four_players(void) {
+    FF_Game g;ff_arena_practice(&arena);arena.bonus_count=0;
+    /* Free for all: seats join independently, an eliminated furry stays out. */
+    ff_game_setup(&g,&arena,5,15,FF_FFA);memset(g.pickups,0,sizeof(g.pickups));
+    for(int i=0;i<4;++i) {CHECK(g.players[i].active);CHECK(g.players[i].lives==3);CHECK(g.players[i].team==i);}
+    CHECK(g.players[2].x==320*FF_FP&&g.players[3].x==480*FF_FP);
+    place(&g,0,300);place(&g,1,330);place(&g,2,100);place(&g,3,700);
+    g.players[0].facing=1;g.players[1].health=12;g.players[1].lives=1;
+    uint8_t punch[FF_PLAYERS]={FF_PUNCH};tick4(&g,punch,1);
+    CHECK(!g.players[1].lives);CHECK(g.winner==-1);
+    uint8_t idle[FF_PLAYERS]={0};tick4(&g,idle,200);
+    CHECK(!g.players[1].lives);CHECK(g.winner==-1);
+    /* Out players are neither hit nor targeted, and do not move. */
+    int32_t out_x=g.players[1].x;place(&g,0,300);g.players[0].facing=1;
+    g.players[1].x=out_x;tick4(&g,punch,1);CHECK(g.players[1].health==0||g.players[1].x==out_x);
+    g.players[2].health=1;g.players[2].lives=1;g.players[3].health=1;g.players[3].lives=1;
+    place(&g,0,300);place(&g,2,330);place(&g,3,700);g.players[0].facing=1;g.players[0].cooldown=0;
+    tick4(&g,punch,1);CHECK(g.winner==-1);
+    place(&g,0,670);place(&g,3,700);g.players[0].facing=1;g.players[0].cooldown=0;
+    tick4(&g,punch,1);CHECK(g.winner==0);CHECK(g.players[0].score==1);
+    for(int i=1;i<4;++i) CHECK(g.players[i].score==0);
+    tick4(&g,idle,150);CHECK(g.winner==-1);for(int i=0;i<4;++i) CHECK(g.players[i].lives==3&&g.players[i].active);
+    CHECK(g.players[0].score==1);
+    /* Three seats: the empty seat never plays, is never hit and never wins. */
+    ff_game_setup(&g,&arena,5,1|4|8,FF_FFA);memset(g.pickups,0,sizeof(g.pickups));
+    CHECK(!g.players[1].active&&!g.players[1].lives);
+    uint8_t move[FF_PLAYERS]={0,FF_RIGHT};int32_t idle_x=g.players[1].x;tick4(&g,move,10);CHECK(g.players[1].x==idle_x);
+    /* 2v2: even seats against odd seats, no friendly fists or shots. */
+    ff_game_setup(&g,&arena,5,15,FF_TEAMS);memset(g.pickups,0,sizeof(g.pickups));
+    CHECK(g.players[0].team==0&&g.players[2].team==0&&g.players[1].team==1&&g.players[3].team==1);
+    place(&g,0,300);place(&g,2,330);place(&g,1,100);place(&g,3,700);g.players[0].facing=1;
+    tick4(&g,punch,1);CHECK(g.players[2].health==100);
+    place(&g,0,300);place(&g,2,360);g.players[0].weapon=FF_ICE;g.players[0].ammo=1;
+    uint8_t fire[FF_PLAYERS]={FF_FIRE};tick4(&g,fire,8);CHECK(g.players[2].health==100);
+    /* Rockets home on the nearest opponent, never on a teammate. */
+    memset(arena.tiles,0,sizeof(arena.tiles));
+    place(&g,0,200);g.players[0].y=400*FF_FP;place(&g,2,260);g.players[2].y=400*FF_FP;
+    place(&g,1,600);g.players[1].y=200*FF_FP;place(&g,3,700);g.players[3].y=550*FF_FP;
+    memset(g.shots,0,sizeof(g.shots));g.players[0].weapon=FF_ROCKET;g.players[0].ammo=1;g.players[0].cooldown=0;
+    tick4(&g,fire,1);CHECK(g.shots[0].life&&g.shots[0].vy<0);
+    tick4(&g,idle,5);CHECK(g.shots[0].vy<0);
+    ff_arena_practice(&arena);arena.bonus_count=0;
+    /* The team with a furry standing wins; both of its players score. */
+    ff_game_setup(&g,&arena,5,15,FF_TEAMS);memset(g.pickups,0,sizeof(g.pickups));
+    g.players[1].lives=0;g.players[3].lives=1;g.players[3].health=1;
+    place(&g,0,300);place(&g,3,330);place(&g,2,100);g.players[0].facing=1;
+    tick4(&g,punch,1);CHECK(g.winner==FF_TEAM_WIN);
+    CHECK(g.players[0].score==1&&g.players[2].score==1&&g.players[1].score==0&&g.players[3].score==0);
+    /* Four-player replays stay deterministic. */
+    FF_Game a,b;ff_game_setup(&a,&arena,9,15,FF_FFA);b=a;uint32_t r=3;
+    for(int i=0;i<5000;++i) {
+        r=r*1664525u+1013904223u;uint8_t keys[FF_PLAYERS]={(uint8_t)(r&63),(uint8_t)((r>>6)&63),(uint8_t)((r>>12)&63),(uint8_t)((r>>18)&63)};
+        ff_game_tick(&a,&arena,keys);ff_game_tick(&b,&arena,keys);CHECK(ff_game_hash(&a)==ff_game_hash(&b));
+    }
+}
 static void determinism(void) {
     FF_Game a,b;clean(&a);b=a;
     uint32_t r=17;
     for(int i=0;i<10000;++i) {
-        r=r*1664525u+1013904223u;uint8_t keys[2]={(uint8_t)(r&63),(uint8_t)((r>>8)&63)};
+        r=r*1664525u+1013904223u;uint8_t keys[FF_PLAYERS]={(uint8_t)(r&63),(uint8_t)((r>>8)&63)};
         ff_game_tick(&a,&arena,keys);ff_game_tick(&b,&arena,keys);
         CHECK(ff_game_hash(&a)==ff_game_hash(&b));
         for(int k=0;k<2;++k) {CHECK(a.players[k].ammo>=0);CHECK(a.players[k].health>=0&&a.players[k].health<=100);}
@@ -303,4 +360,4 @@ static void determinism(void) {
     b.players[0].previous^=FF_JUMP;CHECK(ff_game_hash(&a)!=ff_game_hash(&b));
     printf("replay=%08x\n",ff_game_hash(&a));
 }
-int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();sensor_body_and_directional_bounces();hazards_and_blasts();imported_weapon_geometry();reference_jump();wind_and_bonus_regions();determinism();printf("%u game checks passed\n",checks);return 0;}
+int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();sensor_body_and_directional_bounces();hazards_and_blasts();imported_weapon_geometry();reference_jump();wind_and_bonus_regions();four_players();determinism();printf("%u game checks passed\n",checks);return 0;}

@@ -27,4 +27,8 @@ jobs:
         env:
           SDL_VIDEODRIVER: dummy
           SDL_AUDIODRIVER: dummy
-        run: build/native/funny-furries --smoke 1000 --screenshot build/practice.bmp
+        run: |
+          build/native/funny-furries --smoke 1000 --screenshot build/practice.bmp
+          build/native/funny-furries --smoke 3000 --players 4 --teams --screenshot build/four.bmp
+          build/native/funny-furries --smoke 3000 --players 3
+          build/native/funny-furries --smoke 60 --lobby --screenshot build/lobby.bmp

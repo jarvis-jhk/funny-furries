@@ -3,15 +3,15 @@
 static void add_pad(FF_Input *in,int device) {
     if(!SDL_IsGameController(device)) return;
     SDL_JoystickID id=SDL_JoystickGetDeviceInstanceID(device);
-    for(int i=0;i<2;++i) if(in->pads[i]&&SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(in->pads[i]))==id) return;
-    for(int i=0;i<2;++i) if(!in->pads[i]) {in->pads[i]=SDL_GameControllerOpen(device);return;}
+    for(int i=0;i<FF_PLAYERS;++i) if(in->pads[i]&&SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(in->pads[i]))==id) return;
+    for(int i=0;i<FF_PLAYERS;++i) if(!in->pads[i]) {in->pads[i]=SDL_GameControllerOpen(device);return;}
 }
 void ff_input_init(FF_Input *in) {
     memset(in,0,sizeof(*in));in->focused=true;
     for(int i=0;i<SDL_NumJoysticks();++i) add_pad(in,i);
 }
 void ff_input_close(FF_Input *in) {
-    for(int i=0;i<2;++i) if(in->pads[i]) SDL_GameControllerClose(in->pads[i]);
+    for(int i=0;i<FF_PLAYERS;++i) if(in->pads[i]) SDL_GameControllerClose(in->pads[i]);
     memset(in,0,sizeof(*in));
 }
 static uint8_t key_binding(SDL_Scancode key,int *player) {
@@ -33,7 +33,7 @@ static uint8_t key_binding(SDL_Scancode key,int *player) {
 void ff_input_event(FF_Input *in,const SDL_Event *e) {
     if(e->type==SDL_CONTROLLERDEVICEADDED) add_pad(in,e->cdevice.which);
     if(e->type==SDL_CONTROLLERDEVICEREMOVED) {
-        for(int i=0;i<2;++i) if(in->pads[i]&&SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(in->pads[i]))==e->cdevice.which) {
+        for(int i=0;i<FF_PLAYERS;++i) if(in->pads[i]&&SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(in->pads[i]))==e->cdevice.which) {
             SDL_GameControllerClose(in->pads[i]);in->pads[i]=NULL;
         }
         /* A third connected pad can now take the free seat. */
@@ -50,11 +50,11 @@ void ff_input_event(FF_Input *in,const SDL_Event *e) {
         else in->keys[player]&=(uint8_t)~bit;
     }
 }
-void ff_input_read(FF_Input *in,uint8_t keys[2]) {
-    memset(keys,0,2);
+void ff_input_read(FF_Input *in,uint8_t keys[FF_PLAYERS]) {
+    memset(keys,0,FF_PLAYERS);
     if(!in->focused) return;
-    for(int i=0;i<2;++i) {
-        keys[i]=in->keys[i];SDL_GameController *pad=in->pads[i];
+    for(int i=0;i<FF_PLAYERS;++i) {
+        keys[i]=i<2?in->keys[i]:0;SDL_GameController *pad=in->pads[i];
         if(!pad||!SDL_GameControllerGetAttached(pad)) continue;
         int axis=SDL_GameControllerGetAxis(pad,SDL_CONTROLLER_AXIS_LEFTX);
         if(axis< -10000||SDL_GameControllerGetButton(pad,SDL_CONTROLLER_BUTTON_DPAD_LEFT)) keys[i]|=FF_LEFT;
@@ -64,4 +64,11 @@ void ff_input_read(FF_Input *in,uint8_t keys[2]) {
         if(SDL_GameControllerGetButton(pad,SDL_CONTROLLER_BUTTON_B)||SDL_GameControllerGetAxis(pad,SDL_CONTROLLER_AXIS_TRIGGERRIGHT)>10000) keys[i]|=FF_FIRE;
         if(SDL_GameControllerGetButton(pad,SDL_CONTROLLER_BUTTON_Y)||SDL_GameControllerGetAxis(pad,SDL_CONTROLLER_AXIS_TRIGGERLEFT)>10000) keys[i]|=FF_FLY;
     }
+}
+bool ff_input_has_pad(const FF_Input *in,int seat) {
+    return seat>=0&&seat<FF_PLAYERS&&in->pads[seat]&&SDL_GameControllerGetAttached(in->pads[seat]);
+}
+int ff_input_seat_of(const FF_Input *in,SDL_JoystickID id) {
+    for(int i=0;i<FF_PLAYERS;++i) if(in->pads[i]&&SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(in->pads[i]))==id) return i;
+    return -1;
 }

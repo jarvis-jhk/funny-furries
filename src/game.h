@@ -21,9 +21,14 @@
 #define FF_HAZARDS 32
 #define FF_BLASTS 32
 #define FF_SOUNDS 8
+#define FF_PLAYERS 4
+/* winner: -1 while playing, a player index (free-for-all), FF_TEAM_WIN+team, or FF_DRAW. */
+#define FF_TEAM_WIN 4
+#define FF_DRAW 8
 
 enum { FF_LEFT=1, FF_RIGHT=2, FF_JUMP=4, FF_PUNCH=8, FF_FIRE=16, FF_FLY=32 };
 enum { FF_FISTS, FF_ICE, FF_FLAME, FF_ROCKET, FF_HEALTH, FF_FUEL };
+enum { FF_FFA, FF_TEAMS };
 enum { FF_SOLID=1, FF_PLATFORM=2 };
 enum { FF_SOUND_PUNCH=1, FF_SOUND_ICE=2, FF_SOUND_FLAME=4, FF_SOUND_ROCKET=8, FF_SOUND_HIT=16, FF_SOUND_PICKUP=32, FF_SOUND_DEATH=64, FF_SOUND_BLAST=128 };
 enum { FF_BOMB=1, FF_BOMB_WALK, FF_BOMB_FLY };
@@ -58,25 +63,28 @@ typedef struct {
     int facing, health, lives, score, fuel, weapon, ammo;
     int grounded, cooldown, punch_ticks, invulnerable, burn_wait, respawn, bounce_wait;
     uint8_t previous;
+    int active, team;
 } FF_Player;
 typedef struct { int32_t x, y, vx, vy; int kind, owner, life, direction, settled; } FF_Shot;
 typedef struct { int x, y, kind, active, timer; } FF_Pickup;
 typedef struct { int32_t x, y, vx, vy; int kind, life, grounded; } FF_Hazard;
 typedef struct { int32_t x, y; int life; unsigned hit; } FF_Blast;
 typedef struct {
-    FF_Player players[2];
+    FF_Player players[FF_PLAYERS];
     FF_Shot shots[FF_SHOTS];
     FF_Pickup pickups[FF_PICKUPS];
     FF_Hazard hazards[FF_HAZARDS]; FF_Blast blasts[FF_BLASTS];
     int trap_wait, pickup_wait;
     uint32_t rng, tick;
-    int winner, round_wait;
+    int winner, round_wait, mode;
     unsigned sounds;
 } FF_Game;
 void ff_arena_practice(FF_Arena *a);
 bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity);
+/* seats is a bit mask of the players taking part; 2v2 pairs even and odd seats. */
+void ff_game_setup(FF_Game *g, const FF_Arena *a, uint32_t seed, unsigned seats, int mode);
 void ff_game_init(FF_Game *g, const FF_Arena *a, uint32_t seed);
-void ff_game_tick(FF_Game *g, const FF_Arena *a, const uint8_t input[2]);
+void ff_game_tick(FF_Game *g, const FF_Arena *a, const uint8_t input[FF_PLAYERS]);
 uint32_t ff_game_hash(const FF_Game *g);
 FF_Point ff_device_position(const FF_Arena *a, int device, uint32_t tick);
 #endif

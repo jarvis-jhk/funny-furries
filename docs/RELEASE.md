@@ -1,9 +1,10 @@
-# Funny Furries 0.1.0 — two-player test release
+# Funny Furries 0.2.0 — four-player test release
 
-This preview plays arena 1 with two controllers or one keyboard. Movement,
-weapons and devices are based on the original, with approximate timing and
-collision details. It is not the complete original game. Four players, other
-arenas, online play and automatic updates are not included yet.
+This preview plays arena 1 with two to four players on controllers or the two
+keyboard layouts, free for all or 2 vs 2. Movement, weapons and devices are
+based on the original, with approximate timing and collision details. It is not
+the complete original game. Other arenas, online play and automatic updates are
+not included yet.
 
 ## Windows
 
@@ -39,16 +40,19 @@ picker opens again. `--practice` opens our asset-free practice arena.
 
 ## Play and report problems
 
-Two pads: stick/D-pad moves, A jumps, X punches, B or right trigger fires,
-Y or left trigger uses the jetpack. Start closes help or pauses. First pad
-controls BLUE, second RED. Keyboard BLUE: arrows, Ctrl punch, Shift weapon,
-slash jetpack. RED: F/H move, T jump, Z punch, A weapon, Q jetpack.
-P pauses; R restarts; Escape exits. Holding jump repeats on landing.
+The game opens in the player menu. Each player presses A (or their keyboard jump
+key) to join and B to leave; Y switches free for all / 2 vs 2; Start or Enter
+begins. Pads take seats in connection order: BLUE, RED, GREEN, YELLOW. In
+2 vs 2 blue+green play red+yellow. Stick/D-pad moves, A jumps, X punches,
+B or right trigger fires, Y or left trigger uses the jetpack. Start pauses,
+Back/Escape returns to the menu. Keyboard BLUE: arrows, Ctrl punch, Shift
+weapon, slash jetpack. RED: F/H move, T jump, Z punch, A weapon, Q jetpack.
+P pauses; R restarts. Holding jump repeats on landing.
 
 Complete a match, let the next round start, then unplug/replace one controller.
 Compare jumps, stopping, springs, platforms, swimming and weapons with the
 original. Send the action/location/player and a description of the mismatch.
-Physical two-pad play, Steam Input mappings and Deck sound/fullscreen remain
+Physical two-to-four-pad play, Steam Input mappings and Deck sound/fullscreen remain
 open checks for this test release. Automated virtual-pad matches are verified.
 
 Unexpected launcher/import/game faults send only the app version, OS class
@@ -79,7 +83,7 @@ unsupported game copies are not reported.
 5. Keep the live ntfy → issue → maintenance-queue relay running, with the private
    queue URL only in its local config. No new scheduler job is needed. A controlled
    anonymous transport probe must be received, deduplicated and cleaned up.
-6. Tag only that tested source (`v0.1.0` for the first release), push the tag,
+6. Tag only that tested source (`v0.2.0` for the four-player release), push the tag,
    and upload the already checked binary/source archives and SHA256SUMS as a GitHub prerelease. Confirm the release is published and
    every uploaded asset downloads with the expected hash. Record remaining human
    checks in NOTES, mark `furries-test-release` done, send Jan the release URL.

@@ -26,27 +26,38 @@ static bool supported(const FF_Arena *a,int x,int y) {
         if(tile(a,xx,y)==FF_PLATFORM&&tile(a,xx,y-1)!=FF_PLATFORM) return true;
     return false;
 }
+static bool live(const FF_Player *p) {return p->active&&p->lives>0&&!p->respawn;}
+/* Teammates never hurt each other with fists or shots; explosions hurt everyone. */
+static bool allies(const FF_Game *g,int a,int b) {
+    return a!=b&&g->mode==FF_TEAMS&&g->players[a].team==g->players[b].team;
+}
 static FF_Point spawn(FF_Game *g,const FF_Arena *a,int who) {
     int start=(int)(random_word(g)%(uint32_t)a->spawn_count);
     FF_Point result=a->spawns[start];
-    const FF_Player *other=&g->players[1-who];
     for(int i=0;i<a->spawn_count;++i) {
-        FF_Point p=a->spawns[(start+i)%a->spawn_count];
-        if(!blocked(a,p.x,p.y)&&abs(p.x-other->x/FF_FP)+abs(p.y-other->y/FF_FP)>100) return p;
+        FF_Point p=a->spawns[(start+i)%a->spawn_count];bool clear=!blocked(a,p.x,p.y);
+        for(int k=0;k<FF_PLAYERS&&clear;++k) {
+            const FF_Player *other=&g->players[k];
+            if(k!=who&&other->active&&abs(p.x-other->x/FF_FP)+abs(p.y-other->y/FF_FP)<=100) clear=false;
+        }
+        if(clear) return p;
     }
     return result;
 }
 static void reset_player(FF_Player *p,FF_Point pos,int who) {
-    int lives=p->lives, score=p->score;
-    memset(p,0,sizeof(*p));p->lives=lives;p->score=score;
-    p->x=pos.x*FF_FP;p->y=pos.y*FF_FP;p->health=100;p->facing=who?-1:1;
+    int lives=p->lives, score=p->score, active=p->active, team=p->team;
+    memset(p,0,sizeof(*p));p->lives=lives;p->score=score;p->active=active;p->team=team;
+    p->x=pos.x*FF_FP;p->y=pos.y*FF_FP;p->health=100;p->facing=(who&1)?-1:1;
     p->invulnerable=50;
 }
-void ff_game_init(FF_Game *g,const FF_Arena *a,uint32_t seed) {
+void ff_game_setup(FF_Game *g,const FF_Arena *a,uint32_t seed,unsigned seats,int mode) {
     memset(g,0,sizeof(*g));g->rng=seed?seed:1;g->winner=-1;g->trap_wait=400+(int)(random_word(g)%400);
-    for(int i=0;i<2;++i) {
-        g->players[i].lives=3;
-        reset_player(&g->players[i],a->spawns[i%a->spawn_count],i);
+    g->mode=mode==FF_TEAMS?FF_TEAMS:FF_FFA;
+    for(int i=0;i<FF_PLAYERS;++i) {
+        FF_Player *p=&g->players[i];
+        p->active=!!(seats&(1u<<i));p->team=g->mode==FF_TEAMS?(i&1):i;
+        if(!p->active) continue;
+        p->lives=3;reset_player(p,a->spawns[i%a->spawn_count],i);
     }
     g->pickup_wait=300+(int)(random_word(g)%300);
     int count=a->imported?0:(a->spawn_count<8?a->spawn_count:8);
@@ -55,6 +66,7 @@ void ff_game_init(FF_Game *g,const FF_Arena *a,uint32_t seed) {
         g->pickups[i]=(FF_Pickup){p.x,p.y-16,1+i%5,1,0};
     }
 }
+void ff_game_init(FF_Game *g,const FF_Arena *a,uint32_t seed) {ff_game_setup(g,a,seed,3,FF_FFA);}
 static void move_player(FF_Player *p,const FF_Arena *a) {
     int32_t next=p->x+p->vx;
     int old=floor_pixel(p->x), target=floor_pixel(next), y=floor_pixel(p->y);
@@ -158,7 +170,7 @@ static void shoot(FF_Game *g,const FF_Arena *a,FF_Player *p,int owner) {
     if(p->weapon==FF_FISTS||p->ammo<=0||p->cooldown) return;
     for(int i=0;i<FF_SHOTS;++i) if(!g->shots[i].life) {
         int kind=p->weapon;
-        FF_Point muzzle=a->muzzles[owner][kind][p->facing<0];
+        FF_Point muzzle=a->muzzles[owner&1][kind][p->facing<0];
         g->shots[i]=(FF_Shot){p->x+muzzle.x*FF_FP,p->y+muzzle.y*FF_FP,
             p->facing*(kind==FF_ICE?100:kind==FF_ROCKET?57:40)*FF_FP/8,0,kind,owner,kind==FF_FLAME?270:100,p->facing<0?16:0,0};
         --p->ammo;p->cooldown=kind==FF_ROCKET?50:8;
@@ -185,9 +197,14 @@ static int turn(int direction,int target) {
     return direction;
 }
 static void rocket_steer(FF_Shot *s,const FF_Game *g,const FF_Arena *a) {
-    const FF_Player *target=&g->players[1-s->owner];
-    if(!target->respawn&&target->health>0)
-        s->direction=turn(s->direction,toward(target->x-s->x,target->y-16*FF_FP-s->y));
+    const FF_Player *target=NULL;int64_t best=INT64_MAX;
+    for(int k=0;k<FF_PLAYERS;++k) {
+        const FF_Player *p=&g->players[k];
+        if(k==s->owner||allies(g,s->owner,k)||!live(p)||p->health<=0) continue;
+        int64_t dx=(p->x-s->x)/FF_FP,dy=(p->y-s->y)/FF_FP,distance=dx*dx+dy*dy;
+        if(distance<best) {best=distance;target=p;}
+    }
+    if(target) s->direction=turn(s->direction,toward(target->x-s->x,target->y-16*FF_FP-s->y));
     for(int i=0;i<a->device_count;++i) {
         const FF_Device *d=&a->devices[i];
         if(d->kind<FF_WIND_LEFT||s->x<d->x*FF_FP||s->x>=(d->x+d->w)*FF_FP||
@@ -214,7 +231,7 @@ static void hazard_spawn(FF_Game *g,const FF_Arena *a) {
         return;
     }
 }
-static void hazard_tick(FF_Game *g,const FF_Arena *a,int damage[2]) {
+static void hazard_tick(FF_Game *g,const FF_Arena *a,int damage[FF_PLAYERS]) {
     hazard_spawn(g,a);
     for(int i=0;i<FF_HAZARDS;++i) {
         FF_Hazard *h=&g->hazards[i];if(!h->life) continue;
@@ -247,8 +264,8 @@ static void hazard_tick(FF_Game *g,const FF_Arena *a,int damage[2]) {
         }
         if(h->y>FF_H*FF_FP||h->y<0) {h->life=0;continue;}
         bool contact=false;
-        for(int k=0;k<2&&h->life;++k) {
-            FF_Player *p=&g->players[k];if(p->respawn) continue;
+        for(int k=0;k<FF_PLAYERS&&h->life;++k) {
+            FF_Player *p=&g->players[k];if(!live(p)) continue;
             if(near(h->x,h->y,p->x,p->y-16*FF_FP,20)) {
                 damage[k]+=8;contact=true;
             }
@@ -265,7 +282,7 @@ static bool blast_overlap(const FF_Blast *b,const FF_Arena *a,int32_t x,int32_t 
     }
     return near(x+w*FF_FP/2,y+h*FF_FP/2,b->x,b->y,42);
 }
-static void blast_tick(FF_Game *g,const FF_Arena *a,int damage[2],int knock[2],int lift[2]) {
+static void blast_tick(FF_Game *g,const FF_Arena *a,int damage[FF_PLAYERS],int knock[FF_PLAYERS],int lift[FF_PLAYERS]) {
     /* A bounded repeat propagates chains regardless of the hazard slot order. */
     for(int pass=0;pass<FF_HAZARDS;++pass) {
         bool changed=false;
@@ -281,8 +298,8 @@ static void blast_tick(FF_Game *g,const FF_Arena *a,int damage[2],int knock[2],i
     }
     for(int i=0;i<FF_BLASTS;++i) {
         FF_Blast *b=&g->blasts[i];if(!b->life) continue;
-        for(int k=0;k<2;++k) {
-            FF_Player *p=&g->players[k];if(p->respawn||(b->hit&(1u<<k))) continue;
+        for(int k=0;k<FF_PLAYERS;++k) {
+            FF_Player *p=&g->players[k];if(!live(p)||(b->hit&(1u<<k))) continue;
             if(blast_overlap(b,a,p->x-11*FF_FP,p->y-32*FF_FP,22,32)) {
                 b->hit|=1u<<k;damage[k]+=8;knock[k]=(p->x<b->x?-50:50)*FF_FP/8;
                 lift[k]=(p->y-16*FF_FP<b->y?-50:50)*FF_FP/8;
@@ -308,19 +325,21 @@ static void pickup(FF_Player *p,int kind) {
     else if(kind==FF_FUEL) p->fuel=clamp(p->fuel+150,0,300);
     else {p->ammo=clamp((p->weapon==kind?p->ammo:0)+amount[kind],0,limit[kind]);p->weapon=kind;}
 }
-void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
+void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) {
     g->sounds=0;++g->tick;
     if(g->winner>=0) {
         if(--g->round_wait<=0) {
-            int scores[2]={g->players[0].score,g->players[1].score}; uint32_t rng=g->rng,tick_count=g->tick;
-            ff_game_init(g,a,rng);g->tick=tick_count;
-            for(int i=0;i<2;++i) g->players[i].score=scores[i];
+            int scores[FF_PLAYERS];unsigned seats=0;uint32_t rng=g->rng,tick_count=g->tick;
+            for(int i=0;i<FF_PLAYERS;++i) {scores[i]=g->players[i].score;if(g->players[i].active) seats|=1u<<i;}
+            ff_game_setup(g,a,rng,seats,g->mode);g->tick=tick_count;
+            for(int i=0;i<FF_PLAYERS;++i) g->players[i].score=scores[i];
         }
         return;
     }
-    int damage[2]={0}, burning[2]={0}, knock[2]={0}, lift[2]={0};
-    for(int i=0;i<2;++i) {
+    int damage[FF_PLAYERS]={0}, burning[FF_PLAYERS]={0}, knock[FF_PLAYERS]={0}, lift[FF_PLAYERS]={0};
+    for(int i=0;i<FF_PLAYERS;++i) {
         FF_Player *p=&g->players[i];uint8_t keys=input[i];
+        if(!p->active||!p->lives) {p->previous=keys;continue;}
         if(p->respawn) {
             if(--p->respawn==0) reset_player(p,spawn(g,a,i),i);
             p->previous=keys;continue;
@@ -354,10 +373,13 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
         platform_land(p,a,g->tick,old_y);
         if((keys&FF_PUNCH)&&!p->cooldown) {
             p->punch_ticks=8;p->cooldown=25;g->sounds|=FF_SOUND_PUNCH;
-            FF_Player *other=&g->players[1-i];
-            int dx=(other->x-p->x)/FF_FP,dy=abs(other->y-p->y)/FF_FP;
-            if(!other->respawn&&dx*p->facing>=0&&dx*p->facing<48&&dy<32) {
-                damage[1-i]+=12;knock[1-i]=p->facing*22*FF_FP/8;lift[1-i]=-12*FF_FP/8;
+            for(int k=0;k<FF_PLAYERS;++k) {
+                FF_Player *other=&g->players[k];
+                if(k==i||allies(g,i,k)||!live(other)) continue;
+                int dx=(other->x-p->x)/FF_FP,dy=abs(other->y-p->y)/FF_FP;
+                if(dx*p->facing>=0&&dx*p->facing<48&&dy<32) {
+                    damage[k]+=12;knock[k]=p->facing*22*FF_FP/8;lift[k]=-12*FF_FP/8;
+                }
             }
         }
         if(p->punch_ticks==8) for(int h=0;h<FF_HAZARDS;++h) {
@@ -397,9 +419,9 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
             }
             if(impact) break;
             if(s->kind==FF_FLAME) continue;
-            for(int k=0;k<2;++k) {
+            for(int k=0;k<FF_PLAYERS;++k) {
                 FF_Player *p=&g->players[k];
-                if(!p->respawn&&abs(p->x-s->x)<13*FF_FP&&s->y>=p->y-32*FF_FP&&s->y<p->y) {
+                if(live(p)&&!allies(g,s->owner,k)&&abs(p->x-s->x)<13*FF_FP&&s->y>=p->y-32*FF_FP&&s->y<p->y) {
                     target=k;impact=true;break;
                 }
             }
@@ -409,9 +431,9 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
             damage[target]+=s->kind==FF_ICE?6:8;
             if(s->kind==FF_ICE) {knock[target]=(s->vx<0?-6:6)*FF_FP/8;lift[target]=-7*FF_FP/8;}
         }
-        if(s->kind==FF_FLAME&&s->life>20&&!impact) for(int k=0;k<2;++k) {
+        if(s->kind==FF_FLAME&&s->life>20&&!impact) for(int k=0;k<FF_PLAYERS;++k) {
             FF_Player *p=&g->players[k];
-            if(p->respawn||p->burn_wait||(!s->settled&&k==s->owner)) continue;
+            if(!live(p)||p->burn_wait||allies(g,s->owner,k)||(!s->settled&&k==s->owner)) continue;
             if(abs(p->x-s->x)<18*FF_FP&&s->y>=p->y-32*FF_FP&&s->y<p->y+4*FF_FP) {
                 burning[k]=4;p->burn_wait=6;
             }
@@ -423,9 +445,9 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
         }
     }
     blast_tick(g,a,damage,knock,lift);
-    for(int i=0;i<2;++i) {
+    for(int i=0;i<FF_PLAYERS;++i) {
         FF_Player *p=&g->players[i];
-        if((damage[i]||burning[i])&&(!p->invulnerable||damage[i]>=1000)&&!p->respawn) {
+        if((damage[i]||burning[i])&&(!p->invulnerable||damage[i]>=1000)&&live(p)) {
             p->health=clamp(p->health-damage[i]-burning[i],0,100);
             p->vx=clamp(p->vx+knock[i],-100*FF_FP/8,100*FF_FP/8);
             p->vy=clamp(p->vy+lift[i],-100*FF_FP/8,100*FF_FP/8);
@@ -434,10 +456,21 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
             if(!p->health) {--p->lives;p->respawn=75;g->sounds|=FF_SOUND_DEATH;}
         }
     }
-    /* Resolve both deaths together so simultaneous final hits draw. */
-    if(g->players[0].lives==0||g->players[1].lives==0) {
-        g->winner=g->players[0].lives==g->players[1].lives?2:g->players[0].lives?0:1;
-        if(g->winner<2) ++g->players[g->winner].score;
+    /* Resolve all deaths together so simultaneous final hits draw. */
+    int seated=0,standing=0,last=-1;unsigned teams=0;
+    for(int i=0;i<FF_PLAYERS;++i) {
+        const FF_Player *p=&g->players[i];if(!p->active) continue;
+        ++seated;if(p->lives) {++standing;last=i;teams|=1u<<p->team;}
+    }
+    bool over=g->mode==FF_TEAMS?(teams&(teams-1))==0:standing<=1;
+    if(seated>=2&&over) {
+        if(!standing) g->winner=FF_DRAW;
+        else if(g->mode==FF_TEAMS) g->winner=FF_TEAM_WIN+g->players[last].team;
+        else g->winner=last;
+        for(int i=0;i<FF_PLAYERS;++i) {
+            FF_Player *p=&g->players[i];
+            if(p->active&&g->winner!=FF_DRAW&&(g->mode==FF_TEAMS?FF_TEAM_WIN+p->team==g->winner:i==g->winner)) ++p->score;
+        }
         g->round_wait=150;return;
     }
     pickup_spawn(g,a);
@@ -447,9 +480,9 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[2]) {
             if(--b->timer<=0) {b->active=1;b->kind=1+(int)(random_word(g)%5);}
             continue;
         }
-        for(int j=0;j<2;++j) {
+        for(int j=0;j<FF_PLAYERS;++j) {
             FF_Player *p=&g->players[j];
-            if(!p->respawn&&abs(p->x/FF_FP-b->x)<22&&abs(p->y/FF_FP-16-b->y)<26) {
+            if(live(p)&&abs(p->x/FF_FP-b->x)<22&&abs(p->y/FF_FP-16-b->y)<26) {
                 pickup(p,b->kind);b->active=0;b->timer=300;if(a->imported) b->kind=0;g->sounds|=FF_SOUND_PICKUP;break;
             }
         }
@@ -459,8 +492,8 @@ uint32_t ff_game_hash(const FF_Game *g) {
     /* Hash values explicitly; structure padding and host byte order are irrelevant. */
     uint32_t h=2166136261u;
 #define HASH(v) do { uint32_t bits=(uint32_t)(v); for(int byte=0;byte<4;++byte) {h^=(bits>>(byte*8))&255u;h*=16777619u;} } while(0)
-    HASH(g->pickup_wait);HASH(g->trap_wait);HASH(g->rng);HASH(g->tick);HASH(g->winner);HASH(g->round_wait);HASH(g->sounds);
-    for(int i=0;i<2;++i) {const FF_Player *p=&g->players[i];
+    HASH(g->pickup_wait);HASH(g->trap_wait);HASH(g->rng);HASH(g->tick);HASH(g->winner);HASH(g->round_wait);HASH(g->sounds);HASH(g->mode);
+    for(int i=0;i<FF_PLAYERS;++i) {const FF_Player *p=&g->players[i];HASH(p->active);HASH(p->team);
         HASH(p->x);HASH(p->y);HASH(p->vx);HASH(p->vy);HASH(p->facing);HASH(p->health);HASH(p->lives);HASH(p->score);
         HASH(p->fuel);HASH(p->weapon);HASH(p->ammo);HASH(p->grounded);HASH(p->cooldown);HASH(p->punch_ticks);
         HASH(p->invulnerable);HASH(p->burn_wait);HASH(p->respawn);HASH(p->previous);HASH(p->bounce_wait);

@@ -14,13 +14,27 @@ ctest --test-dir build/native --output-on-failure
 build/native/funny-furries
 ```
 
-Without local original data it opens an asset-free practice arena. F1 shows the
-controls and starts play. Red: F/H move, T jump, Z punch, A weapon, Q jetpack.
-Blue: arrows move/jump, Ctrl punch, Shift weapon, slash jetpack. Each controller:
+Without local original data it plays an asset-free practice arena. The game opens
+in the player menu: up to four seats, each joined with its own jump button (A on a
+controller) and left again with its weapon button (B). Jetpack (Y) switches between
+free for all and 2 vs 2; Start or Enter begins once two players (four for 2 vs 2)
+are ready. Seat 1 is blue, 2 red, 3 green, 4 yellow; in 2 vs 2 blue+green play
+red+yellow, and teammates' fists and shots do not hurt each other (explosions do).
+Green and yellow reuse the player's own blue and red furry art with the body hue
+turned at load time; nothing recoloured is shipped.
+
+Seats 1 and 2 also have keyboards. Blue: arrows move/jump, Ctrl punch, Shift weapon,
+slash jetpack. Red: F/H move, T jump, Z punch, A weapon, Q jetpack. Every controller:
 stick/D-pad, A jump, X punch, B/right trigger weapon, Y/left trigger jetpack.
-Start dismisses help or pauses. P pauses, R resets the match, Escape exits.
-Focus loss pauses and clears keyboard state. Two controller seats are independent;
-unplugging one preserves the other and a replacement takes the free seat.
+Controllers take seats 1-4 in connection order, so pads 3 and 4 play green and
+yellow. Start pauses, Back or Escape returns to the menu, P pauses, R resets the
+match, F1 shows controls, Escape in the menu exits. Focus loss pauses and clears
+keyboard state. Unplugging a pad keeps the other seats and a newly connected pad
+takes the free seat. A furry that loses its three lives stays out until the round
+ends; the last furry (or team) standing scores a win.
+
+On the Steam Deck the built-in controls are the first pad; extra pads join as
+seats 2-4. Steam Input's default gamepad layout matches the mapping above.
 
 Combat supports fists, ice, flame, rockets, health/fuel pickups, finite ammo,
 three lives, invulnerable respawns, match wins and automatic new rounds. Yellow
@@ -31,11 +45,13 @@ supply ice/flame cooldowns of eight ticks and rocket cooldowns of fifty; shot
 speeds use their stored 100/57/40 speed settings at the engine's 1/8 scale. The
 practice level is ours and is not an original arena.
 
-`--smoke 1000 --screenshot build/frame.bmp` runs a bounded automated input sequence.
+`--smoke 1000 --screenshot build/frame.bmp` runs a bounded automated input sequence
+(`--players 2-4`, `--teams` for 2 vs 2, `--lobby` to render the player menu).
 `SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy` permits offscreen CI operation. This
 checks the actual renderer, asset loading and game loop; it does not prove hardware
-controller feel. Tests attach two real SDL virtual controllers and exercise held
-input, separate seats, removal, replacement and keyboard focus handling.
+controller feel. Tests attach four real SDL virtual controllers and exercise held
+input, separate seats, removal, replacement, a four-pad 2 vs 2 match and keyboard
+focus handling.
 
 Unexpected native faults use an optional `FF_FAULT_REPORT_URL` environment variable
 with the private lane report endpoint. A separate courier posts a fixed anonymous

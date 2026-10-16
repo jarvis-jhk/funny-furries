@@ -20,7 +20,7 @@ if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import export_project, import_arena, project_index
 
-VERSION = '0.1.0'
+VERSION = '0.2.0'
 TOPIC = 'https://ntfy.sh/funny-furries-faults-a93c6b4e12d8'
 ROOT = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]))
 PACKAGE = Path(sys.executable).parent if getattr(sys, 'frozen', False) else ROOT

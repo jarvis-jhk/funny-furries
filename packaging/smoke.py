@@ -33,6 +33,12 @@ with tempfile.TemporaryDirectory(prefix='furries package ü ') as directory:
     assert a.returncode == b.returncode == 0, (a.returncode, a.stdout, a.stderr, b.returncode, b.stderr)
     assert screenshot.is_file() and hashlib.sha256(screenshot.read_bytes()).hexdigest() == frame, 'Repeated renderer output differs'
     assert a.stdout == b.stdout and '1500' in a.stdout, (a.stdout, b.stdout)
+    four = subprocess.run([str(binary), '--home', str(home), '--smoke', '1500', '--players', '4', '--teams',
+                           '--screenshot', str(screenshot)], env=env, capture_output=True, text=True, timeout=30)
+    assert four.returncode == 0 and '1500' in four.stdout, (four.returncode, four.stdout, four.stderr)
+    lobby = subprocess.run([str(binary), '--home', str(home), '--smoke', '60', '--lobby'], env=env,
+                           capture_output=True, text=True, timeout=30)
+    assert lobby.returncode == 0, (lobby.returncode, lobby.stderr)
     practice = subprocess.run([str(binary), '--practice', '--smoke', '1000'], env=env,
                               capture_output=True, text=True, timeout=30)
     assert practice.returncode == 0, practice.stderr

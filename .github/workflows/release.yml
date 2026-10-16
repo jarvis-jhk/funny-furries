@@ -35,7 +35,7 @@ jobs:
         run: /usr/bin/python3 packaging/smoke.py
       - name: Check local installation and desktop entry
         run: |
-          echo 0.1.0 > build/package/funny-furries/VERSION
+          echo 0.2.0 > build/package/funny-furries/VERSION
           XDG_DATA_HOME="$PWD/build/install space/data" HOME="$PWD/build/install space" bash build/package/funny-furries/install.sh
           desktop-file-validate 'build/install space/data/applications/funny-furries.desktop'
           SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy FF_NO_REPORT=1 'build/install space/data/funny-furries-app/current/play.sh' --practice --fullscreen --smoke 1000
@@ -91,7 +91,7 @@ jobs:
       - name: Package Windows
         shell: msys2 {0}
         run: |
-          echo 0.1.0 > build/package/funny-furries/VERSION
+          echo 0.2.0 > build/package/funny-furries/VERSION
           mkdir -p build/artifacts
           cd build/package
           zip -qr ../artifacts/funny-furries-windows-x86_64.zip funny-furries
