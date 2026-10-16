@@ -23,6 +23,11 @@ full import (14 s here) whenever handed the copy (Warpzone `--import-copy`/env) 
 import when the bytes equal the kept copy (0.16 s); game prints `slow start:` stage timings if the first
 frame takes >1.5 s. "Popups disappear": not reproduced (pickups only go on collection or a new round) —
 asked Jan. Jump pads on walk-over and fan bubbles not checked against a Wine run of the original.
+Released https://github.com/jarvis-jhk/funny-furries/releases/tag/v0.6.0 (tag = 0bd6836): CI native 38972168931,
+exporter 38972168928, packages 38972184318, rev-parse checked. Downloaded Linux package: real ZIP import + 10000 ticks
+982ca0e8 = local build; same copy handed over again starts in 0.39 s (env and --import-copy); --level 7 ok; archives
+audited (only the allowed warpzone domain); assets re-downloaded, SHA256SUMS OK; mod ZIPs byte-identical to 0.5.0.
+Evidence agent `data/furries/v060-release/`. Next version > 0.6.0.
 
 **Current — 2026-10-16, 0.5.0 released: Jan's laptop test + mods (`t_mvb31v2653xfu0`, `t_mvb3b7vv5bqj9p`, Opus):**
 Jan's laptop test found missing animations (fans, springs, weapon pickups), bombs all in the top
