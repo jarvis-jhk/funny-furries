@@ -1,0 +1,6 @@
+FFMOD 1
+# Low Gravity: the arena on the moon. Less than half the pull, longer floaty
+# jumps, and five lives because falls take longer to come back from.
+rule gravity 28
+rule jump 36
+rule lives 5

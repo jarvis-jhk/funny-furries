@@ -13,14 +13,17 @@
 #define FF_PICKUPS 32
 #define FF_SPAWNS 64
 #define FF_LAYERS 2048
-#define FF_IMAGES 1024
+/* Ids below 1024 are the original's images; mods add their own from 1024 on. */
+#define FF_IMAGES 2048
+#define FF_ORIGINAL_IMAGES 1024
 #define FF_ANIMS 16
 #define FF_ANIM_FRAMES 32
 #define FF_PARTS 5
 #define FF_DEVICES 256
 #define FF_HAZARDS 32
 #define FF_BLASTS 32
-#define FF_SOUNDS 8
+#define FF_SOUNDS 16
+#define FF_WEAPONS 8
 #define FF_PLAYERS 4
 /* winner: -1 while playing, a player index (free-for-all), FF_TEAM_WIN+team, or FF_DRAW. */
 #define FF_TEAM_WIN 4
@@ -36,6 +39,22 @@ enum { FF_WATER=1, FF_FAN_LEFT, FF_FAN_RIGHT, FF_FAN_UP, FF_BOUNCE_UP,
        FF_BOUNCE_DOWN, FF_BOUNCE_LEFT, FF_BOUNCE_RIGHT, FF_MOVING_PLATFORM,
        FF_WIND_LEFT, FF_WIND_RIGHT, FF_WIND_UP };
 typedef struct { int kind, x, y, w, h, image; } FF_Device;
+/* A weapon is data, not code: its behaviour is the sum of these switches, so a mod
+ * can add or change weapons without running anything. Speeds and impulses are in
+ * the original's eighths of a pixel per tick; gravity in 1/256 pixel per tick². */
+typedef struct {
+    char name[16];
+    int speed, gravity, life, damage, knock, lift, cooldown, ammo, max_ammo;
+    int homing;    /* direction steps per tick toward the nearest opponent */
+    int blast;     /* explodes where it ends */
+    int flame;     /* settles on floors and burns this much per touch instead of hitting */
+    int bounces;   /* walls and floors it bounces off before it ends */
+    int pellets, spread;   /* shots per trigger pull, fanned out by spread directions */
+    int sound;     /* sound slot */
+    int shot_image, pickup_image, hand_image;   /* drawing only */
+} FF_Weapon;
+/* Weapon slots 1-3 are the original's; pickup kinds 1-3 and 6+ give weapons, 4 health, 5 fuel. */
+typedef struct { int lives, gravity, jump, weapons; } FF_Rules;
 typedef struct { int x, y; } FF_Point;
 typedef struct { int x, y, w, h; } FF_Box;
 typedef struct { int min_x, max_x, speed, direction; } FF_Path;
@@ -49,6 +68,7 @@ typedef struct {
     bool on; FF_Point field[2][FF_HUD_FIELDS]; int digits[11];
     FF_Sequence weapon[4]; int bar[3]; FF_Point bar_at; int bar_left, bar_right;
     uint32_t fuel_color; int fuel_width, fuel_height;
+    FF_Layer panel; bool has_panel;   /* the panel image, so mod arenas can show it too */
 } FF_Hud;
 typedef struct {
     uint8_t tiles[FF_ROWS][FF_COLS];
@@ -67,6 +87,7 @@ typedef struct {
     FF_Path paths[FF_DEVICES];
     /* [kind][0] runs all the time, [kind][1] plays once when a device fires. */
     FF_Sequence device_sprites[FF_WIND_UP+1][2], pickup_sprites[6];
+    FF_Weapon weapons[FF_WEAPONS]; FF_Rules rules;
     FF_Hud hud;
     bool imported;
 } FF_Arena;
@@ -77,7 +98,7 @@ typedef struct {
     uint8_t previous;
     int active, team;
 } FF_Player;
-typedef struct { int32_t x, y, vx, vy; int kind, owner, life, direction, settled; } FF_Shot;
+typedef struct { int32_t x, y, vx, vy; int kind, owner, life, direction, settled, bounced; } FF_Shot;
 typedef struct { int x, y, kind, active, timer; } FF_Pickup;
 typedef struct { int32_t x, y, vx, vy; int kind, life, grounded; } FF_Hazard;
 typedef struct { int32_t x, y; int life; unsigned hit; } FF_Blast;
@@ -94,6 +115,9 @@ typedef struct {
     uint32_t device_hit[FF_DEVICES];
 } FF_Game;
 void ff_arena_practice(FF_Arena *a);
+int ff_pickup_kinds(const FF_Arena *a);
+/* The weapon a pickup kind gives, or 0 for health and fuel. */
+int ff_pickup_weapon(int kind);
 bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity);
 /* seats is a bit mask of the players taking part; 2v2 pairs even and odd seats. */
 void ff_game_setup(FF_Game *g, const FF_Arena *a, uint32_t seed, unsigned seats, int mode);

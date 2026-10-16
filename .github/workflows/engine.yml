@@ -47,13 +47,16 @@ jobs:
           grep '^online frame' build/host.txt | cut -d' ' -f2-3 > build/host-state.txt
           grep '^online frame' build/guest.txt | cut -d' ' -f2-3 > build/guest-state.txt
           test -s build/host-state.txt && diff build/host-state.txt build/guest-state.txt
-      - name: Online over Warpzone against its released server (rooms, forced relay, ranked queues)
+      - name: Online over Warpzone against its released server (rooms, forced relay, ranked queues, modded room)
         run: |
           curl -sSLo build/warpzone-server https://github.com/jarvis-jhk/warpzone/releases/download/v0.1.0/warpzone-server-0.1.0-x86_64-linux-musl
           echo "3300831dc4270c973f439f00b2d5c25cea84e5c91f55b0446e3f6146aa2458e8  build/warpzone-server" | sha256sum -c -
           chmod +x build/warpzone-server
+          curl -sSLo build/wz.tar.gz https://github.com/jarvis-jhk/warpzone/releases/download/v0.1.0/wz-0.1.0-x86_64-linux.tar.gz
+          echo "4146a97f4775aef2ba8c4a3e9cb8d2a59e6febf01c9b1d2dac0ae2a7231eeef0  build/wz.tar.gz" | sha256sum -c -
+          tar -C build -xzf build/wz.tar.gz
           gcc -shared -fPIC -O2 -Wall -Wextra -o build/relay_only.so tests/engine/relay_only.c -ldl
-          python3 tests/engine/test_warpzone.py build/native/funny-furries build/warpzone-server build/relay_only.so
+          python3 tests/engine/test_warpzone.py build/native/funny-furries build/warpzone-server build/relay_only.so build/wz-0.1.0-x86_64-linux/wz
       - name: Offline reference checksums for the cross-platform comparison
         run: |
           for match in "2 ffa" "3 ffa" "4 teams"; do build/native/net_probe offline $match 3008; done | tee build/sim-linux.txt

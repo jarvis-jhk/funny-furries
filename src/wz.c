@@ -85,17 +85,19 @@ static void run(FF_Wz *wz,int action,const char *requested) {
     wz->pending=FF_WZ_NONE;
     if(action==FF_WZ_HOST) {
         static const char *preset[]={"ffa","2v2"},*mode[]={"Free-for-all","2 vs 2"};
-        char options[400];
+        char options[600],lockfile[120]="";
+        if(wz->lockfile[0]) snprintf(lockfile,sizeof(lockfile),",\"lockfile\":\"%s\"",wz->lockfile);
         snprintf(options,sizeof(options),"{\"max_players\":4,\"visibility\":\"unlisted\",\"entry\":\"code\",\"preset\":\"%s\","
-                 "\"metadata\":{\"arena\":\"%s\",\"mode\":\"%s\"}}",preset[wz->mode==FF_TEAMS],
-                 wz->arena&&wz->arena->imported?"Original":"Practice",mode[wz->mode==FF_TEAMS]);
+                 "\"metadata\":{\"arena\":\"%s\",\"mode\":\"%s\"}%s}",preset[wz->mode==FF_TEAMS],
+                 wz->arena_name[0]?wz->arena_name:wz->arena&&wz->arena->imported?"ORIGINAL":"PRACTICE",mode[wz->mode==FF_TEAMS],lockfile);
         wz->hosting=true;wz_host(wz->client,options);snprintf(wz->status,sizeof(wz->status),"OPENING A ROOM");
     } else if(action==FF_WZ_JOIN_CODE) {
         wz->hosting=false;snprintf(wz->code,sizeof(wz->code),"%s",arg);
         wz_join_code(wz->client,arg);snprintf(wz->status,sizeof(wz->status),"JOINING %s",arg);
     } else if(action==FF_WZ_QUEUE) {
         snprintf(wz->queue,sizeof(wz->queue),"%s",arg);wz->queued=true;wz->queue_confirmed=false;wz->waiting=0;wz->local_count=1;
-        wz_queue(wz->client,arg,NULL);snprintf(wz->status,sizeof(wz->status),"LOOKING FOR A MATCH");
+        /* Modded players are matched with players of the same mod set. */
+        wz_queue(wz->client,arg,wz->lockfile[0]?wz->lockfile:NULL);snprintf(wz->status,sizeof(wz->status),"LOOKING FOR A MATCH");
     }
 }
 void ff_wz_host(FF_Wz *wz,int local_count,int mode) {wz->local_count=local_count;wz->mode=mode;run(wz,FF_WZ_HOST,NULL);}
@@ -244,6 +246,11 @@ void ff_wz_update(FF_Wz *wz,FF_Netplay *np,const FF_Arena *arena) {
                 break;
             }
             if(!strcmp(op,"udp")||!strcmp(op,"report")||!strcmp(op,"list")) break;
+            if(!strcmp(op,"mods")) {
+                wz->syncing=false;snprintf(wz->error,sizeof(wz->error),"COULD NOT LOAD THE ROOM'S MODS");
+                if(wz->in_room) wz_leave(wz->client);
+                forget_room(wz);break;
+            }
             if(!strcmp(op,"join")&&wz->ranked&&!wz->in_room) {
                 /* A replayed old match: its room is gone, and we are still in the queue. */
                 wz->ranked=false;wz->queued=true;snprintf(wz->status,sizeof(wz->status),"LOOKING FOR A MATCH");break;
@@ -257,8 +264,18 @@ void ff_wz_update(FF_Wz *wz,FF_Netplay *np,const FF_Arena *arena) {
         case WZ_EVENT_ROOM_JOINED: {
             wz->in_room=true;wz->busy=false;wz->host=json_bool(j,"host");json_str(j,"id",wz->room,sizeof(wz->room));
             if(np->phase!=FF_NP_OFF) ff_np_close(np);
-            start_netplay(wz,np);
-            snprintf(wz->status,sizeof(wz->status),wz->host?"ROOM OPEN":"IN THE ROOM");
+            wz->has_early_host=false;
+            if(wz->host) {start_netplay(wz,np);snprintf(wz->status,sizeof(wz->status),"ROOM OPEN");break;}
+            /* A guest plays what the room plays: its mods, then its arena. Ranked keeps
+             * our own set (the queue matched equal sets) and the first arena. */
+            json_str(j,"lockfile",wz->room_lockfile,sizeof(wz->room_lockfile));
+            json_str(j,"arena",wz->room_arena,sizeof(wz->room_arena));
+            if(wz->ranked) {wz->room_arena[0]=0;snprintf(wz->room_lockfile,sizeof(wz->room_lockfile),"%s",wz->lockfile);}
+            wz->mod_paths=0;wz->reload_mods=strcmp(wz->room_lockfile,wz->lockfile)!=0;
+            if(wz->reload_mods&&wz->room_lockfile[0]) {
+                wz->syncing=true;wz_sync_mods(wz->client,wz->room_lockfile);
+                snprintf(wz->status,sizeof(wz->status),"LOADING THE ROOM'S MODS");
+            } else wz->reload=true;
             break;
         }
         case WZ_EVENT_KNOCKING: snprintf(wz->status,sizeof(wz->status),"WAITING FOR THE HOST TO LET YOU IN");break;
@@ -283,7 +300,8 @@ void ff_wz_update(FF_Wz *wz,FF_Netplay *np,const FF_Arena *arena) {
             FF_WzPeer *p=find_peer(wz,e.peer);if(!p) break;
             p->connected=true;p->relayed=json_bool(j,"relayed");
             if(e.type==WZ_EVENT_PEER_CONNECTED) {
-                if(!wz->host) ff_np_virtual_host(np,peer_addr(e.peer));
+                if(!wz->host&&np->phase==FF_NP_OFF) {wz->early_host=e.peer;wz->has_early_host=true;}
+                else if(!wz->host) ff_np_virtual_host(np,peer_addr(e.peer));
                 else send_roster(wz);
             }
             break;
@@ -310,6 +328,26 @@ void ff_wz_update(FF_Wz *wz,FF_Netplay *np,const FF_Arena *arena) {
             snprintf(wz->status,sizeof(wz->status),"MATCH FOUND");
             break;
         }
+        case WZ_EVENT_MODS_PROGRESS: {
+            int64_t done=0,total=0;json_int(j,"done",&done);json_int(j,"total",&total);
+            if(total>0) snprintf(wz->status,sizeof(wz->status),"LOADING THE ROOM'S MODS - %d%%",(int)(done*100/total));
+            break;
+        }
+        case WZ_EVENT_MODS_SYNCED: {
+            if(!wz->syncing) break;
+            wz->syncing=false;wz->mod_paths=0;
+            const char *p=json_key(j,"paths");
+            if(p&&*p=='[') for(++p;*p&&*p!=']'&&wz->mod_paths<16;) {
+                if(*p!='"') {++p;continue;}
+                size_t n=0;char *out=wz->mod_path[wz->mod_paths];
+                for(++p;*p&&*p!='"';++p) {if(*p=='\\'&&p[1]) ++p;if(n+1<sizeof(wz->mod_path[0])) out[n++]=*p;}
+                out[n]=0;if(*p) ++p;
+                for(char *c=out;*c;++c) if(*c=='\\') *c='/';
+                ++wz->mod_paths;
+            }
+            wz->reload=true;
+            break;
+        }
         case WZ_EVENT_MATCH_FINISHED: {
             char id[40],state[16];json_str(j,"match_id",id,sizeof(id));json_str(j,"state",state,sizeof(state));
             if(!strcmp(id,wz->match_id)) upper_copy(wz->match_state,sizeof(wz->match_state),state);
@@ -332,6 +370,14 @@ void ff_wz_update(FF_Wz *wz,FF_Netplay *np,const FF_Arena *arena) {
         wz->started_sent=true;if(!wz->ranked) wz_set_closed(wz->client,1);
     }
     if(wz->ranked&&np->finished&&!wz->reported) report(wz,np);
+}
+void ff_wz_reloaded(FF_Wz *wz,FF_Netplay *np) {
+    wz->reload=false;
+    if(!wz->in_room) return;
+    snprintf(wz->lockfile,sizeof(wz->lockfile),"%s",wz->room_lockfile);
+    start_netplay(wz,np);snprintf(wz->status,sizeof(wz->status),"IN THE ROOM");
+    if(wz->has_early_host&&np->phase!=FF_NP_OFF) ff_np_virtual_host(np,peer_addr(wz->early_host));
+    wz->has_early_host=false;
 }
 bool ff_wz_seat_name(const FF_Wz *wz,int seat,char *out,unsigned capacity) {
     if(!wz->ranked) return false;
@@ -363,6 +409,7 @@ void ff_wz_queue(FF_Wz *wz,const char *queue) {(void)wz;(void)queue;}
 void ff_wz_leave(FF_Wz *wz,FF_Netplay *np) {(void)wz;(void)np;}
 void ff_wz_update(FF_Wz *wz,FF_Netplay *np,const FF_Arena *arena) {(void)wz;(void)np;(void)arena;}
 void ff_wz_mode_changed(FF_Wz *wz,int mode) {(void)wz;(void)mode;}
+void ff_wz_reloaded(FF_Wz *wz,FF_Netplay *np) {(void)wz;(void)np;}
 bool ff_wz_seat_name(const FF_Wz *wz,int seat,char *out,unsigned capacity) {(void)wz;(void)seat;(void)out;(void)capacity;return false;}
 bool ff_wz_peer_line(FF_Wz *wz,int n,char *out,unsigned capacity) {(void)wz;(void)n;(void)out;(void)capacity;return false;}
 #endif

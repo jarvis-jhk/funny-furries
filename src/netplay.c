@@ -21,6 +21,7 @@ uint32_t ff_arena_fingerprint(const FF_Arena *a) {
     h=fnv(h,a->muzzles,sizeof(a->muzzles));h=fnv(h,a->bonuses,sizeof(a->bonuses));h=fnv(h,&a->bonus_count,sizeof(a->bonus_count));
     h=fnv(h,a->blast_boxes,sizeof(a->blast_boxes));h=fnv(h,a->devices,sizeof(a->devices));
     h=fnv(h,&a->device_count,sizeof(a->device_count));h=fnv(h,a->paths,sizeof(a->paths));
+    h=fnv(h,a->weapons,sizeof(a->weapons));h=fnv(h,&a->rules,sizeof(a->rules));
     uint8_t imported=a->imported;return fnv(h,&imported,1);
 }
 static void header(uint8_t *p,int type,uint16_t token) {p[0]='F';p[1]='N';p[2]=VERSION;p[3]=(uint8_t)type;p[4]=(uint8_t)token;p[5]=(uint8_t)(token>>8);}

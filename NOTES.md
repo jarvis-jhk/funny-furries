@@ -1,5 +1,31 @@
 # Notes
 
+**Current — 2026-10-16, 0.5.0 in progress: Jan's laptop test + mods (`t_mvb31v2653xfu0`, `t_mvb3b7vv5bqj9p`, Opus):**
+Jan's laptop test found missing animations (fans, springs, weapon pickups), bombs all in the top
+left corner, and asked for the original bottom UI in normal 2P games, then mod support through
+Warpzone and a few cool published test mods. Fixed: ten parked `Bonus` objects at exactly (0,0)
+were imported as bomb/pickup spawn points; importer `arena-import/6` writes `devanim` (idle anim 0,
+springs' anim 12 plays once on `g->device_hit[i]`, a cosmetic tick kept out of the hash),
+`pickanim`, `hazardspeed`; speed = animation header byte 0, frames advance speed/100 per tick
+(`ff_sequence_frame`). Original HUD: Scorebord panel stays a layer; `hudfield/huddigit/hudweapon/
+hudbar/hudbarbox/hudfuel/hudpanel` from the frame's counters (digits from the `ammo 1` counter,
+right-aligned, standing on the placement), Item Player directions 24/16/0/8 = fists/ice/flame/rocket,
+bar and fuel extents measured from the panel's dark strips. The centre bar shows health (blue left,
+red right of the white line) — what the original bar meant is not proven. Launcher keeps
+`original-FF2xmas.cca` in the data home so a newer importer re-imports silently (0.4.0 users get
+the picker once, or nothing under Warpzone).
+Mods (docs/MODDING.md, src/mod.c): weapons are data (`FF_Weapon` in the arena; defaults identical —
+six configurations × 20000 ticks gave the same hashes before/after with the new shot field left out),
+pickup kinds 1-3/6+ = weapons, 4 health, 5 fuel; `FF_Rules` lives/gravity/jump; images 1024-1535 from
+mod.ff, level pictures from 1536; levels `FFLEVEL 1` with picture/collision PNG (black wall, blue
+ledge)/place/moving/scoreboard. Warpzone: active set from `<home>/mods/funny-furries/active.lock.json`
+(smoke runs only with FF_MODS_ACTIVE=1), host passes `lockfile`, guest `wz_sync_mods` then reloads
+mods + arena by room metadata name, then connects (a PEER_CONNECTED during the sync is kept for
+later). Proven locally against warpzone-server 0.1.0: three mods uploaded, moderator-approved,
+host plays them, a guest without mods syncs and ends in the identical state. Warpzone descriptor
+[mods] is staged on warpzone branch funny-furries-mods and goes live with tier 3 once 0.5.0 is
+released (report to the warpzone lane); then upload the three mods as JARVIS and Jan approves.
+
 **2026-10-16, Warpzone data hand-over (`t_mvb0neos40p3vs`, report API from the warpzone worker):**
 tools/launcher.py reads `WARPZONE_DATA_FF2XMAS` (launcher ≥0.1.2, warpzone PR #8): no valid
 selection → imports that copy silently; under Warpzone a failed `--import-copy`/env import falls back

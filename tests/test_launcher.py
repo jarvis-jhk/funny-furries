@@ -76,6 +76,28 @@ class LauncherTests(unittest.TestCase):
                 copy.assert_called_once_with(found, home, None)
                 ask.assert_not_called()
 
+    def test_kept_copy_redoes_an_outdated_import_without_asking(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            (home / launcher.KEPT).write_bytes(b'player bytes')
+            arena = home / 'arena-v6-new'
+            os.environ.pop(launcher.WARPZONE_DATA, None)
+            with patch.object(launcher, 'selected', return_value=None), \
+                    patch.object(launcher, 'import_copy', return_value=arena) as copy, \
+                    patch.object(launcher, 'save_selection') as save, \
+                    patch.object(launcher, 'choose_and_import') as ask, \
+                    patch.object(launcher, 'run_game', return_value=0) as run, \
+                    patch.object(launcher.sys, 'argv', ['launcher', '--home', str(home), '--mod', 'snow']):
+                self.assertEqual(launcher.main(), 0)
+            copy.assert_called_once_with(home / launcher.KEPT, home, None)
+            save.assert_called_once_with(home, arena)
+            ask.assert_not_called()
+            run.assert_called_once_with(arena, ['--mod', 'snow'])
+            # The kept copy is the player's bytes, written once.
+            launcher.keep_original(home, b'other bytes')
+            self.assertEqual((home / launcher.KEPT).read_bytes(), b'other bytes')
+            self.assertEqual([p.name for p in home.iterdir()], [launcher.KEPT])
+
     def test_warpzone_copy_is_not_reimported_once_selected(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)

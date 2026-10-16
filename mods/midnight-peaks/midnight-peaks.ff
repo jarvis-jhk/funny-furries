@@ -1,0 +1,38 @@
+FFLEVEL 1
+name Midnight Peaks
+# Pictures are drawn in order: the sky, then the ledges in front of it.
+picture sky.png 0 0
+picture terrain.png 0 0
+# Black is wall, blue is a ledge you can jump up through.
+collision collision.png
+# The original panel at the bottom in two-player games.
+scoreboard
+spawn 130 430
+spawn 670 430
+spawn 175 280
+spawn 625 280
+spawn 400 360
+spawn 400 190
+spawn 80 160
+spawn 720 160
+bonus 130 405
+bonus 670 405
+bonus 400 335
+bonus 175 255
+bonus 625 255
+bonus 400 165
+bonus 80 135
+bonus 720 135
+bonus 280 495
+bonus 520 495
+# A fan at the bottom of the frozen pit blows an updraft that lifts whoever
+# falls in back up to the middle ledge (the wind volume is the force, the fan the look).
+place fan-up 384 544
+place wind-up 352 300 96 260
+# Springs by the walls, side springs halfway up.
+place spring-up 16 504
+place spring-up 752 504
+place spring-right 0 330
+place spring-left 792 330
+# A moving ledge high above the pit.
+moving 360 110 230 520 1

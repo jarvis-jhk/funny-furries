@@ -1,13 +1,16 @@
 """Online play over Warpzone between real game processes and a real local server.
 
-usage: test_warpzone.py GAME SERVER RELAY_ONLY_SO
+usage: test_warpzone.py GAME SERVER RELAY_ONLY_SO [WZ_CLI]
 
 Rooms: a 2 vs 2 with two players per machine on a bad line, joined by room
 code, directly and once more with every direct datagram dropped so the relay
 has to carry it. Ranked: 1 vs 1, four-player free-for-all and 2 vs 2 through
 the queues; every machine must report the same placements and final-state hash
-and the server must rate the match.
+and the server must rate the match. Mods (with the wz CLI): three example mods are
+uploaded and approved by a moderator, a host plays them, and a guest without
+them must download exactly that set and its arena before it connects.
 """
+import json
 import os
 import re
 import subprocess
@@ -18,6 +21,8 @@ import unittest
 import urllib.request
 
 GAME, SERVER, RELAY_ONLY = [os.path.abspath(a) for a in sys.argv[1:4]] if len(sys.argv) >= 4 else (None, None, None)
+WZ = os.path.abspath(sys.argv[4]) if len(sys.argv) >= 5 else None
+MODS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'mods')
 DESCRIPTOR = '''id = "funny-furries"
 name = "Funny Furries"
 tagline = "Test descriptor."
@@ -46,6 +51,11 @@ id = "2v2"
 title = "2 vs 2"
 teams = 2
 team_size = 2
+[mods]
+categories = [{ id = "arena", label = "Arenas" }, { id = "weapon", label = "Weapons" }, { id = "rules", label = "Rules" }]
+max_size_mb = 20
+contains_code = false
+install = "extract"
 '''
 
 
@@ -63,6 +73,20 @@ class Warpzone(unittest.TestCase):
             f.write('name = "test"\npublic_url = "http://127.0.0.1:2999"\nhttp_listen = "127.0.0.1:2999"\n'
                     'udp_listen = "127.0.0.1:3479"\ndata_dir = "data"\ngames_dir = "games"\nstaff_file = "staff.toml"\n')
         cls.log = open(os.path.join(root, 'server.log'), 'w')
+        cls.start(root)
+        cls.homes = [os.path.join(root, 'home%d' % i) for i in range(4)]
+        if WZ:
+            # The moderator is a device key in staff.toml; the server reads it at start.
+            whoami = cls.wz('moderator', 'whoami')
+            key = re.search(r'^key\s+([0-9a-f]{64})', whoami, re.M).group(1)
+            with open(os.path.join(root, 'staff.toml'), 'w') as f:
+                f.write('moderators = ["%s"]\nreviewers = []\n' % key)
+            cls.server.terminate()
+            cls.server.wait()
+            cls.start(root)
+
+    @classmethod
+    def start(cls, root):
         cls.server = subprocess.Popen([SERVER, '--config', 'server.toml'], cwd=root, stdout=cls.log, stderr=subprocess.STDOUT)
         for _ in range(100):
             try:
@@ -70,7 +94,13 @@ class Warpzone(unittest.TestCase):
                 break
             except OSError:
                 time.sleep(0.1)
-        cls.homes = [os.path.join(root, 'home%d' % i) for i in range(4)]
+
+    @classmethod
+    def wz(cls, home, *args):
+        env = dict(os.environ, WARPZONE_SERVER='http://127.0.0.1:2999', WARPZONE_HOME=os.path.join(cls.dir.name, home))
+        done = subprocess.run([WZ, *args], env=env, capture_output=True, text=True, timeout=120)
+        assert done.returncode == 0, (args, done.stdout, done.stderr)
+        return done.stdout
 
     @classmethod
     def tearDownClass(cls):
@@ -149,6 +179,45 @@ class Warpzone(unittest.TestCase):
 
     def test_5_ranked_2v2(self):
         self.ranked('2v2', 4)
+
+    @unittest.skipUnless(WZ, 'needs the wz command-line tool')
+    def test_6_modded_room(self):
+        names = ('low-gravity', 'midnight-peaks', 'snowball-arsenal')
+        packed = os.path.join(self.dir.name, 'packed')
+        subprocess.run([sys.executable, os.path.join(MODS, 'pack.py'), packed], check=True, capture_output=True)
+        # The server limits new accounts per address: reuse the earlier tests' homes (home2 uploads).
+        author = os.path.relpath(self.homes[2], self.dir.name)
+        if 'account  none' in self.wz(author, 'whoami'):
+            self.wz(author, 'register', 'Tester2')
+        for name in names:
+            self.wz(author, 'mod-upload', 'funny-furries', os.path.join(MODS, name, 'warpzone-mod.json'),
+                    os.path.join(packed, name + '-1.0.0.zip'))
+            self.wz('moderator', 'approve', 'funny-furries', name, '1.0.0')
+        host_home = os.path.relpath(self.homes[0], self.dir.name)
+        lock = json.loads(self.wz(host_home, 'resolve', 'funny-furries', '0.5.0', *names))
+        self.wz(host_home, 'mod-sync', 'funny-furries', lock['hash'])
+        host = subprocess.Popen([GAME, '--warpzone-host', '--arena', '1', '--smoke', '1500'],
+                                env=self.env(0, FF_WZ_VERBOSE='1', FF_MODS_ACTIVE='1'), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        code, lines, deadline = None, [], time.time() + 60
+        while code is None and time.time() < deadline:
+            line = host.stdout.readline()
+            lines.append(line)
+            m = re.match(r'warpzone code=([A-Z0-9]{6})', line)
+            code = m.group(1) if m else None
+        self.assertIsNotNone(code, ''.join(lines)[-3000:])
+        # home1 has no mods yet: it must fetch the room's set.
+        guest = subprocess.Popen([GAME, '--warpzone-code', code, '--smoke', '1500'], env=self.env(1, FF_WZ_VERBOSE='1'),
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        host_out, guest_out = self.finish([host, guest])
+        host.stdout.close()
+        guest.stdout.close()
+        host_out = ''.join(lines) + host_out
+        self.assertIn('"lockfile":"%s"' % lock['hash'], host_out)
+        self.assertIn('"arena":"MIDNIGHT PEAKS"', host_out)
+        self.assertIn('warpzone event 25 ', guest_out)   # the guest downloaded the room's mods
+        states = [re.findall(r'^online frame=(\d+) state=(\w+)', o, re.M) for o in (host_out, guest_out)]
+        self.assertTrue(states[0], host_out[-3000:])
+        self.assertEqual(states[0], states[1])
 
 
 if __name__ == '__main__':

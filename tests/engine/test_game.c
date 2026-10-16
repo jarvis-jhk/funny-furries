@@ -77,16 +77,16 @@ static void homing_rockets(void) {
     clean(&g);arena.imported=true;
     memset(&arena.mask[200][80],FF_SOLID,100);
     g.players[0].x=600*FF_FP;g.players[1].respawn=60;
-    g.shots[0]=(FF_Shot){120*FF_FP,206*FF_FP,0,-57*FF_FP/8,FF_ROCKET,0,100,8,0};
+    g.shots[0]=(FF_Shot){120*FF_FP,206*FF_FP,0,-57*FF_FP/8,FF_ROCKET,0,100,8,0,0};
     tick(&g,0,0,1);CHECK(!g.shots[0].life&&g.blasts[0].life);
     CHECK(g.blasts[0].y>=200*FF_FP&&g.blasts[0].y<201*FF_FP);
     /* A missile that turns back can hit its shooter, including direct damage. */
     clean(&g);g.players[0].x=300*FF_FP;g.players[0].y=560*FF_FP;g.players[1].respawn=60;
-    g.shots[0]=(FF_Shot){325*FF_FP,542*FF_FP,-57*FF_FP/8,0,FF_ROCKET,0,100,16,0};
+    g.shots[0]=(FF_Shot){325*FF_FP,542*FF_FP,-57*FF_FP/8,0,FF_ROCKET,0,100,16,0,0};
     tick(&g,0,0,2);CHECK(g.players[0].health==84&&!g.shots[0].life);
     /* Substeps preserve the exact displacement of a fractional-speed shot. */
     clean(&g);g.players[1].respawn=60;
-    g.shots[0]=(FF_Shot){300*FF_FP,100*FF_FP,100*FF_FP/8,0,FF_ICE,0,100,0,0};
+    g.shots[0]=(FF_Shot){300*FF_FP,100*FF_FP,100*FF_FP/8,0,FF_ICE,0,100,0,0,0};
     tick(&g,0,0,1);CHECK(g.shots[0].x==300*FF_FP+100*FF_FP/8);
     FF_Game replay=g;replay.shots[0].direction=1;CHECK(ff_game_hash(&g)!=ff_game_hash(&replay));
 }
@@ -99,7 +99,7 @@ static void persistent_flame_and_impulses(void) {
     CHECK(g.players[1].health<=88&&g.players[0].health==100);
     /* A fire patch hurts its owner too; overlapping patches share a six-tick gate. */
     clean(&g);g.players[0].x=300*FF_FP;g.players[0].y=560*FF_FP;
-    g.shots[0]=(FF_Shot){300*FF_FP,559*FF_FP,0,0,FF_FLAME,0,270,0,1};
+    g.shots[0]=(FF_Shot){300*FF_FP,559*FF_FP,0,0,FF_FLAME,0,270,0,1,0};
     g.shots[1]=g.shots[0];tick(&g,0,0,1);CHECK(g.players[0].health==96);
     tick(&g,0,0,5);CHECK(g.players[0].health==96);
     tick(&g,0,0,1);CHECK(g.players[0].health==92);

@@ -1,10 +1,16 @@
-# Funny Furries 0.4.0 — Warpzone online test release
+# Funny Furries 0.5.0 — mods test release
 
-This preview plays arena 1 with two to four players on controllers or the two
-keyboard layouts, free for all or 2 vs 2, on one screen or online. Movement,
-weapons and devices are based on the original, with approximate timing and
-collision details. It is not the complete original game. Other arenas and
-automatic updates are not included yet.
+This preview plays the original arena 1 with two to four players on controllers
+or the two keyboard layouts, free for all or 2 vs 2, on one screen or online.
+Movement, weapons and devices are based on the original, with approximate timing
+and collision details. It is not the complete original game. Other original
+arenas and automatic updates are not included yet.
+
+New in 0.5.0: fans, water, springs and the weapon, health and jetpack pickups
+run their original animations; bombs no longer appear in the top left corner;
+a two-player game shows the original scoreboard at the bottom; and **mods**
+(see below and [MODDING.md](MODDING.md)). The first start after the update
+imports your copy once more; from now on later updates redo that by themselves.
 
 ## Windows
 
@@ -75,6 +81,20 @@ Without a connection to the Warpzone server, H and J fall back to the game's
 own join codes (such as `8KQ2-M4XP-9ZTRA`, or the host's address on the same
 home network), which work through most home routers but have no relay.
 
+## Mods
+
+Mods add arenas, weapons, rules, skins and sounds. They are plain pictures and
+text, never code. In the Warpzone launcher, the Mods tab of Funny Furries
+installs them; the game loads the active set at every start and the menu lists
+it. X / punch in the player menu switches between the original arena and mod
+arenas. Hosting a Warpzone room shares your mods and arena: everyone who joins
+downloads exactly that set first. Every mod version on Warpzone is checked by a
+moderator before anyone else can download it.
+
+Without Warpzone, start the game with `--mod FOLDER` (several times for several
+mods). The three example mods are attached to this release as ZIP files; unpack
+one and pass its folder. Making mods: [MODDING.md](MODDING.md).
+
 ## Play and report problems
 
 The game opens in the player menu. Each player presses A (or their keyboard jump
@@ -120,7 +140,8 @@ unsupported game copies are not reported.
 5. Keep the live ntfy → issue → maintenance-queue relay running, with the private
    queue URL only in its local config. No new scheduler job is needed. A controlled
    anonymous transport probe must be received, deduplicated and cleaned up.
-6. Tag only that tested source (`v0.4.0` for the Warpzone release), push the tag,
-   and upload the already checked binary/source archives and SHA256SUMS as a GitHub prerelease. Confirm the release is published and
+6. Tag only that tested source (`v0.5.0` for the mods release), push the tag,
+   and upload the already checked binary/source archives, the example mod ZIPs
+   (`mods/pack.py`) and SHA256SUMS as a GitHub prerelease. Confirm the release is published and
    every uploaded asset downloads with the expected hash. Record remaining human
    checks in NOTES, mark `furries-test-release` done, send Jan the release URL.

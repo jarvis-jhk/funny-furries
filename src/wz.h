@@ -24,6 +24,11 @@ typedef struct {
     struct { int64_t account; char name[20]; } roster[FF_PLAYERS]; int roster_count;
     bool reported; char match_state[16];
     const FF_Arena *arena; bool started_sent;
+    /* Mods: ours (set by the game) and the room's. A guest takes on the room's
+     * mod set and arena before it connects: reload says the game has to. */
+    char lockfile[80], arena_name[32], room_lockfile[80], room_arena[32];
+    bool syncing, reload, reload_mods; int mod_paths; char mod_path[16][1024];
+    uint32_t early_host; bool has_early_host;   /* connected while the mods still loaded */
 } FF_Wz;
 bool ff_wz_open(FF_Wz *wz, const char *version);
 void ff_wz_close(FF_Wz *wz);
@@ -43,5 +48,7 @@ void ff_wz_match_started(FF_Wz *wz, FF_Netplay *np);
 /* "NAME 34 MS" or "NAME 80 MS RELAYED" for the n-th connected peer, false past the last. */
 bool ff_wz_peer_line(FF_Wz *wz, int n, char *out, unsigned capacity);
 bool ff_wz_is_code(const char *text);
+/* The game reloaded mods/arena as asked by reload: now connect. */
+void ff_wz_reloaded(FF_Wz *wz, FF_Netplay *np);
 bool ff_wz_seat_name(const FF_Wz *wz, int seat, char *out, unsigned capacity);   /* ranked player names */
 #endif

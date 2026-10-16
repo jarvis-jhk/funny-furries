@@ -169,3 +169,14 @@ in sync.
       stay the fallback. Shipped v0.4.0 prerelease 2026-10-16. Not done (later): public room browser,
       approve/knock rooms, mod sync, leaderboards, update check; descriptor `tier` raise asked of the
       warpzone lane.
+
+## M4 — Mods
+- [x] Data-only mods (Jan, 2026-10-16: "add mod support through Warpzone, figure out what makes
+      sense"): arenas drawn as PNG pictures with a collision picture and the original devices,
+      new/changed weapons as behaviour switches (bounce, homing, blast, flame, pellets), rules
+      (gravity, jump, lives), image and sound replacements. Loaded from the Warpzone launcher's
+      active set or `--mod`; rooms carry the host's lockfile and guests sync it before connecting;
+      ranked queues use it as ruleset. Three example mods in `mods/`. docs/MODDING.md.
+- [ ] Publish the example mods on the public Warpzone (needs the descriptor live, then Jan's approval).
+- [ ] Animated mod pictures (sequences with speed) and mod furry skins with all animation frames.
+

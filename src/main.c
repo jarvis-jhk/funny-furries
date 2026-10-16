@@ -3,6 +3,7 @@
 #include "fault.h"
 #include "netplay.h"
 #include "wz.h"
+#include "mod.h"
 #include <SDL_image.h>
 #include <SDL_mixer.h>
 #include <stdio.h>
@@ -15,8 +16,15 @@ typedef struct { SDL_Texture *texture; int w,h; } Image;
 typedef struct {
     SDL_Window *window;SDL_Renderer *renderer;SDL_Texture *scene,*backdrop; FF_Input input;
     Image images[FF_IMAGES], tinted[2][FF_IMAGES]; Mix_Chunk *sounds[FF_SOUNDS]; bool audio;
-    const char *assets;
+    const char *assets; const FF_Mods *mods;
 } App;
+/* A mod's own file wins; otherwise the player's imported original. */
+static bool image_path(const App *app,int id,char *path,size_t capacity) {
+    if(id<0||id>=FF_IMAGES) return false;
+    if(app->mods&&app->mods->image_path[id]) return snprintf(path,capacity,"%s",app->mods->image_path[id])<(int)capacity;
+    if(!app->assets||id>=FF_ORIGINAL_IMAGES) return false;
+    return snprintf(path,capacity,"%s/image-21-%d.png",app->assets,id)<(int)capacity;
+}
 static const uint8_t font[][5]={
  {14,17,19,21,14},{4,12,4,4,14},{14,17,2,4,31},{30,1,6,1,30},{2,6,10,31,2},
  {31,16,30,1,30},{14,16,30,17,14},{31,1,2,4,4},{14,17,14,17,14},{14,17,15,1,14},
@@ -42,11 +50,11 @@ static void text(App *app,int x,int y,int scale,const char *s) {
 }
 static void centered(App *app,int y,int scale,const char *s) {text(app,(FF_W-(int)strlen(s)*6*scale)/2,y,scale,s);}
 static Image *load_image(App *app,int id) {
-    if(id<0||id>=FF_IMAGES||!app->assets) return NULL;
+    if(id<0||id>=FF_IMAGES) return NULL;
     Image *image=&app->images[id];
     if(image->texture) return image;
     char path[4096];
-    if(snprintf(path,sizeof(path),"%s/image-21-%d.png",app->assets,id)>=(int)sizeof(path)) return NULL;
+    if(!image_path(app,id,path,sizeof(path))) return NULL;
     SDL_Surface *s=IMG_Load(path);if(!s) return NULL;
     image->w=s->w;image->h=s->h;image->texture=SDL_CreateTextureFromSurface(app->renderer,s);SDL_FreeSurface(s);
     return image->texture?image:NULL;
@@ -55,11 +63,11 @@ static Image *load_image(App *app,int id) {
  * green and yellow, computed from the player's own art at load time. */
 static Image *load_tinted(App *app,int id,int seat) {
     if(seat<2) return load_image(app,id);
-    if(id<0||id>=FF_IMAGES||!app->assets) return NULL;
+    if(id<0||id>=FF_IMAGES) return NULL;
     Image *image=&app->tinted[seat-2][id];
     if(image->texture) return image;
     char path[4096];
-    if(snprintf(path,sizeof(path),"%s/image-21-%d.png",app->assets,id)>=(int)sizeof(path)) return NULL;
+    if(!image_path(app,id,path,sizeof(path))) return NULL;
     SDL_Surface *loaded=IMG_Load(path);if(!loaded) return NULL;
     SDL_Surface *s=SDL_ConvertSurfaceFormat(loaded,SDL_PIXELFORMAT_RGBA32,0);SDL_FreeSurface(loaded);
     if(!s) return NULL;
@@ -142,6 +150,13 @@ static int animation_image(const FF_Arena *a,int player,int part,int anim,int di
     if(!s->count) return -1;
     return s->image[(tick/4)%(uint32_t)s->count];
 }
+/* A mod weapon's own image in the hand, mirrored when the furry looks left. */
+static void held(App *app,const FF_Arena *a,int id,int x,int y,bool left) {
+    Image *im=load_image(app,id);if(!im) return;
+    int anchor=left?im->w-1-a->hot_x[id]:a->hot_x[id];
+    SDL_Rect dest={x-anchor,y-a->hot_y[id],im->w,im->h};
+    SDL_RenderCopyEx(app->renderer,im->texture,NULL,&dest,0,NULL,left?SDL_FLIP_HORIZONTAL:SDL_FLIP_NONE);
+}
 static void draw_player(App *app,const FF_Arena *a,const FF_Game *g,int i) {
     const FF_Player *p=&g->players[i];if(!p->active||!p->lives||p->respawn||(p->invulnerable&&g->tick%4<2)) return;
     int x=p->x/FF_FP,y=p->y/FF_FP,dir=p->facing<0;
@@ -153,6 +168,7 @@ static void draw_player(App *app,const FF_Arena *a,const FF_Game *g,int i) {
             int index=order[part];int active_anim=index==2&&p->punch_ticks?12:anim;
             if(index==4&&p->weapon==FF_FISTS) continue;
             if(index==4) active_anim=p->weapon==FF_ICE?13:p->weapon==FF_ROCKET?14:15;
+            if(index==4&&a->weapons[p->weapon].hand_image>=0) {held(app,a,a->weapons[p->weapon].hand_image,x,y-16,dir);continue;}
             int id=animation_image(a,i,index,active_anim,dir,g->tick);
             if(index==1) sprite_for(app,a,id,x,y-16,i);else sprite(app,a,id,x,y-16);
         }
@@ -188,8 +204,10 @@ static void original_hud(App *app,const FF_Arena *a,const FF_Game *g) {
         counter(app,h,h->field[i][FF_HUD_LIVES],p->lives);
         counter(app,h,h->field[i][FF_HUD_SCORE],p->score);
         counter(app,h,h->field[i][FF_HUD_AMMO],p->weapon==FF_FISTS?0:p->ammo);
-        const FF_Sequence *w=&h->weapon[p->weapon];
-        if(w->count) sprite(app,a,w->image[ff_sequence_frame(w,g->tick,true)],h->field[i][FF_HUD_ITEM].x,h->field[i][FF_HUD_ITEM].y);
+        const FF_Sequence *w=&h->weapon[p->weapon<4?p->weapon:0];
+        if(p->weapon>=4) {int id=a->weapons[p->weapon].pickup_image;FF_Point at=h->field[i][FF_HUD_ITEM];
+            if(id>=0) sprite(app,a,id,at.x+a->hot_x[id],at.y+a->hot_y[id]);}
+        else if(w->count) sprite(app,a,w->image[ff_sequence_frame(w,g->tick,true)],h->field[i][FF_HUD_ITEM].x,h->field[i][FF_HUD_ITEM].y);
         if(h->fuel_width&&p->fuel) {
             rgb(app,h->fuel_color);FF_Point f=h->field[i][FF_HUD_FUEL];
             rect(app,f.x,f.y,p->fuel*h->fuel_width/300,h->fuel_height);
@@ -208,7 +226,7 @@ static void original_hud(App *app,const FF_Arena *a,const FF_Game *g) {
 static void hud(App *app,const FF_Arena *a,const FF_Game *g) {
     if(a->hud.on&&g->players[0].active&&g->players[1].active&&!g->players[2].active&&!g->players[3].active) {original_hud(app,a,g);return;}
     color(app,12,20,33);rect(app,0,560,800,40);
-    const char *weapons[]={"FISTS","ICE","FLAME","ROCKET"};char s[120];
+    char s[120];
     int seats=0;for(int i=0;i<FF_PLAYERS;++i) seats+=g->players[i].active;
     if(!seats) return;
     int field=FF_W/seats,slot=0;bool wide=seats<=2;
@@ -223,8 +241,8 @@ static void hud(App *app,const FF_Arena *a,const FF_Game *g) {
         if(p->lives) {color(app,seat_body[i][0],seat_body[i][1],seat_body[i][2]);rect(app,x,575,p->health*bar/100,8);}
         color(app,225,233,242);
         if(!p->lives) snprintf(s,sizeof(s),"OUT");
-        else if(wide) snprintf(s,sizeof(s),"%s %d  HP %d",weapons[p->weapon],p->ammo,p->health);
-        else snprintf(s,sizeof(s),"%s %d",weapons[p->weapon],p->ammo);
+        else if(wide) snprintf(s,sizeof(s),"%s %d  HP %d",a->weapons[p->weapon].name,p->ammo,p->health);
+        else snprintf(s,sizeof(s),"%s %d",a->weapons[p->weapon].name,p->ammo);
         text(app,x,590,1,s);
         if(p->lives) {color(app,220,194,75);rect(app,x+(wide?195:bar-75),590,p->fuel/(wide?2:4),5);}
     }
@@ -252,25 +270,28 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
         else {color(app,245,80,35);rect(app,x-6,y-6,12,12);color(app,255,220,90);rect(app,x-2,y-10,4,5);}
     }
     for(int i=0;i<FF_PICKUPS;++i) {const FF_Pickup *p=&g->pickups[i];if(!p->active) continue;
-        int id=a->pickup_images[p->kind];const FF_Sequence *spin=&a->pickup_sprites[p->kind];
-        if(spin->count) id=spin->image[ff_sequence_frame(spin,g->tick,true)];
+        int weapon=ff_pickup_weapon(p->kind);
+        int id=p->kind<=5?a->pickup_images[p->kind]:-1;const FF_Sequence *spin=&a->pickup_sprites[p->kind<=5?p->kind:0];
+        if(weapon&&a->weapons[weapon].pickup_image>=0) id=a->weapons[weapon].pickup_image;
+        else if(spin->count) id=spin->image[ff_sequence_frame(spin,g->tick,true)];
         if(id>=0) sprite(app,a,id,p->x,p->y);
         else {color(app,220,190,70);rect(app,p->x-9,p->y-9,18,18);color(app,20,30,40);
-            const char *names[]={"","I","F","R","H","J"};text(app,p->x-5,p->y-5,2,names[p->kind]);}
+            const char *names[]={"","I","F","R","H","J","W","W","W","W"};text(app,p->x-5,p->y-5,2,names[p->kind<10?p->kind:6]);}
     }
     for(int i=0;i<FF_PLAYERS;++i) draw_player(app,a,g,i);
     for(int i=0;i<FF_SHOTS;++i) {const FF_Shot *s=&g->shots[i];if(!s->life) continue;
+        const FF_Weapon *w=&a->weapons[s->kind];
         const FF_Sequence *fire=&a->fire_sprites[s->life<=20];
-        if(s->kind==FF_FLAME&&fire->count) {
+        if(w->flame&&w->shot_image<0&&fire->count) {
             int frame=s->life<=20?(20-s->life)*fire->count/20:(270-s->life)/4%fire->count;
             sprite(app,a,fire->image[frame],s->x/FF_FP,s->y/FF_FP);continue;
         }
-        if(s->kind==FF_FLAME&&s->life<=20&&s->life%4<2) continue;
-        int id=a->shot_images[s->kind];
+        if(w->flame&&s->life<=20&&s->life%4<2) continue;
+        int id=w->shot_image>=0?w->shot_image:s->kind<4?a->shot_images[s->kind]:-1;
         if(id>=0) {
             Image *im=load_image(app,id);
             if(im) {
-                if(s->kind==FF_ROCKET) {
+                if(w->homing) {
                     SDL_Point origin={a->hot_x[id],a->hot_y[id]};
                     SDL_Rect dest={s->x/FF_FP-origin.x,s->y/FF_FP-origin.y,im->w,im->h};
                     SDL_RenderCopyEx(app->renderer,im->texture,NULL,&dest,-s->direction*11.25,&origin,SDL_FLIP_NONE);
@@ -328,7 +349,7 @@ static void draw_help(App *app) {
             text(app,125,346,2,"      B/RT FIRE  Y/LT JETPACK");
             text(app,125,382,2,"ESC/BACK MENU  F1 CLOSE");
 }
-typedef struct { unsigned joined; int mode; uint8_t previous[FF_PLAYERS]; } Lobby;
+typedef struct { unsigned joined; int mode, arena, arenas; uint8_t previous[FF_PLAYERS]; } Lobby;
 static bool seat_usable(const FF_Input *in,int seat) {return seat<2||ff_input_has_pad(in,seat);}
 static int seat_count(unsigned joined) {int n=0;for(int i=0;i<FF_PLAYERS;++i) n+=!!(joined&(1u<<i));return n;}
 static bool lobby_ready(const Lobby *l) {
@@ -343,9 +364,10 @@ static void lobby_update(Lobby *l,const FF_Input *in,const uint8_t keys[FF_PLAYE
         if(pressed&FF_JUMP) l->joined|=1u<<i;
         if(pressed&FF_FIRE) l->joined&=~(1u<<i);
         if((pressed&FF_FLY)&&(l->joined&(1u<<i))) l->mode=l->mode==FF_TEAMS?FF_FFA:FF_TEAMS;
+        if((pressed&FF_PUNCH)&&(l->joined&(1u<<i))&&l->arenas>1) l->arena=(l->arena+1)%l->arenas;
     }
 }
-static void draw_lobby(App *app,const Lobby *l,const FF_Input *in) {
+static void draw_lobby(App *app,const Lobby *l,const FF_Input *in,const char *arena) {
     SDL_RenderCopy(app->renderer,app->backdrop,NULL,NULL);
     color(app,12,20,33);rect(app,30,60,740,480);
     color(app,232,242,250);centered(app,90,4,"FUNNY FURRIES");
@@ -365,9 +387,13 @@ static void draw_lobby(App *app,const Lobby *l,const FF_Input *in) {
         else if(usable) {text(app,x+12,290,2,"PRESS A");text(app,x+12,312,1,i==0?"OR UP TO JOIN":i==1?"OR T TO JOIN":"TO JOIN");}
     }
     color(app,232,242,250);
-    centered(app,370,2,l->mode==FF_TEAMS?"MODE: 2 VS 2":"MODE: FREE FOR ALL");
+    char line[96];snprintf(line,sizeof(line),"%s   ARENA: %s",l->mode==FF_TEAMS?"MODE: 2 VS 2":"MODE: FREE FOR ALL",arena);
+    centered(app,362,2,line);
     color(app,170,185,200);
-    centered(app,400,1,"A/JUMP JOIN   B/FIRE LEAVE   Y/JETPACK CHANGE MODE");
+    if(app->mods&&app->mods->mod_count) {
+        snprintf(line,sizeof(line),"MODS: %.86s",app->mods->names);color(app,255,230,120);centered(app,384,1,line);color(app,170,185,200);
+    }
+    centered(app,400,1,l->arenas>1?"A/JUMP JOIN  B/FIRE LEAVE  Y/JETPACK MODE  X/PUNCH ARENA":"A/JUMP JOIN   B/FIRE LEAVE   Y/JETPACK CHANGE MODE");
     int n=seat_count(l->joined);
     color(app,232,242,250);
     if(lobby_ready(l)) centered(app,440,3,"START OR ENTER TO PLAY");
@@ -502,11 +528,77 @@ static bool assets_ready(App *app,const FF_Arena *a) {
     for(int k=1;k<6;++k) more[n++]=&a->pickup_sprites[k];
     for(int k=0;k<4;++k) more[n++]=&a->hud.weapon[k];
     for(int k=0;k<n;++k) for(int i=0;i<more[k]->count;++i) if(!load_image(app,more[k]->image[i])) return false;
+    for(int k=1;k<=a->rules.weapons&&k<FF_WEAPONS;++k) {
+        const FF_Weapon *w=&a->weapons[k];
+        if((w->shot_image>=0&&!load_image(app,w->shot_image))||(w->pickup_image>=0&&!load_image(app,w->pickup_image))||
+           (w->hand_image>=0&&!load_image(app,w->hand_image))) return false;
+    }
     if(a->hud.on) {
         for(int i=0;i<10;++i) if(!load_image(app,a->hud.digits[i])) return false;
         for(int i=0;i<3;++i) if(a->hud.bar[i]>=0&&!load_image(app,a->hud.bar[i])) return false;
     }
     return true;
+}
+static bool read_png(const char *path,int *w,int *h,uint8_t **rgba) {
+    SDL_Surface *loaded=IMG_Load(path);if(!loaded) return false;
+    SDL_Surface *s=SDL_ConvertSurfaceFormat(loaded,SDL_PIXELFORMAT_RGBA32,0);SDL_FreeSurface(loaded);
+    if(!s) return false;
+    *rgba=malloc((size_t)s->w*(size_t)s->h*4);
+    if(*rgba) {
+        SDL_LockSurface(s);
+        for(int y=0;y<s->h;++y) memcpy(*rgba+(size_t)y*(size_t)s->w*4,(uint8_t *)s->pixels+y*s->pitch,(size_t)s->w*4);
+        SDL_UnlockSurface(s);
+    }
+    *w=s->w;*h=s->h;SDL_FreeSurface(s);return *rgba!=NULL;
+}
+/* Mod images without a stated hot spot turn around their centre. */
+static void mod_hotspots(App *app,FF_Arena *a) {
+    if(!app->mods) return;
+    for(int id=FF_ORIGINAL_IMAGES;id<FF_IMAGES;++id) if(app->mods->center[id]) {
+        Image *im=load_image(app,id);if(im) {a->hot_x[id]=im->w/2;a->hot_y[id]=im->h/2;}
+    }
+}
+typedef struct { FF_Arena *base; FF_Mods *mods; int failed; } ModLoad;
+static void load_mod(const char *dir,const char *name,void *user) {
+    ModLoad *l=user;char error[256];
+    static FF_Arena trial;trial=*l->base;
+    /* A broken mod is left out whole, never half applied. */
+    if(ff_mod_apply(&trial,l->mods,dir,name,error,sizeof(error))) *l->base=trial;
+    else {fprintf(stderr,"%s\n",error);++l->failed;}
+}
+/* Arena 0 is the imported original (or practice); the rest are mod levels. */
+static bool choose_arena(App *app,FF_Arena *arena,const FF_Arena *base,FF_Mods *mods,int index,char *name,size_t capacity) {
+    char error[256];
+    for(int id=FF_MOD_IMAGES;id<FF_IMAGES;++id) if(app->images[id].texture) {SDL_DestroyTexture(app->images[id].texture);app->images[id].texture=NULL;}
+    *arena=*base;mods->next_picture=FF_MOD_IMAGES;
+    snprintf(name,capacity,"%s",base->imported?"ORIGINAL":"PRACTICE");
+    if(index>0&&index<=mods->level_count) {
+        if(!ff_level_apply(arena,mods,mods->level_path[index-1],read_png,error,sizeof(error))) {fprintf(stderr,"%s\n",error);*arena=*base;return false;}
+        snprintf(name,capacity,"%s",mods->level_name[index-1]);
+    }
+    mod_hotspots(app,arena);
+    if(!assets_ready(app,arena)) {fprintf(stderr,"Images of arena %s are missing\n",name);*arena=*base;return false;}
+    if(app->backdrop&&SDL_SetRenderTarget(app->renderer,app->backdrop)==0) {background(app,arena);SDL_SetRenderTarget(app->renderer,NULL);}
+    return true;
+}
+/* A room's mod set replaces ours: base arena again, then exactly the room's mods. */
+static bool reload_mods(App *app,FF_Arena *base,FF_Mods *mods,const char *data,char paths[][1024],int count) {
+    char error[256],path[4096];
+    for(int id=FF_ORIGINAL_IMAGES;id<FF_IMAGES;++id) if(app->images[id].texture) {SDL_DestroyTexture(app->images[id].texture);app->images[id].texture=NULL;}
+    for(int k=0;k<2;++k) for(int id=0;id<FF_IMAGES;++id) if(app->tinted[k][id].texture) {SDL_DestroyTexture(app->tinted[k][id].texture);app->tinted[k][id].texture=NULL;}
+    for(int id=0;id<FF_ORIGINAL_IMAGES;++id) if(mods->image_path[id]&&app->images[id].texture) {SDL_DestroyTexture(app->images[id].texture);app->images[id].texture=NULL;}
+    ff_mods_free(mods);
+    if(data) {snprintf(path,sizeof(path),"%s/arena.ff",data);if(!ff_arena_load(base,path,error,sizeof(error))) return false;}
+    else ff_arena_practice(base);
+    ModLoad load={base,mods,0};
+    for(int i=0;i<count;++i) {
+        /* .../mods/funny-furries/<name>/<version>/files */
+        char name[128]="mod";const char *end=strstr(paths[i],"/files");const char *v=NULL,*n=NULL;
+        for(const char *c=paths[i];end&&c<end;++c) if(*c=='/') {n=v;v=c;}
+        if(n&&v) snprintf(name,sizeof(name),"%.*s",(int)(v-n-1),n+1);
+        load_mod(paths[i],name,&load);
+    }
+    return !load.failed;
 }
 static bool parse_ticks(const char *s,int *ticks) {
     char *end;errno=0;long value=strtol(s,&end,10);
@@ -514,10 +606,14 @@ static bool parse_ticks(const char *s,int *ticks) {
     *ticks=(int)value;return true;
 }
 int main(int argc,char **argv) {
+    const char *mod_dirs[16];int mod_dir_count=0,arena_index=0;bool no_mods=false;
     const char *data=NULL,*screenshot=NULL,*join=NULL,*wz_code=NULL,*ranked=NULL;bool wz_host=false;int ticks=0,players=2,local_players=0;bool auto_play=false,fullscreen=false,teams=false,show_lobby=false,host=false;
     for(int i=1;i<argc;++i) {
         if(!strcmp(argv[i],"--fullscreen")) fullscreen=true;
         else if(!strcmp(argv[i],"--data")&&i+1<argc) data=argv[++i];
+        else if(!strcmp(argv[i],"--mod")&&i+1<argc&&mod_dir_count<16) mod_dirs[mod_dir_count++]=argv[++i];
+        else if(!strcmp(argv[i],"--no-mods")) no_mods=true;
+        else if(!strcmp(argv[i],"--arena")&&i+1<argc&&parse_ticks(argv[i+1],&arena_index)) ++i;
         else if(!strcmp(argv[i],"--smoke")&&i+1<argc&&parse_ticks(argv[i+1],&ticks)) {++i;auto_play=true;}
         else if(!strcmp(argv[i],"--screenshot")&&i+1<argc) screenshot=argv[++i];
         else if(!strcmp(argv[i],"--players")&&i+1<argc&&argv[i+1][0]>='2'&&argv[i+1][0]<='4'&&!argv[i+1][1]) players=argv[++i][0]-'0';
@@ -531,47 +627,60 @@ int main(int argc,char **argv) {
         else if(!strcmp(argv[i],"--warpzone-code")&&i+1<argc) wz_code=argv[++i];
         else if(!strcmp(argv[i],"--ranked")&&i+1<argc&&(!strcmp(argv[i+1],"1v1")||!strcmp(argv[i+1],"ffa")||!strcmp(argv[i+1],"2v2"))) ranked=argv[++i];
         else if(!strcmp(argv[i],"--local")&&i+1<argc&&argv[i+1][0]>='1'&&argv[i+1][0]<='3'&&!argv[i+1][1]) local_players=argv[++i][0]-'0';
-        else if(!strcmp(argv[i],"--help")) {puts("funny-furries [--fullscreen] [--data LOCAL_IMPORT] [--host | --join CODE] [--warpzone-host | --warpzone-join ROOM | --warpzone-code CODE | --ranked 1v1|ffa|2v2] [--local 1-3] [--smoke TICKS [--players 2-4] [--teams] [--lobby]] [--screenshot FILE.bmp]\nWithout --data, play the asset-free practice arena. F1 shows controls.\n--host opens an online match and shows its join code; --join CODE joins one.\nThe --warpzone options do the same through Warpzone rooms (relay included) and its ranked queues.\nEveryone online needs the same arena import.");return 0;}
+        else if(!strcmp(argv[i],"--help")) {puts("funny-furries [--fullscreen] [--data LOCAL_IMPORT] [--host | --join CODE] [--warpzone-host | --warpzone-join ROOM | --warpzone-code CODE | --ranked 1v1|ffa|2v2] [--local 1-3] [--mod DIR]... [--no-mods] [--arena N] [--smoke TICKS [--players 2-4] [--teams] [--lobby]] [--screenshot FILE.bmp]\nWithout --data, play the asset-free practice arena. F1 shows controls.\n--host opens an online match and shows its join code; --join CODE joins one.\nThe --warpzone options do the same through Warpzone rooms (relay included) and its ranked queues.\nEveryone online needs the same arena import.\n--mod DIR loads a mod directory (docs/MODDING.md); without --no-mods the mods active in\nthe Warpzone launcher load too. --arena N starts on the N-th mod level.");return 0;}
         else {fprintf(stderr,"Unknown or incomplete option. Use --help.\n");return 2;}
     }
     if(teams&&players!=4) {fprintf(stderr,"--teams needs --players 4.\n");return 2;}
     if(host&&join) {fprintf(stderr,"Use either --host or --join.\n");return 2;}
     ff_fault_init();
-    static FF_Arena arena;FF_Game game;App app={0};int result=1;char error[256];
+    static FF_Arena arena,base;static FF_Mods mods;FF_Game game;App app={0};int result=1;char error[256];
+    char arena_name[32]="",mod_hash[80]="";
     if(data) {
         char path[4096];if(snprintf(path,sizeof(path),"%s/arena.ff",data)>=(int)sizeof(path)||!ff_arena_load(&arena,path,error,sizeof(error))) {
             fprintf(stderr,"Cannot load local import. Run tools/import_arena.py first.\n");return 2;
         }
         app.assets=data;
     } else ff_arena_practice(&arena);
+    {
+        /* Smoke runs only load the mods they name, so tests never depend on this machine's set. */
+        ModLoad load={&arena,&mods,0};
+        bool active=!auto_play||getenv("FF_MODS_ACTIVE");
+        if(!no_mods&&active&&!getenv("FF_NO_MODS")) snprintf(mod_hash,sizeof(mod_hash),"%s",ff_mods_active(load_mod,&load));
+        for(int i=0;i<mod_dir_count;++i) {const char *slash=strrchr(mod_dirs[i],'/');load_mod(mod_dirs[i],slash&&slash[1]?slash+1:mod_dirs[i],&load);}
+        if(load.failed||mod_dir_count) mod_hash[0]=0;   /* not the launcher's exact set: no lockfile for rooms */
+        base=arena;app.mods=&mods;
+    }
     if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_AUDIO)<0) goto fail;
     if(!(IMG_Init(IMG_INIT_PNG)&IMG_INIT_PNG)) goto fail;
-    app.window=SDL_CreateWindow("Funny Furries 0.4.0 - test release",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1000,750,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
+    app.window=SDL_CreateWindow("Funny Furries 0.5.0 - test release",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1000,750,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
     if(!app.window) goto fail;
     app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
     if(!app.renderer) app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_SOFTWARE);
     if(!app.renderer||SDL_RenderSetLogicalSize(app.renderer,FF_W,FF_H)<0) goto fail;
     app.scene=SDL_CreateTexture(app.renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,FF_W,FF_H);
     if(!app.scene) goto fail;
-    if(data&&!assets_ready(&app,&arena)) {fprintf(stderr,"Incomplete local image import.\n");result=2;goto cleanup;}
+    if(data&&!assets_ready(&app,&base)) {fprintf(stderr,"Incomplete local image import.\n");result=2;goto cleanup;}
     app.backdrop=SDL_CreateTexture(app.renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,FF_W,FF_H);
     if(!app.backdrop||SDL_SetRenderTarget(app.renderer,app.backdrop)<0) goto fail;
-    background(&app,&arena);
     if(SDL_SetRenderTarget(app.renderer,NULL)<0) goto fail;
+    if(arena_index>mods.level_count) {fprintf(stderr,"There is no mod arena %d.\n",arena_index);result=2;goto cleanup;}
+    if(!choose_arena(&app,&arena,&base,&mods,arena_index,arena_name,sizeof(arena_name))&&arena_index) {result=2;goto cleanup;}
     app.audio=Mix_OpenAudio(44100,AUDIO_S16SYS,2,1024)==0;
-    if(app.audio&&data) for(int i=0;i<FF_SOUNDS;++i) if(arena.sound_ids[i]>=0) {
-        char path[4096];snprintf(path,sizeof(path),"%s/sound-23-%d.wav",data,arena.sound_ids[i]);
+    if(app.audio) for(int i=0;i<FF_SOUNDS;++i) if(mods.sound_path[i]||(data&&i<8&&arena.sound_ids[i]>=0)) {
+        char path[4096];
+        if(mods.sound_path[i]) snprintf(path,sizeof(path),"%s",mods.sound_path[i]);
+        else snprintf(path,sizeof(path),"%s/sound-23-%d.wav",data,arena.sound_ids[i]);
         app.sounds[i]=Mix_LoadWAV(path);
         if(!app.sounds[i]) {fprintf(stderr,"Incomplete local sound import.\n");result=2;goto cleanup;}
         Mix_VolumeChunk(app.sounds[i],MIX_MAX_VOLUME/3);
     }
     ff_input_init(&app.input);
     ff_game_setup(&game,&arena,12345,(1u<<players)-1,teams?FF_TEAMS:FF_FFA);
-    Lobby lobby={0};
+    Lobby lobby={0};lobby.arena=arena_index;lobby.arenas=1+mods.level_count;
     /* Smoke runs stay off the network unless they test Warpzone itself. */
     bool wz_asked=wz_host||wz_code||ranked||getenv("WARPZONE_JOIN")||getenv("WARPZONE_HOST");
     for(int i=1;i<argc;++i) wz_asked|=!strcmp(argv[i],"--warpzone-join")||!strncmp(argv[i],"warpzone://",11);
-    static FF_Wz wz;if(!auto_play||wz_asked) ff_wz_open(&wz,"0.4.0");
+    static FF_Wz wz;if(!auto_play||wz_asked) ff_wz_open(&wz,"0.5.0");
     wz.arena=&arena;
     bool naming=false,ranked_menu=false;char name_entry[20]="";int ranked_choice=0;uint32_t wz_deadline=0;
     if(ff_wz_launch(&wz,argc,argv)==2) wz_host=true;
@@ -590,7 +699,22 @@ int main(int argc,char **argv) {
     uint64_t frequency=SDL_GetPerformanceFrequency();
     while(running) {
         SDL_Event event;bool start=false,back=false,leave=false,mode_key=false;
+        snprintf(wz.lockfile,sizeof(wz.lockfile),"%s",mod_hash);snprintf(wz.arena_name,sizeof(wz.arena_name),"%s",arena_name);
         ff_wz_update(&wz,&np,&arena);
+        if(wz.reload) {
+            bool ok=true;
+            if(wz.reload_mods) {
+                ok=reload_mods(&app,&base,&mods,data,wz.mod_path,wz.mod_paths);
+                snprintf(mod_hash,sizeof(mod_hash),"%s",ok?wz.room_lockfile:"");
+                lobby.arenas=1+mods.level_count;
+            }
+            int wanted=0;
+            for(int i=0;i<mods.level_count;++i) if(!strcmp(mods.level_name[i],wz.room_arena)) wanted=i+1;
+            ok=ok&&choose_arena(&app,&arena,&base,&mods,wanted,arena_name,sizeof(arena_name));
+            lobby.arena=arena_index=ok?wanted:0;
+            if(ok) ff_wz_reloaded(&wz,&np);
+            else {ff_wz_leave(&wz,&np);snprintf(wz.error,sizeof(wz.error),"THE ROOM'S MODS DID NOT LOAD");}
+        }
         bool wz_screen=np.phase==FF_NP_OFF&&wz.available&&(wz.busy||wz.pending);
         naming=wz_screen&&wz.pending&&wz.need_name;
         if(wz_deadline&&(int32_t)(SDL_GetTicks()-wz_deadline)>0) {fprintf(stderr,"warpzone: timed out (%s %s)\n",wz.status,wz.error);result=1;goto cleanup;}
@@ -750,6 +874,10 @@ int main(int argc,char **argv) {
         } else if(in_lobby&&!auto_play) {
             uint8_t keys[FF_PLAYERS];ff_input_read(&app.input,keys);
             if(!help) lobby_update(&lobby,&app.input,keys);
+            if(lobby.arena!=arena_index) {
+                if(choose_arena(&app,&arena,&base,&mods,lobby.arena,arena_name,sizeof(arena_name))) arena_index=lobby.arena;
+                else {lobby.arena=0;arena_index=0;choose_arena(&app,&arena,&base,&mods,0,arena_name,sizeof(arena_name));}
+            }
             if(start&&lobby_ready(&lobby)) {
                 ff_game_setup(&game,&arena,(uint32_t)SDL_GetPerformanceCounter()|1u,lobby.joined,lobby.mode);
                 in_lobby=paused=false;
@@ -813,7 +941,7 @@ int main(int argc,char **argv) {
         else if(wz_screen) draw_warpzone(&app,&wz,name_entry,naming);
         else if(ranked_menu) draw_ranked_menu(&app,ranked_choice,&wz);
         else if(entering) draw_code_entry(&app,entry,entry_error);
-        else if(in_lobby) {draw_lobby(&app,&lobby,&app.input);if(help) draw_help(&app);}
+        else if(in_lobby) {draw_lobby(&app,&lobby,&app.input,arena_name);if(help) draw_help(&app);}
         else draw(&app,&arena,&game,help,paused);
         if(SDL_SetRenderTarget(app.renderer,NULL)<0) goto fail;
         color(&app,0,0,0);SDL_RenderClear(app.renderer);
@@ -838,6 +966,7 @@ cleanup:
     ff_input_close(&app.input);
     for(int i=0;i<FF_IMAGES;++i) if(app.images[i].texture) SDL_DestroyTexture(app.images[i].texture);
     for(int i=0;i<FF_SOUNDS;++i) if(app.sounds[i]) Mix_FreeChunk(app.sounds[i]);
+    ff_mods_free(&mods);
     if(app.audio) Mix_CloseAudio();
     if(app.scene) SDL_DestroyTexture(app.scene);
     if(app.backdrop) SDL_DestroyTexture(app.backdrop);

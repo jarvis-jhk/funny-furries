@@ -26,6 +26,11 @@ static bool supported(const FF_Arena *a,int x,int y) {
         if(tile(a,xx,y)==FF_PLATFORM&&tile(a,xx,y-1)!=FF_PLATFORM) return true;
     return false;
 }
+int ff_pickup_kinds(const FF_Arena *a) {
+    int weapons=a->rules.weapons<3?3:a->rules.weapons>FF_WEAPONS-1?FF_WEAPONS-1:a->rules.weapons;
+    return 5+weapons-3;
+}
+int ff_pickup_weapon(int kind) {return kind<=3?kind:kind>=6?kind-2:0;}
 static bool live(const FF_Player *p) {return p->active&&p->lives>0&&!p->respawn;}
 /* Teammates never hurt each other with fists or shots; explosions hurt everyone. */
 static bool allies(const FF_Game *g,int a,int b) {
@@ -57,7 +62,7 @@ void ff_game_setup(FF_Game *g,const FF_Arena *a,uint32_t seed,unsigned seats,int
         FF_Player *p=&g->players[i];
         p->active=!!(seats&(1u<<i));p->team=g->mode==FF_TEAMS?(i&1):i;
         if(!p->active) continue;
-        p->lives=3;reset_player(p,a->spawns[i%a->spawn_count],i);
+        p->lives=a->rules.lives;reset_player(p,a->spawns[i%a->spawn_count],i);
     }
     g->pickup_wait=300+(int)(random_word(g)%300);
     int count=a->imported?0:(a->spawn_count<8?a->spawn_count:8);
@@ -172,18 +177,27 @@ static void platform_land(FF_Player *p,const FF_Arena *a,uint32_t tick,int32_t o
         }
     }
 }
+static const int direction_x[32];
+static int direction_y(int direction);
 static void shoot(FF_Game *g,const FF_Arena *a,FF_Player *p,int owner) {
     if(p->weapon==FF_FISTS||p->ammo<=0||p->cooldown) return;
-    for(int i=0;i<FF_SHOTS;++i) if(!g->shots[i].life) {
-        int kind=p->weapon;
-        FF_Point muzzle=a->muzzles[owner&1][kind][p->facing<0];
-        g->shots[i]=(FF_Shot){p->x+muzzle.x*FF_FP,p->y+muzzle.y*FF_FP,
-            p->facing*(kind==FF_ICE?100:kind==FF_ROCKET?57:40)*FF_FP/8,0,kind,owner,kind==FF_FLAME?270:100,p->facing<0?16:0,0};
-        --p->ammo;p->cooldown=kind==FF_ROCKET?50:8;
-        g->sounds|=kind==FF_ICE?FF_SOUND_ICE:kind==FF_ROCKET?FF_SOUND_ROCKET:FF_SOUND_FLAME;
-        if(!p->ammo) p->weapon=FF_FISTS;
-        return;
+    int kind=p->weapon;const FF_Weapon *w=&a->weapons[kind];
+    int pellets=w->pellets<1?1:w->pellets>8?8:w->pellets,fired=0,base=p->facing<0?16:0;
+    /* Custom weapons leave from the hand of the nearest original weapon's sprite. */
+    FF_Point muzzle=a->muzzles[owner&1][kind<4?kind:1][p->facing<0];
+    for(int i=0;i<FF_SHOTS&&fired<pellets;++i) if(!g->shots[i].life) {
+        int32_t vx=p->facing*w->speed*FF_FP/8,vy=0;int direction=base;
+        if(pellets>1) {
+            direction=(base+(2*fired-(pellets-1))*w->spread/2+32)&31;
+            vx=direction_x[direction]*w->speed/8;vy=direction_y(direction)*w->speed/8;
+        }
+        g->shots[i]=(FF_Shot){p->x+muzzle.x*FF_FP,p->y+muzzle.y*FF_FP,vx,vy,kind,owner,w->life,direction,0,0};
+        ++fired;
     }
+    if(!fired) return;
+    --p->ammo;p->cooldown=w->cooldown;
+    g->sounds|=1u<<w->sound;
+    if(!p->ammo) p->weapon=FF_FISTS;
 }
 /* CnC direction 0 is right and 8 is up. Fixed vectors keep replay portable. */
 static const int direction_x[32]={256,251,237,213,181,142,98,50,0,-50,-98,-142,-181,-213,-237,-251,
@@ -210,14 +224,15 @@ static void rocket_steer(FF_Shot *s,const FF_Game *g,const FF_Arena *a) {
         int64_t dx=(p->x-s->x)/FF_FP,dy=(p->y-s->y)/FF_FP,distance=dx*dx+dy*dy;
         if(distance<best) {best=distance;target=p;}
     }
-    if(target) s->direction=turn(s->direction,toward(target->x-s->x,target->y-16*FF_FP-s->y));
+    if(target) for(int k=0;k<a->weapons[s->kind].homing;++k) s->direction=turn(s->direction,toward(target->x-s->x,target->y-16*FF_FP-s->y));
     for(int i=0;i<a->device_count;++i) {
         const FF_Device *d=&a->devices[i];
         if(d->kind<FF_WIND_LEFT||s->x<d->x*FF_FP||s->x>=(d->x+d->w)*FF_FP||
            s->y<d->y*FF_FP||s->y>=(d->y+d->h)*FF_FP) continue;
         s->direction=turn(s->direction,d->kind==FF_WIND_UP?8:d->kind==FF_WIND_LEFT?16:0);
     }
-    s->vx=direction_x[s->direction]*57/8;s->vy=direction_y(s->direction)*57/8;
+    int speed=a->weapons[s->kind].speed;
+    s->vx=direction_x[s->direction]*speed/8;s->vy=direction_y(s->direction)*speed/8;
 }
 static void blast(FF_Game *g,int32_t x,int32_t y) {
     for(int i=0;i<FF_BLASTS;++i) if(!g->blasts[i].life) {
@@ -321,15 +336,18 @@ static void pickup_spawn(FF_Game *g,const FF_Arena *a) {
     for(int i=0;i<FF_PICKUPS;++i) if(g->pickups[i].active&&
         g->pickups[i].x==p.x&&g->pickups[i].y==p.y) return;
     for(int i=0;i<FF_PICKUPS;++i) if(!g->pickups[i].kind) {
-        g->pickups[i]=(FF_Pickup){p.x,p.y,1+(int)(random_word(g)%5),1,0};
+        g->pickups[i]=(FF_Pickup){p.x,p.y,1+(int)(random_word(g)%(uint32_t)ff_pickup_kinds(a)),1,0};
         g->sounds|=FF_SOUND_PICKUP;return;
     }
 }
-static void pickup(FF_Player *p,int kind) {
-    static const int amount[]={0,25,15,8}, limit[]={0,50,30,16};
+static void pickup(FF_Player *p,const FF_Arena *a,int kind) {
+    int weapon=ff_pickup_weapon(kind);
     if(kind==FF_HEALTH) p->health=clamp(p->health+25,0,100);
     else if(kind==FF_FUEL) p->fuel=clamp(p->fuel+150,0,300);
-    else {p->ammo=clamp((p->weapon==kind?p->ammo:0)+amount[kind],0,limit[kind]);p->weapon=kind;}
+    else if(weapon>0&&weapon<FF_WEAPONS) {
+        const FF_Weapon *w=&a->weapons[weapon];
+        p->ammo=clamp((p->weapon==weapon?p->ammo:0)+w->ammo,0,w->max_ammo);p->weapon=weapon;
+    }
 }
 void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) {
     g->sounds=0;++g->tick;
@@ -365,10 +383,10 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
             p->facing=horizontal;
         } else if(p->vx>0) p->vx=p->vx>FF_FP/8?p->vx-FF_FP/8:0;
         else if(p->vx<0) p->vx=p->vx<-FF_FP/8?p->vx+FF_FP/8:0;
-        int gravity=wet?FF_FP/8:FF_FP/4,fall_cap=wet?20*FF_FP/8:8*FF_FP;
+        int gravity=wet?a->rules.gravity/2:a->rules.gravity,fall_cap=wet?20*FF_FP/8:8*FF_FP;
         if(p->vy>fall_cap) p->vy-=gravity;
         else p->vy=clamp(p->vy+gravity,-100*FF_FP/8,fall_cap);
-        if(!wet&&(keys&FF_JUMP)&&p->grounded) {p->vy=-44*FF_FP/8;p->grounded=0;}
+        if(!wet&&(keys&FF_JUMP)&&p->grounded) {p->vy=-a->rules.jump*FF_FP/8;p->grounded=0;}
         if(wet) {
             if((keys&FF_JUMP)&&p->vy>-20*FF_FP/8) p->vy=clamp(p->vy-2*FF_FP/8,-20*FF_FP/8,100*FF_FP/8);
         }
@@ -401,8 +419,9 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
     hazard_tick(g,a,damage);
     for(int i=0;i<FF_SHOTS;++i) {
         FF_Shot *s=&g->shots[i];if(!s->life) continue;
-        if(s->kind==FF_ROCKET) rocket_steer(s,g,a);
-        if(s->kind==FF_FLAME&&!s->settled) s->vy+=FF_FP/4;
+        const FF_Weapon *w=&a->weapons[s->kind];
+        if(w->homing) rocket_steer(s,g,a);
+        if(w->gravity&&!s->settled) s->vy+=w->gravity;
         bool impact=false;int target=-1;
         /* Substeps keep fast shots from tunnelling through a wall or player. */
         int distance=abs(s->vx)>abs(s->vy)?abs(s->vx):abs(s->vy);
@@ -411,11 +430,21 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
             s->x=start_x+s->vx*(j+1)/steps;s->y=start_y+s->vy*(j+1)/steps;
             int x=s->x/FF_FP,y=s->y/FF_FP;
             int terrain=tile(a,x,y);
-            bool surface=terrain==FF_SOLID||(s->kind==FF_FLAME&&s->vy>=0&&terrain==FF_PLATFORM);
+            bool surface=terrain==FF_SOLID||(w->gravity&&s->vy>=0&&terrain==FF_PLATFORM);
             if(surface||x<0||x>=FF_W||y<0||y>=560) {
-                if(s->kind==FF_FLAME&&surface&&x>=0&&x<FF_W&&y>=0&&y<=560) {
-                    s->x=start_x+s->vx*j/steps;s->y=start_y+s->vy*j/steps;
+                int32_t back_x=start_x+s->vx*j/steps,back_y=start_y+s->vy*j/steps;
+                if(w->flame&&surface&&x>=0&&x<FF_W&&y>=0&&y<=560) {
+                    s->x=back_x;s->y=back_y;
                     s->vx=s->vy=0;s->settled=1;
+                } else if(s->bounced<w->bounces) {
+                    /* Reflect the axis that ran into something; floors take some speed off. */
+                    int bx=floor_pixel(back_x),by=floor_pixel(back_y);
+                    bool side=x<0||x>=FF_W||tile(a,x,by)==FF_SOLID;
+                    bool floor=y<0||y>=560||tile(a,bx,y)==FF_SOLID||(w->gravity&&s->vy>=0&&tile(a,bx,y)==FF_PLATFORM);
+                    if(side||!floor) s->vx=-s->vx;
+                    if(floor||!side) s->vy=s->vy>0?-s->vy*3/4:-s->vy;
+                    s->x=back_x;s->y=back_y;++s->bounced;
+                    if(s->vy) s->direction=toward(s->vx,s->vy);
                 } else impact=true;
                 break;
             }
@@ -424,7 +453,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
                 if(b->life&&near(s->x,s->y,b->x,b->y,10)) {b->life=0;blast(g,b->x,b->y);impact=true;break;}
             }
             if(impact) break;
-            if(s->kind==FF_FLAME) continue;
+            if(w->flame) continue;
             for(int k=0;k<FF_PLAYERS;++k) {
                 FF_Player *p=&g->players[k];
                 if(live(p)&&!allies(g,s->owner,k)&&abs(p->x-s->x)<13*FF_FP&&s->y>=p->y-32*FF_FP&&s->y<p->y) {
@@ -434,19 +463,19 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
             if(impact) break;
         }
         if(target>=0) {
-            damage[target]+=s->kind==FF_ICE?6:8;
-            if(s->kind==FF_ICE) {knock[target]=(s->vx<0?-6:6)*FF_FP/8;lift[target]=-7*FF_FP/8;}
+            damage[target]+=w->damage;
+            if(w->knock||w->lift) {knock[target]=(s->vx<0?-w->knock:w->knock)*FF_FP/8;lift[target]=w->lift*FF_FP/8;}
         }
-        if(s->kind==FF_FLAME&&s->life>20&&!impact) for(int k=0;k<FF_PLAYERS;++k) {
+        if(w->flame&&s->life>20&&!impact) for(int k=0;k<FF_PLAYERS;++k) {
             FF_Player *p=&g->players[k];
             if(!live(p)||p->burn_wait||allies(g,s->owner,k)||(!s->settled&&k==s->owner)) continue;
             if(abs(p->x-s->x)<18*FF_FP&&s->y>=p->y-32*FF_FP&&s->y<p->y+4*FF_FP) {
-                burning[k]=4;p->burn_wait=6;
+                burning[k]=w->flame;p->burn_wait=6;
             }
         }
         --s->life;
         if(impact||s->life==0) {
-            if(s->kind==FF_ROCKET) blast(g,s->x,s->y);
+            if(w->blast) blast(g,s->x,s->y);
             s->life=0;
         }
     }
@@ -483,13 +512,13 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
     for(int i=0;i<FF_PICKUPS;++i) {
         FF_Pickup *b=&g->pickups[i];if(!b->kind) continue;
         if(!b->active) {
-            if(--b->timer<=0) {b->active=1;b->kind=1+(int)(random_word(g)%5);}
+            if(--b->timer<=0) {b->active=1;b->kind=1+(int)(random_word(g)%(uint32_t)ff_pickup_kinds(a));}
             continue;
         }
         for(int j=0;j<FF_PLAYERS;++j) {
             FF_Player *p=&g->players[j];
             if(live(p)&&abs(p->x/FF_FP-b->x)<22&&abs(p->y/FF_FP-16-b->y)<26) {
-                pickup(p,b->kind);b->active=0;b->timer=300;if(a->imported) b->kind=0;g->sounds|=FF_SOUND_PICKUP;break;
+                pickup(p,a,b->kind);b->active=0;b->timer=300;if(a->imported) b->kind=0;g->sounds|=FF_SOUND_PICKUP;break;
             }
         }
     }
@@ -505,7 +534,7 @@ uint32_t ff_game_hash(const FF_Game *g) {
         HASH(p->invulnerable);HASH(p->burn_wait);HASH(p->respawn);HASH(p->previous);HASH(p->bounce_wait);
     }
     for(int i=0;i<FF_SHOTS;++i) {const FF_Shot *s=&g->shots[i];
-        HASH(s->x);HASH(s->y);HASH(s->vx);HASH(s->vy);HASH(s->kind);HASH(s->owner);HASH(s->life);HASH(s->direction);HASH(s->settled);
+        HASH(s->x);HASH(s->y);HASH(s->vx);HASH(s->vy);HASH(s->kind);HASH(s->owner);HASH(s->life);HASH(s->direction);HASH(s->settled);HASH(s->bounced);
     }
     for(int i=0;i<FF_PICKUPS;++i) {const FF_Pickup *p=&g->pickups[i];
         HASH(p->x);HASH(p->y);HASH(p->kind);HASH(p->active);HASH(p->timer);

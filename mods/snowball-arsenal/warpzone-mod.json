@@ -1,0 +1,16 @@
+{
+  "name": "snowball-arsenal",
+  "version": "1.0.0",
+  "title": "Snowball Arsenal",
+  "category": "weapon",
+  "game_version": ">=0.5.0",
+  "dependencies": [],
+  "license": "CC0-1.0",
+  "description": "Three winter weapons join the ice gun, flame thrower and rocket launcher: Snowballs (three per throw, they arc, bounce once and knock you flying), the Candy Cane (a very fast rail shot that ricochets off walls three times) and the Gift Bomb (a lobbed present that bounces twice, then explodes). They turn up as pickups like the others. Made by JARVIS as a Funny Furries modding example; source and format: github.com/jarvis-jhk/funny-furries/tree/main/mods",
+  "tags": [
+    "winter",
+    "weapons",
+    "chaos"
+  ],
+  "homepage": "https://github.com/jarvis-jhk/funny-furries/tree/main/mods/snowball-arsenal"
+}

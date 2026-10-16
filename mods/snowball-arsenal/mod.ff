@@ -1,0 +1,18 @@
+FFMOD 1
+# Snowball Arsenal: three winter weapons join the original three.
+# Images 1024+ are this mod's own; hot spots put each gun in the furry's hand.
+image 1024 snowball.png
+image 1025 snowball-crate.png
+image 1026 snow-cannon.png 5 -1
+image 1027 cane-bolt.png
+image 1028 candy-cane.png
+image 1029 cane-rifle.png 7 -1
+image 1030 gift-bomb.png
+image 1031 gift-crate.png
+image 1032 gift-held.png 2 -3
+# Three snowballs per throw that arc, bounce once and knock you flying.
+weapon 4 name=SNOWBALLS speed=55 gravity=20 life=140 damage=5 knock=22 lift=-14 cooldown=16 ammo=15 max=30 pellets=3 spread=2 bounces=1 sound=1 shot=1024 pickup=1025 hand=1026
+# A candy cane rail shot: very fast, ricochets off walls three times.
+weapon 5 name=CANDY-CANE speed=170 life=120 damage=12 knock=30 lift=-10 cooldown=28 ammo=6 max=12 bounces=3 sound=1 shot=1027 pickup=1028 hand=1029
+# A lobbed present that bounces twice and then explodes.
+weapon 6 name=GIFT-BOMB speed=42 gravity=28 life=200 damage=0 blast=1 bounces=2 cooldown=45 ammo=4 max=8 sound=3 shot=1030 pickup=1031 hand=1032

@@ -454,6 +454,12 @@ def scoreboard(docs, placements, names, sequence, image_info):
     if panel:
         px, py, o = panel
         width, height, rgba = image_info(o['backdrop']['artwork']['image_id'])
+        art = o['backdrop']['artwork']
+        if art['kind'] == 'image':
+            lines.append(f'hudpanel {art["image_id"]} {px} {py} {width} {height} 0')
+        else:
+            pw, ph = struct.unpack_from('<HH', bytes.fromhex(o['backdrop']['header_hex']), 34)
+            lines.append(f'hudpanel {art["image_id"]} {px} {py} {pw} {ph} 1')
         def dark(x, y):
             x, y = x - px, y - py
             if not (0 <= x < width and 0 <= y < height):

@@ -7,6 +7,12 @@ keyboard layouts), free for all or 2 vs 2, on one screen or **online** through
 and ranked queues, with rollback netcode, on Linux, Windows and Steam Deck. More arenas are
 later roadmap work.
 
+**Mods** add arenas, weapons, rules, skins and sounds — plain text and pictures,
+no code, so a modded online match stays in sync. Get them in the Warpzone
+launcher's Mods tab (a room shares its host's mods with everyone who joins) or
+try a folder with `--mod`. Examples: [`mods/`](mods) (a snowball arsenal, a
+night arena, low gravity); how to make your own: [MODDING.md](docs/MODDING.md).
+
 Download a test version from [Releases](https://github.com/jarvis-jhk/funny-furries/releases).
 Extract the package and start `Play-Funny-Furries.exe` on Windows or `play.sh`
 on Linux/Deck. Choose **your own** full-version `funnyfurries.zip` or

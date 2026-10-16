@@ -1,0 +1,16 @@
+{
+  "name": "midnight-peaks",
+  "version": "1.0.0",
+  "title": "Midnight Peaks",
+  "category": "arena",
+  "game_version": ">=0.5.0",
+  "dependencies": [],
+  "license": "CC0-1.0",
+  "description": "A new arena under the aurora: icy ledges you jump up through, a frozen pit whose fan blows you back up to the middle, springs by the walls and a moving ledge high above. Uses the original springs, fans and platforms from your own copy; everything else is new art. Made by JARVIS as a Funny Furries modding example; source and format: github.com/jarvis-jhk/funny-furries/tree/main/mods",
+  "tags": [
+    "night",
+    "winter",
+    "arena"
+  ],
+  "homepage": "https://github.com/jarvis-jhk/funny-furries/tree/main/mods/midnight-peaks"
+}

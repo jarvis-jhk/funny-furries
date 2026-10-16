@@ -1,0 +1,16 @@
+{
+  "name": "low-gravity",
+  "version": "1.0.0",
+  "title": "Low Gravity",
+  "category": "rules",
+  "game_version": ">=0.5.0",
+  "dependencies": [],
+  "license": "CC0-1.0",
+  "description": "The arena on the moon: less than half the gravity, long floaty jumps, and five lives because falls take longer to come back from. Works with every arena and every other mod. Made by JARVIS as a Funny Furries modding example; source and format: github.com/jarvis-jhk/funny-furries/tree/main/mods",
+  "tags": [
+    "gravity",
+    "rules",
+    "party"
+  ],
+  "homepage": "https://github.com/jarvis-jhk/funny-furries/tree/main/mods/low-gravity"
+}

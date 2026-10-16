@@ -12,6 +12,13 @@ static void asset_defaults(FF_Arena *a) {
     for(int i=0;i<FF_SOUNDS;++i) a->sound_ids[i]=-1;
     for(int p=0;p<2;++p) for(int w=1;w<4;++w) for(int d=0;d<2;++d)
         a->muzzles[p][w][d]=(FF_Point){d?-16:16,-18};
+    /* The original three, exactly as the engine had them built in. */
+    a->weapons[FF_ICE]=(FF_Weapon){"ICE",100,0,100,6,6,-7,8,25,50,0,0,0,0,1,0,1,-1,-1,-1};
+    a->weapons[FF_FLAME]=(FF_Weapon){"FLAME",40,FF_FP/4,270,8,0,0,8,15,30,0,0,4,0,1,0,2,-1,-1,-1};
+    a->weapons[FF_ROCKET]=(FF_Weapon){"ROCKET",57,0,100,8,0,0,50,8,16,1,1,0,0,1,0,3,-1,-1,-1};
+    for(int k=0;k<FF_WEAPONS;++k) if(k<FF_ICE||k>FF_ROCKET) a->weapons[k].shot_image=a->weapons[k].pickup_image=a->weapons[k].hand_image=-1;
+    snprintf(a->weapons[FF_FISTS].name,sizeof(a->weapons[0].name),"FISTS");
+    a->rules=(FF_Rules){3,FF_FP/4,44,3};
     for(int i=0;i<11;++i) a->hud.digits[i]=-1;
     for(int i=0;i<3;++i) a->hud.bar[i]=-1;
 }
@@ -61,25 +68,25 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
             if(a->spawn_count==FF_SPAWNS||n[0]<12||n[0]>788||n[1]<32||n[1]>560) {ok=false;break;}
             a->spawns[a->spawn_count++]=(FF_Point){n[0],n[1]};
         } else if (sscanf(line,"layer %d %d %d %d %d %d %x %x %c",&n[0],&n[1],&n[2],&n[3],&n[4],&n[5],&c[0],&c[1],&tail)==8) {
-            if(a->layer_count==FF_LAYERS||n[0]<-1||n[0]>=FF_IMAGES||n[1]<-32768||n[1]>32767||n[2]<-32768||n[2]>32767||n[3]<1||n[3]>4096||n[4]<1||n[4]>4096||n[5]<0||n[5]>4) {ok=false;break;}
+            if(a->layer_count==FF_LAYERS||n[0]<-1||n[0]>=FF_ORIGINAL_IMAGES||n[1]<-32768||n[1]>32767||n[2]<-32768||n[2]>32767||n[3]<1||n[3]>4096||n[4]<1||n[4]>4096||n[5]<0||n[5]>4) {ok=false;break;}
             a->layers[a->layer_count++]=(FF_Layer){n[0],n[1],n[2],n[3],n[4],n[5],{c[0],c[1]}};
         } else if (sscanf(line,"hot %d %d %d %c",&n[0],&n[1],&n[2],&tail)==3) {
-            if(n[0]<0||n[0]>=FF_IMAGES||n[1]<-4096||n[1]>4096||n[2]<-4096||n[2]>4096) {ok=false;break;}
+            if(n[0]<0||n[0]>=FF_ORIGINAL_IMAGES||n[1]<-4096||n[1]>4096||n[2]<-4096||n[2]>4096) {ok=false;break;}
             a->hot_x[n[0]]=n[1];a->hot_y[n[0]]=n[2];
         } else if (sscanf(line,"sprite %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&tail)==5) {
-            if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_PARTS||n[2]<0||n[2]>=FF_ANIMS||n[3]<0||n[3]>1||n[4]<0||n[4]>=FF_IMAGES) {ok=false;break;}
+            if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_PARTS||n[2]<0||n[2]>=FF_ANIMS||n[3]<0||n[3]>1||n[4]<0||n[4]>=FF_ORIGINAL_IMAGES) {ok=false;break;}
             FF_Sequence *s=&a->sprites[n[0]][n[1]][n[2]][n[3]];
             if(s->count==FF_ANIM_FRAMES) {ok=false;break;} s->image[s->count++]=n[4];
         } else if (sscanf(line,"pickup %d %d %c",&n[0],&n[1],&tail)==2) {
-            if(n[0]<0||n[0]>5||n[1]<0||n[1]>=FF_IMAGES) {ok=false;break;} a->pickup_images[n[0]]=n[1];
+            if(n[0]<0||n[0]>5||n[1]<0||n[1]>=FF_ORIGINAL_IMAGES) {ok=false;break;} a->pickup_images[n[0]]=n[1];
         } else if (sscanf(line,"shot %d %d %c",&n[0],&n[1],&tail)==2) {
-            if(n[0]<1||n[0]>3||n[1]<0||n[1]>=FF_IMAGES) {ok=false;break;} a->shot_images[n[0]]=n[1];
+            if(n[0]<1||n[0]>3||n[1]<0||n[1]>=FF_ORIGINAL_IMAGES) {ok=false;break;} a->shot_images[n[0]]=n[1];
         } else if (sscanf(line,"muzzle %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&tail)==5) {
             if(n[0]<0||n[0]>1||n[1]<1||n[1]>3||n[2]<0||n[2]>1||
                n[3]<-4096||n[3]>4096||n[4]<-4096||n[4]>4096) {ok=false;break;}
             a->muzzles[n[0]][n[1]][n[2]]=(FF_Point){n[3],n[4]};
         } else if (sscanf(line,"device %d %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&n[5],&tail)==6) {
-            if(a->device_count==FF_DEVICES||n[0]<1||n[0]>FF_WIND_UP||n[1]<-4096||n[1]>4096||n[2]<-4096||n[2]>4096||n[3]<1||n[3]>1024||n[4]<1||n[4]>1024||n[5]<-1||n[5]>=FF_IMAGES||(n[0]>=FF_WIND_LEFT?n[5]!=-1:n[5]<0)) {ok=false;break;}
+            if(a->device_count==FF_DEVICES||n[0]<1||n[0]>FF_WIND_UP||n[1]<-4096||n[1]>4096||n[2]<-4096||n[2]>4096||n[3]<1||n[3]>1024||n[4]<1||n[4]>1024||n[5]<-1||n[5]>=FF_ORIGINAL_IMAGES||(n[0]>=FF_WIND_LEFT?n[5]!=-1:n[5]<0)) {ok=false;break;}
             a->devices[a->device_count++]=(FF_Device){n[0],n[1],n[2],n[3],n[4],n[5]};
         } else if (sscanf(line,"path %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&tail)==5) {
             if(n[0]<0||n[0]>=a->device_count||a->devices[n[0]].kind!=FF_MOVING_PLATFORM||
@@ -91,25 +98,25 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
             if(a->bonus_count==FF_SPAWNS||n[0]<0||n[0]>=FF_W||n[1]<0||n[1]>=560) {ok=false;break;}
             a->bonuses[a->bonus_count++]=(FF_Point){n[0],n[1]};
         } else if (sscanf(line,"hazard %d %d %d %c",&n[0],&n[1],&n[2],&tail)==3) {
-            if(n[0]<1||n[0]>3||n[1]<0||n[1]>1||n[2]<0||n[2]>=FF_IMAGES) {ok=false;break;}
+            if(n[0]<1||n[0]>3||n[1]<0||n[1]>1||n[2]<0||n[2]>=FF_ORIGINAL_IMAGES) {ok=false;break;}
             FF_Sequence *s=&a->hazard_sprites[n[0]-1][n[1]];
             if(s->count==FF_ANIM_FRAMES) {ok=false;break;} s->image[s->count++]=n[2];
         } else if (sscanf(line,"blast %d %c",&n[0],&tail)==1) {
-            if(n[0]<0||n[0]>=FF_IMAGES||a->blast_sprite.count==FF_ANIM_FRAMES) {ok=false;break;}
+            if(n[0]<0||n[0]>=FF_ORIGINAL_IMAGES||a->blast_sprite.count==FF_ANIM_FRAMES) {ok=false;break;}
             a->blast_sprite.image[a->blast_sprite.count++]=n[0];
         } else if (sscanf(line,"blastbox %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&tail)==5) {
             if(n[0]<0||n[0]>=a->blast_sprite.count||n[1]<-4096||n[1]>4096||
                n[2]<-4096||n[2]>4096||n[3]<1||n[3]>4096||n[4]<1||n[4]>4096) {ok=false;break;}
             a->blast_boxes[n[0]]=(FF_Box){n[1],n[2],n[3],n[4]};
         } else if (sscanf(line,"fire %d %d %c",&n[0],&n[1],&tail)==2) {
-            if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_IMAGES) {ok=false;break;}
+            if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_ORIGINAL_IMAGES) {ok=false;break;}
             FF_Sequence *s=&a->fire_sprites[n[0]];
             if(s->count==FF_ANIM_FRAMES) {ok=false;break;} s->image[s->count++]=n[1];
         } else if (sscanf(line,"devanim %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&tail)==4) {
-            if(n[0]<1||n[0]>FF_WIND_UP||n[1]<0||n[1]>1||n[2]<1||n[2]>100||n[3]<0||n[3]>=FF_IMAGES||
+            if(n[0]<1||n[0]>FF_WIND_UP||n[1]<0||n[1]>1||n[2]<1||n[2]>100||n[3]<0||n[3]>=FF_ORIGINAL_IMAGES||
                !add_frame(&a->device_sprites[n[0]][n[1]],n[2],n[3])) {ok=false;break;}
         } else if (sscanf(line,"pickanim %d %d %d %c",&n[0],&n[1],&n[2],&tail)==3) {
-            if(n[0]<1||n[0]>5||n[1]<1||n[1]>100||n[2]<0||n[2]>=FF_IMAGES||
+            if(n[0]<1||n[0]>5||n[1]<1||n[1]>100||n[2]<0||n[2]>=FF_ORIGINAL_IMAGES||
                !add_frame(&a->pickup_sprites[n[0]],n[1],n[2])) {ok=false;break;}
         } else if (sscanf(line,"hazardspeed %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<1||n[0]>3||n[1]<1||n[1]>100) {ok=false;break;}
@@ -118,22 +125,25 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
             if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_HUD_FIELDS||n[2]<0||n[2]>FF_W||n[3]<0||n[3]>FF_H) {ok=false;break;}
             a->hud.field[n[0]][n[1]]=(FF_Point){n[2],n[3]};
         } else if (sscanf(line,"huddigit %d %d %c",&n[0],&n[1],&tail)==2) {
-            if(n[0]<0||n[0]>10||n[1]<0||n[1]>=FF_IMAGES) {ok=false;break;}
+            if(n[0]<0||n[0]>10||n[1]<0||n[1]>=FF_ORIGINAL_IMAGES) {ok=false;break;}
             a->hud.digits[n[0]]=n[1];
         } else if (sscanf(line,"hudweapon %d %d %d %c",&n[0],&n[1],&n[2],&tail)==3) {
-            if(n[0]<0||n[0]>3||n[1]<1||n[1]>100||n[2]<0||n[2]>=FF_IMAGES||
+            if(n[0]<0||n[0]>3||n[1]<1||n[1]>100||n[2]<0||n[2]>=FF_ORIGINAL_IMAGES||
                !add_frame(&a->hud.weapon[n[0]],n[1],n[2])) {ok=false;break;}
         } else if (sscanf(line,"hudbar %d %d %c",&n[0],&n[1],&tail)==2) {
-            if(n[0]<0||n[0]>2||n[1]<0||n[1]>=FF_IMAGES) {ok=false;break;}
+            if(n[0]<0||n[0]>2||n[1]<0||n[1]>=FF_ORIGINAL_IMAGES) {ok=false;break;}
             a->hud.bar[n[0]]=n[1];
         } else if (sscanf(line,"hudbarbox %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&tail)==4) {
             if(n[0]<0||n[0]>FF_W||n[1]<0||n[1]>FF_H||n[2]<0||n[2]>n[0]||n[3]<n[0]||n[3]>FF_W) {ok=false;break;}
             a->hud.bar_at=(FF_Point){n[0],n[1]};a->hud.bar_left=n[2];a->hud.bar_right=n[3];
+        } else if (sscanf(line,"hudpanel %d %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&n[5],&tail)==6) {
+            if(n[0]<0||n[0]>=FF_ORIGINAL_IMAGES||n[1]<-4096||n[1]>4096||n[2]<-4096||n[2]>4096||n[3]<1||n[3]>4096||n[4]<1||n[4]>4096||n[5]<0||n[5]>1) {ok=false;break;}
+            a->hud.panel=(FF_Layer){n[0],n[1],n[2],n[3],n[4],n[5],{0,0}};a->hud.has_panel=true;
         } else if (sscanf(line,"hudfuel %x %d %d %c",&c[0],&n[0],&n[1],&tail)==3) {
             if(c[0]>0xffffff||n[0]<1||n[0]>FF_W||n[1]<1||n[1]>40) {ok=false;break;}
             a->hud.fuel_color=c[0];a->hud.fuel_width=n[0];a->hud.fuel_height=n[1];
         } else if (sscanf(line,"sound %d %d %c",&n[0],&n[1],&tail)==2) {
-            if(n[0]<0||n[0]>=FF_SOUNDS||n[1]<0||n[1]>4096) {ok=false;break;} a->sound_ids[n[0]]=n[1];
+            if(n[0]<0||n[0]>=8||n[1]<0||n[1]>4096) {ok=false;break;} a->sound_ids[n[0]]=n[1];
         } else {ok=false;break;}
     }
     if(ferror(f)||version!=1||a->spawn_count<2) ok=false;
