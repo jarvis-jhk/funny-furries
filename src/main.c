@@ -552,6 +552,7 @@ int main(int argc,char **argv) {
                 if(np.host&&strcmp(copied_code,np.code)&&(np.have_public||!np.stun_until)) {
                     /* Hand the code straight to the chat the players use to arrange the match. */
                     copied=SDL_SetClipboardText(np.code)==0;snprintf(copied_code,sizeof(copied_code),"%s",np.code);
+                    if(auto_play) printf("online code=%s\n",np.code),fflush(stdout);
                 }
             }
             if(leave||(np.phase==FF_NP_ENDED&&start)) {ff_np_close(&np);in_lobby=true;paused=help=false;ff_input_read(&app.input,lobby.previous);}

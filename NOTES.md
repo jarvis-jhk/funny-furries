@@ -1,6 +1,24 @@
 # Notes
 
 
+**Current — 2026-10-16, M3 rollback online (`t_mvattm341e3ere`, Opus):** item
+`furries-rollback-online`. Own rollback instead of GGPO/GekkoNet: `FF_Game` is one plain
+struct, so a snapshot is a copy. `src/rollback.c` (128-frame ring, 2-frame input delay,
+12 frames max prediction, checksum of every 32nd confirmed frame), `src/netplay.c` (UDP star
+around the host; host forwards all inputs; stall a tick when running ahead), `src/net.c`
+(sockets incl. Winsock, STUN via Google/Cloudflare, join code = public IPv4+port+16-bit token in
+13 base-32 letters with check bit, plain-HTTP ntfy.sh rendezvous, FF_NET_LOSS/DELAY/JITTER
+simulation). Host polls ntfy every 5 s (anonymous ntfy.sh refills ~1 request/5 s). Menu: H or a
+pad's Back hosts (local joined players come along), J opens code entry (Ctrl+V, Steam+X on Deck);
+`--host`/`--join CODE --local N`. Tests: test_rollback (in-memory 2-4 machines, up to 40 % loss,
+against an offline run; a deliberately wrong repair fails it), test_net, test_netplay.py (real
+processes, loopback UDP, loss/jitter, 2-4 machines, matches offline), CI online smoke with two
+real game processes, new Windows CI job + Linux/Windows offline-checksum diff. Locally also:
+real imported arena 2v2 with two players per machine under 10 % loss/40 ms; joining by the real
+public code (STUN + ntfy) from this container. NOT verified: two different real home networks
+(NAT punching across routers), carrier-grade NAT (no relay; VPS has no public UDP and Jan's
+domains must not ship). That is Jan's test on the release, not a block.
+
 **Current — 2026-10-16, v0.2.0 four-player prerelease (`t_mvasr2fk132c4w`, Opus):**
 https://github.com/jarvis-jhk/funny-furries/releases/tag/v0.2.0 (tag = `f7f9e6d`).
 Roadmap item `furries-four-players-deck` done. Engine: `FF_PLAYERS` 4, `ff_game_setup(seed,

@@ -189,12 +189,13 @@ static void relay_poll(FF_Netplay *np,uint32_t now) {
     if(np->host) {
         if(np->phase!=FF_NP_LOBBY) return;
         snprintf(request,sizeof(request),"GET /%s/json?poll=1&since=3m HTTP/1.0\r\nHost: %s\r\nUser-Agent: funny-furries\r\n\r\n",np->topic,RELAY_HOST);
-        np->next_poll=now+2500;
+        /* ntfy.sh refills an anonymous client about once per five seconds. */
+        np->next_poll=now+5000;
     } else {
         if(!np->have_public||np->me>=0) return;
         char body[32];ff_addr_text(np->public_addr,body,sizeof(body));
         snprintf(request,sizeof(request),"POST /%s HTTP/1.0\r\nHost: %s\r\nUser-Agent: funny-furries\r\nContent-Length: %u\r\n\r\n%s",np->topic,RELAY_HOST,(unsigned)strlen(body),body);
-        np->next_poll=now+(np->posted?15000:3000);
+        np->next_poll=now+(np->posted?20000:6000);
     }
     ff_http_start(&np->http,np->relay,request);np->http_busy=np->http.state>=0;
 }
