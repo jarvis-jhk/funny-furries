@@ -1,6 +1,22 @@
 # Notes
 
 
+**Current — 2026-10-16, v0.2.0 four-player prerelease (`t_mvasr2fk132c4w`, Opus):**
+https://github.com/jarvis-jhk/funny-furries/releases/tag/v0.2.0 (tag = `f7f9e6d`).
+Roadmap item `furries-four-players-deck` done. Engine: `FF_PLAYERS` 4, `ff_game_setup(seed,
+seat mask, FF_FFA|FF_TEAMS)`; 2v2 = even vs odd seats; no friendly fists/shots (blasts hurt
+all); rockets home on nearest opponent; 0 lives = out until round end; `winner` is a seat,
+`FF_TEAM_WIN+team` or `FF_DRAW` (8). App: start menu (jump joins, fire leaves, jetpack
+switches mode, Start/Enter plays; Back/Esc returns), four-field HUD, green/yellow = blue/red
+body part (only part 1 is coloured) hue-turned at load (-100°/+65°). Smoke flags
+`--players 2-4 --teams --lobby`. Two-player engine traces were identical old vs new over
+20000 ticks (practice and arena-reference5). CI native 38885331645, exporter 38885331696,
+release packages 38885388993 green on f7f9e6d (rev-parse checked in logs). Downloaded Linux
+package imported the real full ZIP; 10000 ticks 2P `02230dc7`, 4P 2v2 `9c724409` (same as
+local). Both packages audited; published assets re-downloaded and SHA256SUMS OK. Evidence
+agent `data/furries/four-players/`. Open for Jan's feedback, not a block: physical 3-4 pads,
+Deck/Steam Input, menu feel. Next version > 0.2.0; next item: all arenas/menus/scoreboard.
+
 **2026-10-15: repo made PUBLIC** (Jan, t_mv9tjlcifgygq). Author Bastiaan de Jong not
 asked about the game name. GitHub's auto-init commit 654d217 carries the bot account
 mail, every other commit the noreply address.

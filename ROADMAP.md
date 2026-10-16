@@ -151,9 +151,9 @@ fix what Jan reports.
 
 ## M2 — All arenas, 4 players, Deck
 - [ ] All arenas, menus, scoreboard.
-- [ ] Four players (green/yellow furries, extra spawn points, four-field HUD), modes FFA and 2v2.
-- [ ] Controller hotplug, "press A to join", Steam Input; Linux/Windows builds, Deck installer,
-      fault relay.
+- [x] Four players (green/yellow furries, extra spawn points, four-field HUD), modes FFA and 2v2.
+- [x] Controller hotplug, "press A to join", Steam Input; Linux/Windows builds, Deck installer,
+      fault relay. Shipped v0.2.0 prerelease 2026-10-16; physical 3-4 pad/Deck play is feedback.
 
 ## M3 — Rollback online
 - [ ] Rollback netcode (GGPO/GekkoNet), lobby with join code, NAT traversal, VPS relay fallback.
