@@ -4009,3 +4009,8 @@ spawns/observed behaviour remain open.
 </details>
 
 </details>
+
+## 2026-10-16 fault relay self-report (t_mvb2bnle4poj9h)
+The relay's "fault relay failed" request was an ntfy.sh outage (its own /v1/health answered 502), not a relay bug.
+It used to self-report once per hour of any outage; now only after 6 h of continuous failure, at most daily,
+tracked separately for the ntfy stream and the GitHub/queue forward. Deployed to data/apps/furries-feedback.
