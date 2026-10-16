@@ -77,7 +77,7 @@ int main(int argc,char **argv) {
             } else {
                 if(np.rb.frame<target+2*FF_RB_CHECK) {
                     uint8_t keys[FF_PLAYERS]={0};
-                    for(int i=0;i<np.local_count;++i) keys[i]=script(ff_np_seat_of_local(&np,i),np.rb.frame);
+                    for(int i=0;i<np.local_count&&i<FF_PLAYERS;++i) keys[i]=script(ff_np_seat_of_local(&np,i),np.rb.frame);
                     ff_np_tick(&np,keys);
                 } else ff_np_send(&np);
                 if(np.rb.desync!=UINT32_MAX) {fprintf(stderr,"desync at frame %u\n",np.rb.desync);return 1;}

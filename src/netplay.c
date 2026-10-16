@@ -313,7 +313,7 @@ unsigned ff_np_tick(FF_Netplay *np,const uint8_t local[FF_PLAYERS]) {
     ff_np_poll(np);
     if(np->phase!=FF_NP_PLAYING) return 0;
     uint8_t keys[FF_PLAYERS]={0};
-    for(int i=0;i<np->local_count;++i) {int s=ff_np_seat_of_local(np,i);if(s>=0) keys[s]=local[i];}
+    for(int i=0;i<np->local_count&&i<FF_PLAYERS;++i) {int s=ff_np_seat_of_local(np,i);if(s>=0) keys[s]=local[i];}
     /* The machine that runs ahead waits a tick now and then, so nobody has to roll back far. */
     bool ahead=false;
     for(int i=0;i<FF_NP_PEERS;++i) {
