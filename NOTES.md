@@ -16,7 +16,14 @@ Recoil rows 14/16: DirCalc push shooter opposite by 4 (ice) / 15 (rocket) → `F
 10x10 with hot spot 5,5 → bounce on bottom edge. P1 fly/P2 fly shown while Fuel>0 → `jetpack` lines (images 363/364).
 Rockets: original row only tests backdrop; Jan's report says they must not go down through one-way tops → shots with vy>0
 stop on a platform top edge. Not verified against a Wine run; action 33 meaning and the Bubble -20 condition unproven.
-Tests: second_playtest in test_game.c with negative controls for each change. Next version > 0.7.0.
+Tests: second_playtest in test_game.c with negative controls for each change. First push a62889d failed only on Windows
+(rollback test SEGFAULT, two GitHub CI-failure notices t_mvbl23dg1cyso4/t_mvbl2i7i1d0zrl): two FF_Rollback on the test's stack ×
+128 FF_Game snapshots with 256-entry platform arrays overflowed the 1 MB Windows stack → platform state is 16 slots
+(FF_PLATFORMS, device order), FF_Game +192 B vs 0.6.0. Keep FF_Game small: rollback copies it 128 times.
+Released https://github.com/jarvis-jhk/funny-furries/releases/tag/v0.7.0 (tag = 0d9a7c3): native 38980416242, exporter
+38980416201, packages 38980423289, rev-parse 0d9a7c34 in logs. Downloaded Linux package: real ZIP import identical to local
+(arena-v8), 10000 ticks de3ff28d (level 1) / 1edf33a0 (level 3) = local build; archives audited; assets re-downloaded,
+SHA256SUMS OK; mod ZIPs byte-identical to 0.6.0. Evidence agent `data/furries/v070-release/`. Next version > 0.7.0.
 
 **Current — 2026-10-16, 0.6.0: Jan's play-test of 0.5.0 (`t_mvbh783vldrdh` + follow-ups `t_mvbh7s6lmzmwh`,
 `t_mvbhe67ipk9s0`, `t_mvbhk46lq6zvl`, `t_mvbhm0rwrlbwr`, `t_mvbhq1d9sp9zg`, Opus):**
