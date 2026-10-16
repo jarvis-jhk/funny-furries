@@ -12,7 +12,7 @@ enum { FF_WZ_NONE, FF_WZ_HOST, FF_WZ_JOIN_CODE, FF_WZ_QUEUE };
 typedef struct { bool used, connected, relayed; uint32_t peer; int64_t account; char name[20]; } FF_WzPeer;
 typedef struct {
     void *client; bool available, online, need_name, has_account;
-    int64_t account; char username[20]; uint32_t login_ms;
+    int64_t account; char username[20]; uint32_t opened_ms, login_ms;
     char status[96], error[96];
     int pending; char pending_arg[16]; int local_count, mode;   /* waiting for a name or the login */
     /* busy: a request runs (or failed) and there is no room yet */

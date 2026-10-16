@@ -55,7 +55,7 @@ bool ff_wz_open(FF_Wz *wz,const char *version) {
     wz_config cfg={WZ_ABI_VERSION,NULL,"funny-furries",version,NULL,0};
     wz->client=wz_create(&cfg);
     if(!wz->client) {fprintf(stderr,"warpzone: %s\n",wz_last_error());snprintf(wz->status,sizeof(wz->status),"WARPZONE UNAVAILABLE");return false;}
-    wz->available=true;snprintf(wz->status,sizeof(wz->status),"CONNECTING TO WARPZONE");
+    wz->available=true;wz->opened_ms=ff_net_ms();snprintf(wz->status,sizeof(wz->status),"CONNECTING TO WARPZONE");
     return true;
 }
 void ff_wz_close(FF_Wz *wz) {if(wz->client) wz_destroy(wz->client);wz->client=NULL;wz->available=false;}
@@ -319,6 +319,11 @@ void ff_wz_update(FF_Wz *wz,FF_Netplay *np,const FF_Arena *arena) {
         }
     }
     if(wz->pending&&wz->has_account&&!wz->need_name) run(wz,wz->pending,wz->pending_arg);
+    /* libwarpzone 0.1.0 holds every event, the login error too, until the server
+     * first answered, so an unreachable server is only noticed by its silence. */
+    if(wz->pending&&!wz->has_account&&!wz->need_name&&!wz->error[0]&&ff_net_ms()-wz->opened_ms>10000) {
+        wz->online=false;snprintf(wz->error,sizeof(wz->error),"WARPZONE IS NOT REACHABLE - TRYING AGAIN");
+    }
     if(np->virtual_net&&np->phase==FF_NP_LOBBY&&wz->host&&wz->ranked) {
         int n=0;for(int s=0;s<FF_PLAYERS;++s) n+=(np->seats>>s)&1u;
         if(n==wz->teams*wz->team_size&&n>=2) {send_roster(wz);ff_np_start(np,np->mode,0);}

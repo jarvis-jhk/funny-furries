@@ -17,7 +17,7 @@ import time
 import unittest
 import urllib.request
 
-GAME, SERVER, RELAY_ONLY = sys.argv[1:4] if len(sys.argv) >= 4 else (None, None, None)
+GAME, SERVER, RELAY_ONLY = [os.path.abspath(a) for a in sys.argv[1:4]] if len(sys.argv) >= 4 else (None, None, None)
 DESCRIPTOR = '''id = "funny-furries"
 name = "Funny Furries"
 tagline = "Test descriptor."
@@ -57,7 +57,8 @@ class Warpzone(unittest.TestCase):
         os.makedirs(os.path.join(root, 'games'))
         with open(os.path.join(root, 'games', 'funny-furries.toml'), 'w') as f:
             f.write(DESCRIPTOR)
-        open(os.path.join(root, 'staff.toml'), 'w').write('moderators = []\nreviewers = []\n')
+        with open(os.path.join(root, 'staff.toml'), 'w') as f:
+            f.write('moderators = []\nreviewers = []\n')
         with open(os.path.join(root, 'server.toml'), 'w') as f:
             f.write('name = "test"\npublic_url = "http://127.0.0.1:2999"\nhttp_listen = "127.0.0.1:2999"\n'
                     'udp_listen = "127.0.0.1:3479"\ndata_dir = "data"\ngames_dir = "games"\nstaff_file = "staff.toml"\n')
