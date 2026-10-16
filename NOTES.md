@@ -1,5 +1,29 @@
 # Notes
 
+**Current — 2026-10-16, v0.4.0 Warpzone online prerelease (`t_mvawi3jr2sviw6`, Opus):**
+https://github.com/jarvis-jhk/funny-furries/releases/tag/v0.4.0 (tag = `b44172e`), URL sent to Jan;
+combined item `furries-warpzone-online` done. libwarpzone 0.1.0 pinned by SHA-256 in CMakeLists
+(downloaded at configure; `-DFF_WARPZONE=OFF` without). `ff_udp_virtual` makes netplay's socket hand
+datagrams to `wz_send` (peer id as FF_Addr ip, port 7) and take `wz_poll` peer data back, so the
+rollback/lobby protocol is unchanged. Ranked: auto_join_matches=0, joins only after its own QUEUED
+confirmation and queues 3 s after login, because a new client gets old MATCH_FOUND events replayed
+(reported to the warpzone lane, t_mvax59g72ybhrq); host seats by matchmaker teams (2v2 even/odd),
+roster of accounts on reliable channel 1, match ends at first fully confirmed frame with 3 wins
+(`FF_RANKED_WINS` for tests), placements + final hash to `wz_report_match`. libwarpzone 0.1.0 also
+withholds all events until the server first answered (reported, t_mvaxy58u35mk9e): 10 s without
+login = offline. Fixed on the way: lobby guests never spoke (host dropped them after 5 s) and the
+HELLO nonce collided for games started in the same ms. CI on b44172e: native 38901662999 (Linux incl.
+test_warpzone.py 5/5 against warpzone-server 0.1.0, Windows incl. offline libwarpzone smoke exit 1,
+same-simulation), exporter 38901662947, release packages 38901662301; rev-parse checked in all logs.
+Downloaded Linux package: real ZIP import, 10000 ticks `02230dc7`, relayed (relay_only.c LD_PRELOAD)
+real-arena 2v2 two-per-machine 10 % loss identical `626f72cb`, ranked 1v1 rated; both packages
+audited (only the allowed warpzone domain embedded); published assets re-downloaded, SHA256SUMS OK.
+Public server (0.1.1): room by code + direct match in sync with throwaway accounts, deleted after.
+From this container the public UDP 3478 never answers (`wz netcheck`; same VPS, likely hairpin), so
+the public relay is untested here — asked the warpzone lane. Evidence agent `data/furries/warpzone/`.
+Open for Jan, not a block: two real home networks, the public relay, Deck name/code entry.
+Next version > 0.4.0.
+
 
 **2026-10-16, Warpzone handoff (`t_mvavxt8f24wdj9`, report API from the warpzone laptop worker):**
 Warpzone (jarvis-jhk/warpzone, lane 🌀 warpzone) is the shared online layer for all JARVIS games.

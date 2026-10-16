@@ -162,16 +162,10 @@ in sync.
 - [x] Own rollback (no GGPO/GekkoNet needed: the simulation is one plain struct), join code, online
       lobby, STUN + ntfy hole punching, LAN broadcast, desync checksums. Shipped v0.3.0 prerelease
       2026-10-16; play across two real home networks is feedback.
-- [ ] Warpzone integration (combined roadmap `furries-warpzone-online`): move the online transport
-      onto Warpzone (github.com/jarvis-jhk/warpzone, docs/integration.md) instead of building our own
-      relay. Keep our rollback/netplay logic; swap `net.c` sockets/STUN/ntfy for `wz_send`/`wz_broadcast`
-      (star around the host, as now). Tier 1: `--warpzone-join <room>` / `--warpzone-host` through
-      `wz_handle_launch`. Tier 2: username prompt, host screen (public/unlisted, open/code/approve,
-      presets 1v1/ffa/2v2, metadata arena/mode), room list, code entry, knocks, direct/relayed + RTT,
-      `wz_set_closed` at match start. Tier 3: ranked queues 1v1/ffa/2v2 with `wz_report_match`
-      placements + `ff_game_hash` final-state hash; mod sync (categories arena/skin/weapon/sound) once
-      mods exist. The relay fallback for carrier-grade NAT comes with it. `warpzone.virtualtabletop.io`
-      is the one Jan domain allowed in this repo. Our own join codes stay as the no-server fallback.
-      Prerequisite: a libwarpzone release (none published on 2026-10-16) or building warpzone-capi
-      from source in CI for Linux and MinGW. Descriptor `games/funny-furries.toml` lives in the
-      warpzone repo (fixed in jarvis-jhk/warpzone#1); raise `tier` there as each tier ships.
+- [x] Warpzone integration (combined roadmap `furries-warpzone-online`): our rollback netplay over
+      libwarpzone 0.1.0 (`src/wz.c`, virtual socket in `net.c`); unlisted rooms with six-letter codes,
+      direct or relayed, RTT/relay shown; `--warpzone-join`/`--warpzone-host`; name prompt; ranked
+      1v1/ffa/2v2 queues, first to three, placements + `ff_game_hash` reported and rated. Own join codes
+      stay the fallback. Shipped v0.4.0 prerelease 2026-10-16. Not done (later): public room browser,
+      approve/knock rooms, mod sync, leaderboards, update check; descriptor `tier` raise asked of the
+      warpzone lane.
