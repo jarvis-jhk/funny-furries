@@ -52,6 +52,68 @@ class LauncherTests(unittest.TestCase):
             launcher.report_fault('game')
             popen.assert_not_called()
 
+    def test_warpzone_found_copy_is_imported_without_asking(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            found = home / 'Downloads' / 'funnyfurries.zip'
+            arena = home / 'arena-v5-x'
+            with patch.dict(os.environ, {launcher.WARPZONE_DATA: str(found)}), \
+                    patch.object(launcher, 'selected', return_value=None), \
+                    patch.object(launcher, 'import_copy', return_value=arena) as copy, \
+                    patch.object(launcher, 'save_selection') as save, \
+                    patch.object(launcher, 'choose_and_import') as ask, \
+                    patch.object(launcher, 'run_game', return_value=0) as run, \
+                    patch.object(launcher.sys, 'argv', ['launcher', '--home', str(home)]):
+                self.assertEqual(launcher.main(), 0)
+                copy.assert_called_once_with(found, home, None)
+                save.assert_called_once_with(home, arena)
+                ask.assert_not_called()
+                run.assert_called_once_with(arena, [])
+                # The launcher also passes import_args until selected.json exists: same copy, once.
+                copy.reset_mock()
+                with patch.object(launcher.sys, 'argv', ['launcher', '--home', str(home), '--import-copy', str(found)]):
+                    self.assertEqual(launcher.main(), 0)
+                copy.assert_called_once_with(found, home, None)
+                ask.assert_not_called()
+
+    def test_warpzone_copy_is_not_reimported_once_selected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            arena = home / 'arena-v5-x'
+            with patch.dict(os.environ, {launcher.WARPZONE_DATA: str(home / 'FF2xmas.cca')}), \
+                    patch.object(launcher, 'selected', return_value=arena), \
+                    patch.object(launcher, 'import_copy') as copy, \
+                    patch.object(launcher, 'choose_and_import') as ask, \
+                    patch.object(launcher, 'run_game', return_value=0) as run, \
+                    patch.object(launcher.sys, 'argv', ['launcher', '--home', str(home)]):
+                self.assertEqual(launcher.main(), 0)
+            copy.assert_not_called()
+            ask.assert_not_called()
+            run.assert_called_once_with(arena, [])
+
+    def test_unusable_warpzone_copy_falls_back_to_asking(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            demo = home / 'funnyfurries.zip'
+            with zipfile.ZipFile(demo, 'w') as stream:
+                stream.writestr('readme.txt', b'demo')
+            arena = home / 'arena-v5-chosen'
+            for argv in (['launcher', '--home', str(home)],
+                         ['launcher', '--home', str(home), '--import-copy', str(demo)]):
+                with patch.dict(os.environ, {launcher.WARPZONE_DATA: str(demo)}), \
+                        patch.object(launcher, 'choose_and_import', return_value=arena) as ask, \
+                        patch.object(launcher, 'run_game', return_value=0) as run, \
+                        patch.object(launcher.sys, 'argv', argv):
+                    self.assertEqual(launcher.main(), 0)
+                ask.assert_called_once_with(home, None)
+                run.assert_called_once_with(arena, [])
+            # Without Warpzone an explicit bad --import-copy still fails loudly.
+            with patch.dict(os.environ, {}, clear=False), patch.object(launcher, 'choose_and_import') as ask, \
+                    patch.object(launcher.sys, 'argv', ['launcher', '--home', str(home), '--import-copy', str(demo)]):
+                os.environ.pop(launcher.WARPZONE_DATA, None)
+                self.assertEqual(launcher.main(), 2)
+            ask.assert_not_called()
+
     @unittest.skipUnless(os.environ.get('FF_TEST_COPY') and os.environ.get('FF_KLIKBACK_SRC'), 'local original copy optional')
     def test_real_protected_copy_first_start_repeat_and_recovery(self):
         with tempfile.TemporaryDirectory() as directory:

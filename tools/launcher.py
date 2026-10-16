@@ -25,6 +25,8 @@ TOPIC = 'https://ntfy.sh/funny-furries-faults-a93c6b4e12d8'
 ROOT = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]))
 PACKAGE = Path(sys.executable).parent if getattr(sys, 'frozen', False) else ROOT
 MAX_INPUT = 32 * 1024 * 1024
+# The Warpzone launcher sets this to the copy it found on the machine (descriptor [[data]] id ff2xmas).
+WARPZONE_DATA = 'WARPZONE_DATA_FF2XMAS'
 
 
 def data_home():
@@ -243,6 +245,16 @@ def choose_and_import(home, reader_source):
     return result[0]
 
 
+def handed_over(source, home, reader_source):
+    try:
+        target = import_copy(source, home, reader_source)
+        save_selection(home, target)
+        return target
+    except (project_index.InputError, OSError) as error:
+        print(f'Could not use the copy Warpzone found ({source}): {error}', file=sys.stderr)
+        return None
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--import-copy', type=Path)
@@ -258,10 +270,15 @@ def main():
         return 0
     try:
         target = None if args.reimport else selected(args.home)
-        if args.import_copy:
+        found = os.environ.get(WARPZONE_DATA)
+        if args.import_copy and not found:
             target = import_copy(args.import_copy, args.home, args.reader_source)
             save_selection(args.home, target)
-        elif not target and not args.practice:
+        elif args.import_copy or (found and not target and not args.reimport and not args.practice):
+            # Under Warpzone a copy it found but we cannot use must not stop the game:
+            # say why and fall back to asking, as a first start without Warpzone would.
+            target = handed_over(args.import_copy or Path(found), args.home, args.reader_source) or target
+        if not target and not args.practice:
             target = choose_and_import(args.home, args.reader_source)
             if target is None:
                 return 0

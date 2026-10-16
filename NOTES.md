@@ -1,5 +1,13 @@
 # Notes
 
+**2026-10-16, Warpzone data hand-over (`t_mvb0neos40p3vs`, report API from the warpzone worker):**
+tools/launcher.py reads `WARPZONE_DATA_FF2XMAS` (launcher ≥0.1.2, warpzone PR #8): no valid
+selection → imports that copy silently; under Warpzone a failed `--import-copy`/env import falls back
+to the file dialog instead of exiting 2 (plain CLI `--import-copy` stays strict). Real ZIP via env
+only: import in 13 s, selected.json written; 3 new launcher tests + real-copy test pass. Descriptor
+`[[data]]` (files, `--import-copy`, `present` selected.json, ZIP/CCA fingerprints) already correct
+in warpzone PR #8 (carries #1); no new PR needed. Ships with the next release (> 0.4.0).
+
 **Current — 2026-10-16, v0.4.0 Warpzone online prerelease (`t_mvawi3jr2sviw6`, Opus):**
 https://github.com/jarvis-jhk/funny-furries/releases/tag/v0.4.0 (tag = `b44172e`), URL sent to Jan;
 combined item `furries-warpzone-online` done. libwarpzone 0.1.0 pinned by SHA-256 in CMakeLists

@@ -219,6 +219,10 @@ arena 1 without altering the source. The launcher keeps a checked, atomic local
 import under the user's application data directory. A damaged cache reopens
 file selection. `--reimport` selects another original; `--practice` skips import.
 `--fullscreen` fills the display for Deck use.
+Started from the Warpzone launcher, `WARPZONE_DATA_FF2XMAS` names the copy it
+found on the machine: without a valid import the launcher imports that copy
+without asking (also when Warpzone passes `--import-copy`), and a copy it cannot
+use only prints why and opens the normal file selection.
 
 Development CLI (requires Python and the separate reader):
 
