@@ -17,6 +17,7 @@ an untracked `orig/` here — never commit it.
 - Repo is PUBLIC since 2026-10-15 (Jan agreed; the author has not been asked about the name). Everything
   pushed is public: re-check for original content, Jan's domains and private endpoints before each push.
   Commits use the jarvis-jhk noreply address.
-- Jan's domains never appear in the repo, releases or logs. Fault reports go ntfy → GitHub issue,
+- Jan's domains never appear in the repo, releases or logs — except warpzone.virtualtabletop.io
+  (Jan's decision, for the Warpzone integration). Fault reports go ntfy → GitHub issue,
   like the other games.
 - Plan in ROADMAP.md, running state in NOTES.md. Combined game roadmap: `npx tsx /app/agent/scripts/roadmap.ts`.
