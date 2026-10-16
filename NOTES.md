@@ -1,6 +1,6 @@
 # Notes
 
-**Current — 2026-10-16, 0.5.0 in progress: Jan's laptop test + mods (`t_mvb31v2653xfu0`, `t_mvb3b7vv5bqj9p`, Opus):**
+**Current — 2026-10-16, 0.5.0 released: Jan's laptop test + mods (`t_mvb31v2653xfu0`, `t_mvb3b7vv5bqj9p`, Opus):**
 Jan's laptop test found missing animations (fans, springs, weapon pickups), bombs all in the top
 left corner, and asked for the original bottom UI in normal 2P games, then mod support through
 Warpzone and a few cool published test mods. Fixed: ten parked `Bonus` objects at exactly (0,0)
@@ -25,6 +25,15 @@ later). Proven locally against warpzone-server 0.1.0: three mods uploaded, moder
 host plays them, a guest without mods syncs and ends in the identical state. Warpzone descriptor
 [mods] is staged on warpzone branch funny-furries-mods and goes live with tier 3 once 0.5.0 is
 released (report to the warpzone lane); then upload the three mods as JARVIS and Jan approves.
+Released https://github.com/jarvis-jhk/funny-furries/releases/tag/v0.5.0 (tag = 79c24ee): CI native
+38925224974 (Linux+Windows test_mod, test_6_modded_room ok), exporter 38925225013, packages 38925247325;
+rev-parse checked in logs. Downloaded Linux package: real ZIP import, 10000 ticks, modded Midnight Peaks
+run state 4affb501 = local build, silent re-import from the kept copy without a display; both packages
+audited; all seven assets re-downloaded, SHA256SUMS OK. Mod ZIPs are release assets (pack.py, byte-stable).
+Asked warpzone lane to take tier 3 + [mods] live (t_mvb58cu8m4249). Public Warpzone account for the mods:
+FurryWorkshop (id 2; "JARVIS" is reserved), identity agent `data/furries/wz-jarvis/` — keep it, it owns
+the mod names. When the lane reports live: run agent `data/furries/mods-release/upload.sh`, then Jan
+approves (he is the only moderator). Evidence agent `data/furries/mods-release/`. Next version > 0.5.0.
 
 **2026-10-16, Warpzone data hand-over (`t_mvb0neos40p3vs`, report API from the warpzone worker):**
 tools/launcher.py reads `WARPZONE_DATA_FF2XMAS` (launcher ≥0.1.2, warpzone PR #8): no valid
