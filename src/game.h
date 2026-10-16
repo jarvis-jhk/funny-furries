@@ -21,6 +21,7 @@
 #define FF_PARTS 5
 #define FF_DEVICES 256
 #define FF_HAZARDS 32
+#define FF_PLATFORMS 16
 #define FF_BLASTS 32
 /* Slots 0-7 and 16-23 are the original's sounds, 8-15 belong to mods. */
 #define FF_SOUNDS 24
@@ -117,8 +118,9 @@ typedef struct {
     int trap_wait, pickup_wait;
     uint32_t rng, tick;
     int winner, round_wait, mode;
-    /* Moving platforms: where each is, which way it goes and how far it moved this tick. */
-    int platform_x[FF_DEVICES], platform_dir[FF_DEVICES], platform_dx[FF_DEVICES];
+    /* Moving platforms, in device order: where each is, which way it goes and how far it
+     * moved this tick. Only the first FF_PLATFORMS move; rollback keeps 128 copies of this. */
+    int platform_x[FF_PLATFORMS], platform_dir[FF_PLATFORMS], platform_dx[FF_PLATFORMS];
     unsigned sounds;
     /* Ticks a bouncer last fired and a player last shot or punched; drawing only,
      * so they stay out of the hash. */

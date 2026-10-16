@@ -132,35 +132,43 @@ static void platform_range(const FF_Arena *a,int device,int *lo,int *hi,int *spe
     const FF_Device *d=&a->devices[device];const FF_Path *path=&a->paths[device];
     *lo=path->speed?path->min_x:d->x;*hi=path->speed?path->max_x:d->x+128;*speed=path->speed?path->speed:2;
 }
+/* The game-state slot of a moving platform, or -1 for any other device. */
+static int platform_slot(const FF_Arena *a,int device) {
+    if(a->devices[device].kind!=FF_MOVING_PLATFORM) return -1;
+    int slot=0;for(int i=0;i<device;++i) slot+=a->devices[i].kind==FF_MOVING_PLATFORM;
+    return slot<FF_PLATFORMS?slot:-1;
+}
 FF_Point ff_device_position(const FF_Arena *a,const FF_Game *g,int device) {
-    const FF_Device *d=&a->devices[device];
-    return (FF_Point){d->kind==FF_MOVING_PLATFORM?g->platform_x[device]:d->x,d->y};
+    const FF_Device *d=&a->devices[device];int slot=platform_slot(a,device);
+    return (FF_Point){slot>=0?g->platform_x[slot]:d->x,d->y};
 }
 static void platforms_reset(FF_Game *g,const FF_Arena *a) {
     for(int i=0;i<a->device_count;++i) {
-        g->platform_x[i]=a->devices[i].x;g->platform_dx[i]=0;
-        g->platform_dir[i]=a->paths[i].speed&&a->paths[i].direction<0?-1:1;
+        int slot=platform_slot(a,i);if(slot<0) continue;
+        g->platform_x[slot]=a->devices[i].x;g->platform_dx[slot]=0;
+        g->platform_dir[slot]=a->paths[i].speed&&a->paths[i].direction<0?-1:1;
     }
 }
 /* Platforms turn at their reverse markers and, as in the original, when one runs into
  * another of the same kind: each then heads away from the other. */
 static void platforms_move(FF_Game *g,const FF_Arena *a) {
-    for(int i=0;i<a->device_count;++i) {
-        if(a->devices[i].kind!=FF_MOVING_PLATFORM) continue;
-        int lo,hi,speed,old=g->platform_x[i];platform_range(a,i,&lo,&hi,&speed);
-        int x=clamp(old+g->platform_dir[i]*speed,lo,hi);
-        if(x==lo) g->platform_dir[i]=1;
-        if(x==hi) g->platform_dir[i]=-1;
-        g->platform_x[i]=x;g->platform_dx[i]=x-old;
+    int slots[FF_PLATFORMS],count=0;
+    for(int i=0;i<a->device_count&&count<FF_PLATFORMS;++i) if(platform_slot(a,i)>=0) slots[count++]=i;
+    for(int n=0;n<count;++n) {
+        int lo,hi,speed,old=g->platform_x[n];platform_range(a,slots[n],&lo,&hi,&speed);
+        int x=clamp(old+g->platform_dir[n]*speed,lo,hi);
+        if(x==lo) g->platform_dir[n]=1;
+        if(x==hi) g->platform_dir[n]=-1;
+        g->platform_x[n]=x;g->platform_dx[n]=x-old;
     }
-    for(int i=0;i<a->device_count;++i) {
-        const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM) continue;
-        for(int k=i+1;k<a->device_count;++k) {
-            const FF_Device *e=&a->devices[k];
-            if(e->kind!=FF_MOVING_PLATFORM||e->image!=d->image||d->y>=e->y+e->h||e->y>=d->y+d->h) continue;
-            int x=g->platform_x[i],other=g->platform_x[k];
+    for(int n=0;n<count;++n) {
+        const FF_Device *d=&a->devices[slots[n]];
+        for(int m=n+1;m<count;++m) {
+            const FF_Device *e=&a->devices[slots[m]];
+            if(e->image!=d->image||d->y>=e->y+e->h||e->y>=d->y+d->h) continue;
+            int x=g->platform_x[n],other=g->platform_x[m];
             if(x>=other+e->w||other>=x+d->w||x==other) continue;
-            g->platform_dir[i]=x<other?-1:1;g->platform_dir[k]=-g->platform_dir[i];
+            g->platform_dir[n]=x<other?-1:1;g->platform_dir[m]=-g->platform_dir[n];
         }
     }
 }
@@ -208,8 +216,9 @@ static void device_forces(FF_Game *g,FF_Player *p,const FF_Arena *a,bool airborn
 static void platform_carry(FF_Player *p,const FF_Arena *a,const FF_Game *g) {
     if(!p->grounded) return;
     for(int i=0;i<a->device_count;++i) {
-        const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM||!g->platform_dx[i]) continue;
-        int dx=g->platform_dx[i],old=g->platform_x[i]-dx;
+        int slot=platform_slot(a,i);if(slot<0||!g->platform_dx[slot]) continue;
+        const FF_Device *d=&a->devices[i];
+        int dx=g->platform_dx[slot],old=g->platform_x[slot]-dx;
         int x=p->x/FF_FP,y=p->y/FF_FP;
         if(y==d->y&&x+8>=old&&x-9<old+d->w) {
             if(!blocked(a,x+dx,y)) p->x+=FF_FP*dx;
@@ -220,7 +229,7 @@ static void platform_land(FF_Player *p,const FF_Arena *a,const FF_Game *g,int32_
     if(p->vy<0) return;
     for(int i=0;i<a->device_count;++i) {
         const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM) continue;
-        int x=p->x/FF_FP,left=g->platform_x[i];
+        int x=p->x/FF_FP,left=ff_device_position(a,g,i).x;
         if(old_y<=d->y*FF_FP&&p->y>=d->y*FF_FP&&x+8>=left&&x-9<left+d->w) {
             p->y=d->y*FF_FP;p->vy=0;p->grounded=1;
         }
@@ -616,7 +625,7 @@ uint32_t ff_game_hash(const FF_Game *g) {
     uint32_t h=2166136261u;
 #define HASH(v) do { uint32_t bits=(uint32_t)(v); for(int byte=0;byte<4;++byte) {h^=(bits>>(byte*8))&255u;h*=16777619u;} } while(0)
     HASH(g->pickup_wait);HASH(g->trap_wait);HASH(g->rng);HASH(g->tick);HASH(g->winner);HASH(g->round_wait);HASH(g->sounds);HASH(g->mode);
-    for(int i=0;i<FF_DEVICES;++i) {HASH(g->platform_x[i]);HASH(g->platform_dir[i]);HASH(g->platform_dx[i]);}
+    for(int i=0;i<FF_PLATFORMS;++i) {HASH(g->platform_x[i]);HASH(g->platform_dir[i]);HASH(g->platform_dx[i]);}
     for(int i=0;i<FF_PLAYERS;++i) {const FF_Player *p=&g->players[i];HASH(p->active);HASH(p->team);
         HASH(p->x);HASH(p->y);HASH(p->vx);HASH(p->vy);HASH(p->facing);HASH(p->health);HASH(p->lives);HASH(p->score);
         HASH(p->fuel);HASH(p->weapon);HASH(p->ammo);HASH(p->grounded);HASH(p->cooldown);HASH(p->punch_ticks);

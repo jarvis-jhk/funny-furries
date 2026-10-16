@@ -136,4 +136,6 @@ The screen is 800 × 600; the arena is the top 800 × 560 and the scoreboard the
 bottom 40. A level needs at least two `spawn` points. As in the original, once
 an arena has a wind area its fans are only decoration and the wind areas push.
 Springs, fans and moving ledges look like the original's (from the player's
-import); without an import they are left out.
+import); without an import they are left out. Moving ledges start to the right,
+turn at their ends and when two of them meet; only
+the first 16 of a level move.
