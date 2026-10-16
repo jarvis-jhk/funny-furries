@@ -53,8 +53,34 @@ controller feel. Tests attach four real SDL virtual controllers and exercise hel
 input, separate seats, removal, replacement, a four-pad 2 vs 2 match and keyboard
 focus handling.
 
-Online: H (or a pad's Back) in the player menu hosts, J joins with a code;
-`--host` / `--join CODE` with `--local 1-3` do the same from the command line.
+Online goes through [Warpzone](https://github.com/jarvis-jhk/warpzone), the
+shared online layer of JARVIS's games (`src/wz.c`, libwarpzone 0.1.0 pinned by
+SHA-256 in CMakeLists; `-DFF_WARPZONE=OFF` builds without it). H (or a pad's
+Back) in the player menu opens an unlisted room and shows its six-letter room
+code; J takes that code; R (or a pad's RB) opens the ranked queues 1 vs 1,
+free-for-all of four and 2 vs 2 (one player per device, first to three round
+wins). The first Warpzone action asks once for a name, shared with every
+Warpzone game on the machine. Warpzone finds a direct path or relays the
+traffic, encrypted; the game shows each peer's round trip and "relayed".
+Our netplay runs unchanged on top: `ff_udp_virtual` hands its datagrams to
+`wz_send` and takes `wz_poll`'s peer data back. Ranked hosts seat the
+matchmaker's teams (2 vs 2 = even/odd seats); a match ends at the first fully
+confirmed frame where someone has three wins, so every machine reports the same
+placements and the same `ff_game_hash` to `wz_report_match`, and the server
+rates it. `--warpzone-host`, `--warpzone-join ROOM` (what the Warpzone launcher
+and website pass), `--warpzone-code CODE` and `--ranked 1v1|ffa|2v2` do the same
+from the command line; `WARPZONE_SERVER`/`WARPZONE_HOME` pick another server or
+identity, `FF_WZ_NAME` registers a name without asking, `FF_RANKED_WINS` (tests
+only, everyone must agree) shortens a ranked match, `FF_WZ_VERBOSE=1` logs the
+library's events. `tests/engine/test_warpzone.py` runs real game processes
+against the released warpzone-server: room 2 vs 2 with two players per machine
+on a bad line, once direct and once with `relay_only.c` (LD_PRELOAD) dropping
+every direct datagram so the relay must carry it, then all three ranked queues
+until the server reports "rated".
+
+Without the Warpzone server (offline, or `FF_NET_LAN_ONLY=1`), H falls back to
+our own join codes and J accepts them: `--host` / `--join CODE` with
+`--local 1-3` do the same from the command line.
 The engine side is `src/rollback.c` (snapshots of every frame, prediction
 "still holding what they held", re-simulation when a real input differs, an
 input delay of two frames, at most twelve frames of guessing, and a checksum of

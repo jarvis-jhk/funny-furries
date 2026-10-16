@@ -22,6 +22,12 @@ image/audio dependencies. SDL 2.30.12, SDL_image 2.8.8 (stb PNG backend) and SDL
 notices and corresponding-source download locations are included under
 `licenses/`. System graphics, audio drivers and the C library remain the host's.
 
+Online play links libwarpzone 0.1.0 (MIT OR Apache-2.0), the client library of
+Warpzone, as the static library from its release, pinned by SHA-256:
+https://github.com/jarvis-jhk/warpzone/releases/tag/v0.1.0 . Its licence texts
+are under `licenses/`; its own Rust dependencies (MIT/Apache-2.0/ISC, rustls,
+ring and others) are listed in that repository's `Cargo.lock` at the tag.
+
 The corresponding Funny Furries and KlikBack source is supplied separately as
 `funny-furries-source.tar.gz` beside every binary release. Packaging scripts and
 pinned dependency locations are included. No original game assets, recordings,

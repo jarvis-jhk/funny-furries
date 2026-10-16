@@ -74,9 +74,21 @@ bool ff_udp_open(FF_Udp *u,uint16_t port) {
     u->rng=0x9e3779b9u^(uint32_t)u->port^ff_net_ms();
     return true;
 }
-void ff_udp_close(FF_Udp *u) {if(u->fd!=BAD_FD&&u->fd) CLOSE((int)u->fd);u->fd=BAD_FD;}
+#define VIRTUAL_FD ((intptr_t)-2)
+void ff_udp_close(FF_Udp *u) {if(u->fd!=BAD_FD&&u->fd!=VIRTUAL_FD&&u->fd) CLOSE((int)u->fd);u->fd=BAD_FD;u->hook=NULL;}
+void ff_udp_virtual(FF_Udp *u,FF_UdpHook hook,void *ctx) {
+    memset(u,0,sizeof(*u));u->fd=VIRTUAL_FD;u->hook=hook;u->hook_ctx=ctx;
+    u->loss=env_number("FF_NET_LOSS",90);u->delay=env_number("FF_NET_DELAY",2000);u->jitter=env_number("FF_NET_JITTER",2000);
+    u->rng=0x9e3779b9u^ff_net_ms()^(uint32_t)(uintptr_t)ctx;
+}
+void ff_udp_inject(FF_Udp *u,FF_Addr from,const void *data,int length) {
+    if(u->fd!=VIRTUAL_FD||length<=0||length>512||u->inbox_count==128) return;
+    FF_Delayed *d=&u->inbox[(u->inbox_head+u->inbox_count++)%128];
+    d->to=from;d->length=length;memcpy(d->data,data,(size_t)length);
+}
 static uint32_t roll(FF_Udp *u,uint32_t n) {u->rng^=u->rng<<13;u->rng^=u->rng>>17;u->rng^=u->rng<<5;return n?u->rng%n:0;}
 static void send_now(FF_Udp *u,FF_Addr to,const void *data,int length) {
+    if(u->hook) {u->hook(u->hook_ctx,to,data,length);return;}
     struct sockaddr_in s=socket_addr(to);
     sendto((int)u->fd,(const char *)data,length,0,(struct sockaddr *)&s,sizeof(s));
 }
@@ -100,6 +112,12 @@ void ff_udp_send(FF_Udp *u,FF_Addr to,const void *data,int length) {
 int ff_udp_recv(FF_Udp *u,FF_Addr *from,void *data,int capacity) {
     if(u->fd==BAD_FD) return -1;
     flush(u);
+    if(u->fd==VIRTUAL_FD) {
+        if(!u->inbox_count) return -1;
+        FF_Delayed *d=&u->inbox[u->inbox_head];u->inbox_head=(u->inbox_head+1)%128;--u->inbox_count;
+        if(d->length>capacity) return -1;
+        *from=d->to;memcpy(data,d->data,(size_t)d->length);return d->length;
+    }
     struct sockaddr_in s;socklen_t length=sizeof(s);
     int n=(int)recvfrom((int)u->fd,(char *)data,capacity,0,(struct sockaddr *)&s,&length);
     if(n<0) return -1;

@@ -31,19 +31,22 @@ static void send_type(FF_Netplay *np,FF_Addr to,int type,const uint8_t *body,int
 }
 static int seat_count(unsigned seats) {int n=0;for(int i=0;i<FF_PLAYERS;++i) n+=(seats>>i)&1u;return n;}
 static uint32_t random_seed(void) {
-    static uint32_t salt=0x6a09e667u;
+    static uint32_t salt=0x6a09e667u;int local_marker=0;
     salt=(salt*1664525u+1013904223u)^ff_net_ms();
-    uint32_t local=ff_lan_ip();return fnv(2166136261u,&salt,4)^fnv(2166136261u,&local,4);
+    /* Two games started in the same millisecond on one machine differ in where their stack is. */
+    uintptr_t place=(uintptr_t)&salt^(uintptr_t)&local_marker;
+    uint32_t local=ff_lan_ip();return fnv(2166136261u,&salt,4)^fnv(2166136261u,&local,4)^fnv(2166136261u,&place,sizeof(place));
 }
 static void make_topic(FF_Netplay *np,FF_Addr host,uint16_t token) {
     uint8_t raw[8]={(uint8_t)(host.ip>>24),(uint8_t)(host.ip>>16),(uint8_t)(host.ip>>8),(uint8_t)host.ip,(uint8_t)(host.port>>8),(uint8_t)host.port,(uint8_t)(token>>8),(uint8_t)token};
     uint32_t a=fnv(0x811c9dc5u,raw,8),b=fnv(a^0x5bd1e995u,"funny-furries-join",18);
     snprintf(np->topic,sizeof(np->topic),"ff-join-%08x%08x",a,b);
 }
-static bool common_open(FF_Netplay *np,const FF_Arena *a,int local_count,uint16_t port,bool internet) {
+static bool common_open(FF_Netplay *np,const FF_Arena *a,int local_count,uint16_t port,bool internet,FF_UdpHook hook,void *ctx) {
     memset(np,0,sizeof(*np));
     for(int i=0;i<FF_PLAYERS;++i) np->owner[i]=-1;
-    if(!ff_net_init()||!ff_udp_open(&np->udp,port)) {snprintf(np->status,sizeof(np->status),"NO NETWORK");return false;}
+    if(hook) {ff_udp_virtual(&np->udp,hook,ctx);np->virtual_net=true;internet=false;}
+    else if(!ff_net_init()||!ff_udp_open(&np->udp,port)) {snprintf(np->status,sizeof(np->status),"NO NETWORK");return false;}
     np->local_count=local_count<1?1:local_count>3?3:local_count;np->arena=a;np->arena_hash=ff_arena_fingerprint(a);np->nonce=random_seed();
     np->lan_addr=(FF_Addr){ff_lan_ip(),np->udp.port};ff_addr_text(np->lan_addr,np->lan_text,sizeof(np->lan_text));
     np->phase=FF_NP_LOBBY;
@@ -59,32 +62,63 @@ static bool common_open(FF_Netplay *np,const FF_Arena *a,int local_count,uint16_
     }
     return true;
 }
-bool ff_np_host(FF_Netplay *np,const FF_Arena *a,int local_count,uint16_t port,bool internet) {
-    if(!common_open(np,a,local_count,port,internet)) return false;
+static bool host_open(FF_Netplay *np,const FF_Arena *a,int local_count,uint16_t port,bool internet,FF_UdpHook hook,void *ctx) {
+    if(!common_open(np,a,local_count,port,internet,hook,ctx)) return false;
     np->host=true;np->me=0;np->token=(uint16_t)(random_seed()|1u);
     np->peers[0].used=true;np->peers[0].local_count=np->local_count;
     for(int i=0;i<np->local_count;++i) {np->owner[i]=0;np->seats|=1u<<i;}
     np->peers[0].seats=np->local_seats=np->seats;
     ff_code_make(np->lan_addr,np->token,np->code);
-    snprintf(np->status,sizeof(np->status),internet?"FINDING INTERNET ADDRESS":"LOCAL NETWORK ONLY");
+    snprintf(np->status,sizeof(np->status),hook?"WAITING FOR PLAYERS":internet?"FINDING INTERNET ADDRESS":"LOCAL NETWORK ONLY");
     return true;
+}
+bool ff_np_host(FF_Netplay *np,const FF_Arena *a,int local_count,uint16_t port,bool internet) {
+    return host_open(np,a,local_count,port,internet,NULL,NULL);
+}
+bool ff_np_host_virtual(FF_Netplay *np,const FF_Arena *a,int local_count,FF_UdpHook hook,void *ctx) {
+    if(!host_open(np,a,local_count,0,false,hook,ctx)) return false;
+    np->code[0]=0;return true;
+}
+bool ff_np_join_virtual(FF_Netplay *np,const FF_Arena *a,int local_count,FF_UdpHook hook,void *ctx) {
+    if(!common_open(np,a,local_count,0,false,hook,ctx)) return false;
+    /* Any token: the host's WELCOME says which one this room uses. */
+    np->host=false;np->direct_join=true;np->me=-1;
+    snprintf(np->status,sizeof(np->status),"CONNECTING");
+    return true;
+}
+void ff_np_virtual_host(FF_Netplay *np,FF_Addr host) {
+    if(np->host||np->phase!=FF_NP_LOBBY) return;
+    np->direct=host;np->host_known=true;
+    np->peers[0].used=true;np->peers[0].addr=host;np->peers[0].heard=ff_net_ms();np->next_hello=0;
+}
+void ff_np_reserve(FF_Netplay *np,FF_Addr peer,unsigned seats) {
+    if(!np->host) return;
+    for(int r=0;r<np->reserved_count;++r) if(np->reserved_seats[r]==seats) {np->reserved_addr[r]=peer;return;}
+    if(np->reserved_count>=FF_NP_PEERS) return;
+    np->reserved_addr[np->reserved_count]=peer;np->reserved_seats[np->reserved_count++]=seats;
+}
+void ff_np_set_local_seats(FF_Netplay *np,unsigned seats) {
+    if(!np->host||np->phase!=FF_NP_LOBBY||!seats) return;
+    for(int s=0;s<FF_PLAYERS;++s) if(np->owner[s]==0) {np->owner[s]=-1;np->seats&=~(1u<<s);}
+    for(int s=0;s<FF_PLAYERS;++s) if((seats>>s)&1u) {np->owner[s]=0;np->seats|=1u<<s;}
+    np->peers[0].seats=np->local_seats=seats;
 }
 bool ff_np_join(FF_Netplay *np,const FF_Arena *a,const char *code,int local_count,bool internet) {
     FF_Addr host;uint16_t token;
     if(!ff_code_read(code,&host,&token)) {memset(np,0,sizeof(*np));snprintf(np->status,sizeof(np->status),"THAT CODE IS NOT VALID");return false;}
-    if(!common_open(np,a,local_count,0,internet&&token)) return false;
+    if(!common_open(np,a,local_count,0,internet&&token,NULL,NULL)) return false;
     np->host=false;np->token=token;np->direct=host;np->direct_join=!token;
     np->peers[0].used=true;np->peers[0].addr=host;np->peers[0].heard=ff_net_ms();
     snprintf(np->code,sizeof(np->code),"%s",code);
     if(token) make_topic(np,host,token);
-    np->me=-1;snprintf(np->status,sizeof(np->status),"CONNECTING");
+    np->me=-1;np->host_known=true;snprintf(np->status,sizeof(np->status),"CONNECTING");
     return true;
 }
 int ff_np_seat_of_local(const FF_Netplay *np,int local) {
     for(int s=0,n=0;s<FF_PLAYERS;++s) if((np->local_seats>>s)&1u) {if(n==local) return s;++n;}
     return -1;
 }
-static void end(FF_Netplay *np,const char *why) {
+void ff_np_end(FF_Netplay *np,const char *why) {
     if(np->phase==FF_NP_ENDED) return;
     np->phase=FF_NP_ENDED;snprintf(np->ended,sizeof(np->ended),"%s",why);snprintf(np->status,sizeof(np->status),"%s",why);
 }
@@ -213,7 +247,7 @@ static void handle(FF_Netplay *np,FF_Addr from,const uint8_t *m,int size) {
     int type=m[3];uint16_t token=(uint16_t)(m[4]|m[5]<<8);const uint8_t *b=m+HEADER;size-=HEADER;
     if(m[2]!=VERSION) {
         if(np->host&&type==HELLO) {uint8_t why=OLD_VERSION;send_type(np,from,REJECT,&why,1);}
-        if(!np->host&&type==REJECT) end(np,"DIFFERENT GAME VERSION");
+        if(!np->host&&type==REJECT) ff_np_end(np,"DIFFERENT GAME VERSION");
         return;
     }
     uint32_t now=ff_net_ms();
@@ -232,7 +266,10 @@ static void handle(FF_Netplay *np,FF_Addr from,const uint8_t *m,int size) {
                 for(int i=1;i<FF_NP_PEERS&&!why&&p<0;++i) if(!np->peers[i].used) p=i;
                 if(p<0) {if(!why) why=FULL;send_type(np,from,REJECT,&why,1);return;}
                 FF_Peer *peer=&np->peers[p];memset(peer,0,sizeof(*peer));peer->used=true;peer->addr=from;peer->local_count=want;peer->nonce=nonce;
-                for(int s=0;s<FF_PLAYERS&&want;++s) if(np->owner[s]<0) {np->owner[s]=p;np->seats|=1u<<s;peer->seats|=1u<<s;--want;}
+                unsigned planned=0;
+                for(int r=0;r<np->reserved_count;++r) if(ff_addr_equal(np->reserved_addr[r],from)) planned=np->reserved_seats[r];
+                for(int s=0;s<FF_PLAYERS&&planned;++s) if(((planned>>s)&1u)&&np->owner[s]<0) {np->owner[s]=p;np->seats|=1u<<s;peer->seats|=1u<<s;--want;}
+                for(int s=0;s<FF_PLAYERS&&want>0&&!planned;++s) if(np->owner[s]<0) {np->owner[s]=p;np->seats|=1u<<s;peer->seats|=1u<<s;--want;}
             }
             np->peers[p].heard=now;
             uint8_t w[2]={(uint8_t)p,(uint8_t)np->peers[p].seats};send_type(np,from,WELCOME,w,2);
@@ -243,7 +280,7 @@ static void handle(FF_Netplay *np,FF_Addr from,const uint8_t *m,int size) {
         if(p<0) return;
         np->peers[p].heard=now;
         if(type==INPUT) handle_input(np,p,b,size);
-        if(type==QUIT) {if(np->phase==FF_NP_PLAYING) end(np,"A PLAYER LEFT");else drop_peer(np,p);}
+        if(type==QUIT) {if(np->phase==FF_NP_PLAYING) ff_np_end(np,"A PLAYER LEFT");else drop_peer(np,p);}
         return;
     }
     if(token!=np->token&&!(np->direct_join&&(type==WELCOME||type==REJECT))) return;
@@ -255,7 +292,7 @@ static void handle(FF_Netplay *np,FF_Addr from,const uint8_t *m,int size) {
     }
     if(!ff_addr_equal(from,np->peers[0].addr)) return;
     np->peers[0].heard=now;
-    if(type==REJECT&&size>=1) end(np,b[0]==OTHER_ARENA?"THE HOST HAS A DIFFERENT ARENA":b[0]==STARTED?"THAT MATCH HAS ALREADY STARTED":"THAT MATCH IS FULL");
+    if(type==REJECT&&size>=1) ff_np_end(np,b[0]==OTHER_ARENA?"THE HOST HAS A DIFFERENT ARENA":b[0]==STARTED?"THAT MATCH HAS ALREADY STARTED":"THAT MATCH IS FULL");
     if(type==LOBBY&&size>=6&&np->phase==FF_NP_LOBBY) {
         np->seats=b[0];np->mode=b[1];for(int s=0;s<FF_PLAYERS;++s) np->owner[s]=(int)b[2+s]-1;
     }
@@ -265,7 +302,7 @@ static void handle(FF_Netplay *np,FF_Addr from,const uint8_t *m,int size) {
         begin(np);
     }
     if(type==INPUT) handle_input(np,0,b,size);
-    if(type==QUIT) end(np,"THE HOST LEFT");
+    if(type==QUIT) ff_np_end(np,"THE HOST LEFT");
 }
 void ff_np_poll(FF_Netplay *np) {
     if(np->phase==FF_NP_OFF) return;
@@ -287,18 +324,25 @@ void ff_np_poll(FF_Netplay *np) {
             FF_Peer *peer=&np->peers[i];if(!peer->used) continue;
             uint32_t quiet=now-peer->heard;
             if(np->phase==FF_NP_LOBBY&&quiet>5000) {drop_peer(np,i);continue;}
-            if(np->phase==FF_NP_PLAYING&&quiet>8000) {end(np,"A PLAYER LOST CONNECTION");return;}
+            if(np->phase==FF_NP_PLAYING&&quiet>8000) {ff_np_end(np,"A PLAYER LOST CONNECTION");return;}
             if(tick&&np->phase==FF_NP_LOBBY) lobby_packet(np,peer->addr);
             if(tick&&np->phase==FF_NP_PLAYING&&!peer->started) start_packet(np,peer->addr);
         }
         if(tick&&np->phase==FF_NP_LOBBY) for(int i=0;i<np->punch_count;++i)
             if((int32_t)(np->punch_until[i]-now)>0) send_type(np,np->punch[i],PUNCH,NULL,0);
     } else {
+        if(!np->host_known) return;
         uint32_t quiet=now-np->peers[0].heard;
-        if(quiet>(np->me<0?20000u:8000u)) {end(np,np->me<0?"NO ANSWER FROM THE HOST":"LOST CONNECTION TO THE HOST");return;}
+        if(quiet>(np->me<0?20000u:8000u)) {ff_np_end(np,np->me<0?"NO ANSWER FROM THE HOST":"LOST CONNECTION TO THE HOST");return;}
+        if(tick&&np->me>=0&&np->phase==FF_NP_LOBBY&&(now/250)%4==0) {
+            /* Waiting for the host to start: say we are still here, or the host drops us after 5 s. */
+            uint8_t b[9]={(uint8_t)np->local_count};put32(b+1,np->arena_hash);put32(b+5,np->nonce);
+            send_type(np,np->peers[0].addr,HELLO,b,9);
+        }
         if(tick&&np->me<0) {
             uint8_t b[9]={(uint8_t)np->local_count};put32(b+1,np->arena_hash);put32(b+5,np->nonce);
             send_type(np,np->direct,HELLO,b,9);
+            if(np->virtual_net) return;
             /* Same home network: the router may not loop public addresses back, so ask the LAN too. */
             send_type(np,(FF_Addr){0xFFFFFFFFu,np->direct.port},HELLO,b,9);
             if(np->direct.port!=FF_NET_PORT) send_type(np,(FF_Addr){0xFFFFFFFFu,FF_NET_PORT},HELLO,b,9);
@@ -309,9 +353,22 @@ void ff_np_send(FF_Netplay *np) {
     ff_np_poll(np);
     if(np->phase==FF_NP_PLAYING) for(int i=0;i<FF_NP_PEERS;++i) if(i!=np->me&&np->peers[i].used) send_input(np,i);
 }
+static void find_final(FF_Netplay *np) {
+    uint32_t settled=ff_rb_settled(&np->rb);
+    while(!np->finished&&np->scanned<=settled&&np->scanned<=np->rb.frame) {
+        uint32_t f=np->scanned++;
+        const FF_Game *g=f==np->rb.frame?&np->rb.state:&np->rb.snap[f%FF_RB_RING];
+        bool done=false;
+        for(int i=0;i<FF_PLAYERS;++i) if(g->players[i].active&&g->players[i].score>=np->first_to) done=true;
+        if(!done) continue;
+        np->finished=true;np->final_frame=f;np->final_hash=ff_game_hash(g);
+        for(int i=0;i<FF_PLAYERS;++i) np->final_score[i]=g->players[i].active?g->players[i].score:-1;
+    }
+}
 unsigned ff_np_tick(FF_Netplay *np,const uint8_t local[FF_PLAYERS]) {
     ff_np_poll(np);
     if(np->phase!=FF_NP_PLAYING) return 0;
+    if(np->finished) {ff_np_send(np);return 0;}
     uint8_t keys[FF_PLAYERS]={0};
     for(int i=0;i<np->local_count&&i<FF_PLAYERS;++i) {int s=ff_np_seat_of_local(np,i);if(s>=0) keys[s]=local[i];}
     /* The machine that runs ahead waits a tick now and then, so nobody has to roll back far. */
@@ -328,6 +385,7 @@ unsigned ff_np_tick(FF_Netplay *np,const uint8_t local[FF_PLAYERS]) {
         advanced=ff_rb_advance(&np->rb,np->arena,&sounds);
     } else np->last_stall=np->rb.frame;
     np->stalled=advanced?0:np->stalled+1;
+    if(np->first_to) find_final(np);
     for(int i=0;i<FF_NP_PEERS;++i) if(i!=np->me&&np->peers[i].used) send_input(np,i);
     return sounds;
 }

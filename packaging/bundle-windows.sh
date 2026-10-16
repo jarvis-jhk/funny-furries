@@ -17,3 +17,4 @@ for ((i=0; i<${#queue[@]}; i++)); do
 done
 cp -r /ucrt64/share/licenses "$package/licenses/UCRT64"
 pacman -Q > "$package/licenses/UCRT64-packages.txt"
+for notice in build/release/_deps/libwarpzone-*/LICENSE-*; do cp "$notice" "$package/licenses/libwarpzone-$(basename "$notice").txt"; done

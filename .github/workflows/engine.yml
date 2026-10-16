@@ -47,6 +47,13 @@ jobs:
           grep '^online frame' build/host.txt | cut -d' ' -f2-3 > build/host-state.txt
           grep '^online frame' build/guest.txt | cut -d' ' -f2-3 > build/guest-state.txt
           test -s build/host-state.txt && diff build/host-state.txt build/guest-state.txt
+      - name: Online over Warpzone against its released server (rooms, forced relay, ranked queues)
+        run: |
+          curl -sSLo build/warpzone-server https://github.com/jarvis-jhk/warpzone/releases/download/v0.1.0/warpzone-server-0.1.0-x86_64-linux-musl
+          echo "3300831dc4270c973f439f00b2d5c25cea84e5c91f55b0446e3f6146aa2458e8  build/warpzone-server" | sha256sum -c -
+          chmod +x build/warpzone-server
+          gcc -shared -fPIC -O2 -Wall -Wextra -o build/relay_only.so tests/engine/relay_only.c -ldl
+          python3 tests/engine/test_warpzone.py build/native/funny-furries build/warpzone-server build/relay_only.so
       - name: Offline reference checksums for the cross-platform comparison
         run: |
           for match in "2 ffa" "3 ffa" "4 teams"; do build/native/net_probe offline $match 3008; done | tee build/sim-linux.txt
@@ -69,6 +76,9 @@ jobs:
           cmake -S . -B build/native -G Ninja -DCMAKE_BUILD_TYPE=Debug
           cmake --build build/native --parallel 2
           ctest --test-dir build/native --output-on-failure -R "rollback|net_codes|netplay|match"
+          # Linked with libwarpzone: starts, tries an unreachable server, plays on offline.
+          SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy FF_NO_REPORT=1 WARPZONE_SERVER=http://127.0.0.1:9 WARPZONE_HOME="$PWD/build/wz-home" timeout 60 build/native/funny-furries.exe --warpzone-host --smoke 200 || test $? = 1
+          SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy FF_NO_REPORT=1 build/native/funny-furries.exe --smoke 500
           for match in "2 ffa" "3 ffa" "4 teams"; do build/native/net_probe.exe offline $match 3008; done | tr -d '\r' | tee build/sim-windows.txt
       - uses: actions/upload-artifact@v4
         with:

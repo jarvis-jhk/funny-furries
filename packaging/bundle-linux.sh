@@ -11,6 +11,7 @@ for item in python3.11 libpython3.11-minimal libssl3 tcl8.6 tk8.6 libtcl8.6 libt
     fi
 done
 cp packaging/play.sh packaging/install.sh "$package/"
+for notice in build/release/_deps/libwarpzone-*/LICENSE-*; do cp "$notice" "$package/licenses/libwarpzone-$(basename "$notice").txt"; done
 chmod +x "$package/"*.sh
 
 for library in "$package/_internal/"*.so*; do

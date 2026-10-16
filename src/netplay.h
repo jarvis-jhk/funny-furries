@@ -30,10 +30,24 @@ typedef struct {
     FF_Addr direct; bool direct_join;
     uint32_t stalled;               /* consecutive ticks waiting for the network */
     char ended[64];
+    /* Over a virtual transport (Warpzone) the guest learns the host later, and
+     * a ranked host seats each peer where the matchmaker's teams put it. */
+    bool virtual_net, host_known;
+    FF_Addr reserved_addr[FF_NP_PEERS]; unsigned reserved_seats[FF_NP_PEERS]; int reserved_count;
+    /* A match with first_to set ends at the first fully confirmed frame where a
+     * player (or team) has that many round wins; every machine finds the same
+     * frame, so final_hash is the same everywhere. */
+    int first_to; uint32_t scanned; bool finished; uint32_t final_frame, final_hash; int final_score[FF_PLAYERS];
 } FF_Netplay;
 uint32_t ff_arena_fingerprint(const FF_Arena *a);
 bool ff_np_host(FF_Netplay *np, const FF_Arena *a, int local_count, uint16_t port, bool use_internet);
 bool ff_np_join(FF_Netplay *np, const FF_Arena *a, const char *code, int local_count, bool use_internet);
+bool ff_np_host_virtual(FF_Netplay *np, const FF_Arena *a, int local_count, FF_UdpHook hook, void *ctx);
+bool ff_np_join_virtual(FF_Netplay *np, const FF_Arena *a, int local_count, FF_UdpHook hook, void *ctx);
+void ff_np_virtual_host(FF_Netplay *np, FF_Addr host);          /* guest: the host is reachable now */
+void ff_np_reserve(FF_Netplay *np, FF_Addr peer, unsigned seats); /* host: seats this peer gets */
+void ff_np_set_local_seats(FF_Netplay *np, unsigned seats);       /* host, before anyone joined */
+void ff_np_end(FF_Netplay *np, const char *why);
 void ff_np_poll(FF_Netplay *np);                 /* call often: receives, resends, lobby */
 bool ff_np_can_start(const FF_Netplay *np, int mode);
 void ff_np_start(FF_Netplay *np, int mode, uint32_t seed);   /* host only */

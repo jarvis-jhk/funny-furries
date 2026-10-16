@@ -8,8 +8,14 @@
 #define FF_NET_PORT 27590
 typedef struct { uint32_t ip; uint16_t port; } FF_Addr;   /* host byte order */
 typedef struct { uint32_t due; FF_Addr to; int length; uint8_t data[512]; } FF_Delayed;
+/* A virtual socket hands every datagram to `hook` instead of the network and
+ * receives what the owner passes to ff_udp_inject: the same netplay then runs
+ * over another transport (Warpzone) with the same loss/delay simulation. */
+typedef bool (*FF_UdpHook)(void *ctx, FF_Addr to, const void *data, int length);
 typedef struct {
     intptr_t fd; uint16_t port;
+    FF_UdpHook hook; void *hook_ctx;
+    FF_Delayed inbox[128]; int inbox_head, inbox_count;
     /* FF_NET_LOSS / FF_NET_DELAY / FF_NET_JITTER simulate a bad line for tests. */
     int loss, delay, jitter; uint32_t rng;
     FF_Delayed queue[256]; int queued;
@@ -23,6 +29,8 @@ bool ff_net_init(void);
 uint32_t ff_net_ms(void);
 bool ff_udp_open(FF_Udp *u, uint16_t port);          /* port 0 or taken: any free port */
 void ff_udp_close(FF_Udp *u);
+void ff_udp_virtual(FF_Udp *u, FF_UdpHook hook, void *ctx);
+void ff_udp_inject(FF_Udp *u, FF_Addr from, const void *data, int length);
 void ff_udp_send(FF_Udp *u, FF_Addr to, const void *data, int length);
 int ff_udp_recv(FF_Udp *u, FF_Addr *from, void *data, int capacity);   /* -1: nothing */
 bool ff_resolve(const char *host, uint16_t port, FF_Addr *out);
