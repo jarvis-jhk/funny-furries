@@ -33,6 +33,16 @@ export async function forward(message, state, config, request = fetch) {
   return true;
 }
 
+// ntfy.sh has outages of its own; a relay that reports every one of them is noise.
+// Only a transport that has failed continuously for hours is worth a request, at most daily.
+export function sustainedFailure(tracker, ok, now = Date.now()) {
+  if (ok) { tracker.failingSince = null; return false; }
+  tracker.failingSince ??= now;
+  if (now - tracker.failingSince < 6 * 3600000 || now - (tracker.reported ?? -Infinity) < 24 * 3600000) return false;
+  tracker.reported = now;
+  return true;
+}
+
 async function main() {
   const config = JSON.parse(fs.readFileSync(new URL('./config.json', import.meta.url)));
   const stateFile = new URL('./state.json', import.meta.url);
@@ -42,10 +52,10 @@ async function main() {
   let connected = false;
   let lastError = '';
   let flushing = false;
-  let lastOwnFault = 0;
-  function ownFault() {
-    if (Date.now() - lastOwnFault < 3600000) return;
-    lastOwnFault = Date.now();
+  const streamHealth = {};
+  const forwardHealth = {};
+  function ownFault(tracker, ok) {
+    if (!sustainedFailure(tracker, ok)) return;
     fetch(config.reportUrl, {method: 'POST', headers: {'content-type': 'application/json'},
       body: JSON.stringify({lane: 'furries', kind: 'bug', title: 'Funny Furries fault relay failed',
         detail: 'Fault relay could not complete its background transport; inspect its local health and logs.',
@@ -64,7 +74,8 @@ async function main() {
         state.pending.shift(); save();
       }
       lastError = '';
-    } catch (error) { lastError = error.message; console.error(lastError); ownFault(); }
+      ownFault(forwardHealth, true);
+    } catch (error) { lastError = error.message; console.error(lastError); ownFault(forwardHealth, false); }
     finally { flushing = false; }
   }
   setInterval(flush, 10000).unref();
@@ -78,6 +89,7 @@ async function main() {
       const response = await fetch('https://ntfy.sh/funny-furries-faults-a93c6b4e12d8/json?since=' + (state.lastId || '12h'));
       if (!response.ok) throw new Error(`ntfy ${response.status}`);
       connected = true;
+      ownFault(streamHealth, true);
       let buffer = '';
       for await (const chunk of response.body) {
         buffer += Buffer.from(chunk).toString();
@@ -92,7 +104,7 @@ async function main() {
           await flush();
         }
       }
-    } catch (error) { lastError = error.message; console.error(lastError); ownFault(); }
+    } catch (error) { lastError = error.message; console.error(lastError); ownFault(streamHealth, false); }
     connected = false;
     await new Promise(resolve => setTimeout(resolve, 10000));
   }

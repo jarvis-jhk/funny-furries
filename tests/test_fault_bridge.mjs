@@ -31,3 +31,15 @@ test('queue failure is retried without forgetting the report', async () => {
   await assert.rejects(forward('funny-furries/0.1.0 Windows import fault', state, { reportUrl: 'http://queue.invalid' }, request), /503/);
   assert.deepEqual(state.seen, {});
 });
+
+test('transport faults are reported only after a sustained outage, at most daily', async () => {
+  const { sustainedFailure } = await import('../tools/fault_bridge.mjs');
+  const h = 3600000, t = {}, T = 1.8e12;
+  assert.equal(sustainedFailure(t, false, T), false);
+  assert.equal(sustainedFailure(t, false, T + 5 * h), false);
+  assert.equal(sustainedFailure(t, true, T + 5.5 * h), false);
+  assert.equal(sustainedFailure(t, false, T + 6 * h), false);
+  assert.equal(sustainedFailure(t, false, T + 12 * h), true);
+  assert.equal(sustainedFailure(t, false, T + 13 * h), false);
+  assert.equal(sustainedFailure(t, false, T + 36 * h), true);
+});
