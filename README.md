@@ -1,9 +1,10 @@
 # Funny Furries
 
 An SDL2 reimplementation of Funny Furries 2 Xmas (Bastiaan de Jong, 1999).
-The test release plays arena 1 locally with **up to four players** (controllers
-and two keyboard layouts), free for all or 2 vs 2, on Linux, Windows and Steam
-Deck. More arenas and rollback online are later roadmap work.
+The test release plays arena 1 with **up to four players** (controllers and two
+keyboard layouts), free for all or 2 vs 2, on one screen or **online** by join
+code with rollback netcode, on Linux, Windows and Steam Deck. More arenas are
+later roadmap work.
 
 Download a test version from [Releases](https://github.com/jarvis-jhk/funny-furries/releases).
 Extract the package and start `Play-Funny-Furries.exe` on Windows or `play.sh`

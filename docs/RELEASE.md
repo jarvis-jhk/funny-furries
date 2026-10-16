@@ -1,10 +1,10 @@
-# Funny Furries 0.2.0 — four-player test release
+# Funny Furries 0.3.0 — online test release
 
 This preview plays arena 1 with two to four players on controllers or the two
-keyboard layouts, free for all or 2 vs 2. Movement, weapons and devices are
-based on the original, with approximate timing and collision details. It is not
-the complete original game. Other arenas, online play and automatic updates are
-not included yet.
+keyboard layouts, free for all or 2 vs 2, on one screen or online. Movement,
+weapons and devices are based on the original, with approximate timing and
+collision details. It is not the complete original game. Other arenas and
+automatic updates are not included yet.
 
 ## Windows
 
@@ -37,6 +37,33 @@ Subsequent starts reuse the checked local import. Windows stores it in
 `$XDG_DATA_HOME/funny-furries` or `~/.local/share/funny-furries`. To change the
 source, start the launcher with `--reimport`. If local files are damaged, the
 picker opens again. `--practice` opens our asset-free practice arena.
+
+## Online play
+
+Everyone needs this same version and the same original copy imported. In the
+player menu, the players at one computer first join with A as usual (one to
+three of them), then:
+
+- **Host:** press H (or Back on a controller). The screen shows a join code such
+  as `8KQ2-M4XP-9ZTRA`; it is already copied to the clipboard. Send it to the
+  others. Y/jetpack or Tab switches free for all / 2 vs 2; Start or Enter begins
+  once everyone is in.
+- **Join:** press J, type or paste (Ctrl+V) the code and press Enter. On the
+  Deck, Steam+X opens the on-screen keyboard. On the same home network the
+  host's address shown under the code (for example `192.168.1.20:27590`) also
+  works.
+
+Escape/Back leaves. The game predicts the other players and corrects itself
+when their real input arrives (rollback), so short network hiccups do not
+stop play. "WAITING FOR NETWORK" means nothing arrived for a while.
+
+The code holds the host's internet address. To get past home routers, a joining
+game tells the host its own address through the public ntfy.sh service under a
+topic only the code can name, and the host then opens the way by sending first.
+This works with most home routers. It does not work when both sides sit behind
+carrier-grade NAT (some mobile and cable connections); then the host can forward
+UDP port 27590 on the router. Allow Funny Furries in the Windows firewall
+prompt when hosting. There is no relay server yet.
 
 ## Play and report problems
 
@@ -83,7 +110,7 @@ unsupported game copies are not reported.
 5. Keep the live ntfy → issue → maintenance-queue relay running, with the private
    queue URL only in its local config. No new scheduler job is needed. A controlled
    anonymous transport probe must be received, deduplicated and cleaned up.
-6. Tag only that tested source (`v0.2.0` for the four-player release), push the tag,
+6. Tag only that tested source (`v0.3.0` for the online release), push the tag,
    and upload the already checked binary/source archives and SHA256SUMS as a GitHub prerelease. Confirm the release is published and
    every uploaded asset downloads with the expected hash. Record remaining human
    checks in NOTES, mark `furries-test-release` done, send Jan the release URL.

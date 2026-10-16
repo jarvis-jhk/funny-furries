@@ -1,6 +1,7 @@
 #include "game.h"
 #include "input.h"
 #include "fault.h"
+#include "netplay.h"
 #include <SDL_image.h>
 #include <SDL_mixer.h>
 #include <stdio.h>
@@ -32,6 +33,7 @@ static void text(App *app,int x,int y,int scale,const char *s) {
         if(index>=0) for(int yy=0;yy<5;++yy) for(int xx=0;xx<5;++xx)
             if(font[index][yy]&(1<<(4-xx))) rect(app,x+xx*scale,y+yy*scale,scale,scale);
         if(c=='-') rect(app,x,y+2*scale,5*scale,scale);
+        if(c=='.') rect(app,x+2*scale,y+4*scale,scale,scale);
         if(c==':') {rect(app,x+2*scale,y+scale,scale,scale);rect(app,x+2*scale,y+3*scale,scale,scale);}
         if(c=='/') for(int yy=0;yy<5;++yy) rect(app,x+(4-yy)*scale,y+yy*scale,scale,scale);
     }
@@ -256,6 +258,11 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
         }
     }
 }
+static void draw_net_overlay(App *app,const FF_Netplay *np) {
+    color(app,12,20,33);rect(app,690,4,106,14);color(app,140,220,140);text(app,694,7,1,"ONLINE");
+    if(np->stalled>10) {color(app,12,20,33);rect(app,250,20,300,30);color(app,255,230,120);centered(app,28,2,"WAITING FOR NETWORK");}
+    if(np->rb.desync!=UINT32_MAX) {color(app,12,20,33);rect(app,250,52,300,22);color(app,250,120,100);centered(app,58,2,"OUT OF SYNC");}
+}
 static void draw_help(App *app) {
             color(app,12,20,33);rect(app,90,160,620,270);color(app,232,242,250);
             text(app,140,182,3,"FUNNY FURRIES CONTROLS");
@@ -312,7 +319,55 @@ static void draw_lobby(App *app,const Lobby *l,const FF_Input *in) {
     if(lobby_ready(l)) centered(app,440,3,"START OR ENTER TO PLAY");
     else if(l->mode==FF_TEAMS) centered(app,440,2,"2 VS 2 NEEDS FOUR PLAYERS");
     else centered(app,440,2,n?"ONE MORE PLAYER NEEDED":"TWO PLAYERS NEEDED");
-    color(app,170,185,200);centered(app,500,1,"F1 CONTROLS   ESC QUIT");
+    color(app,170,185,200);centered(app,480,2,"H OR BACK: HOST ONLINE   J: JOIN ONLINE");
+    centered(app,510,1,"PLAYERS WHO JOINED HERE PLAY ONLINE TOGETHER");
+    centered(app,525,1,"F1 CONTROLS   ESC QUIT");
+}
+static void draw_code_entry(App *app,const char *code,const char *error) {
+    SDL_RenderCopy(app->renderer,app->backdrop,NULL,NULL);
+    color(app,12,20,33);rect(app,30,60,740,480);
+    color(app,232,242,250);centered(app,110,4,"JOIN ONLINE");
+    color(app,170,185,200);centered(app,175,2,"TYPE OR PASTE THE JOIN CODE OF THE HOST");
+    centered(app,200,1,"OR THEIR ADDRESS ON THE SAME NETWORK, E.G. 192.168.1.20:27590");
+    color(app,30,38,50);rect(app,100,250,600,70);color(app,232,242,250);
+    centered(app,268,4,code);
+    if((SDL_GetTicks()/400)%2) rect(app,(FF_W+(int)strlen(code)*24)/2,268,4,20);
+    if(error&&*error) {color(app,250,120,100);centered(app,350,2,error);}
+    color(app,170,185,200);centered(app,430,2,"ENTER JOIN   CTRL V PASTE   ESC BACK");
+}
+static void draw_online(App *app,const FF_Netplay *np,bool copied) {
+    SDL_RenderCopy(app->renderer,app->backdrop,NULL,NULL);
+    color(app,12,20,33);rect(app,30,40,740,520);
+    color(app,232,242,250);centered(app,62,4,"ONLINE MATCH");
+    if(np->phase==FF_NP_ENDED) {
+        color(app,250,120,100);centered(app,250,3,np->ended);
+        color(app,170,185,200);centered(app,330,2,"ENTER OR A TO GO BACK");return;
+    }
+    if(np->host) {
+        color(app,170,185,200);centered(app,112,2,"JOIN CODE");
+        color(app,255,230,120);centered(app,140,5,np->code);
+        color(app,170,185,200);
+        centered(app,182,1,copied?"COPIED TO THE CLIPBOARD - SEND IT TO THE OTHER PLAYERS":"SEND IT TO THE OTHER PLAYERS");
+        char s[64];snprintf(s,sizeof(s),"SAME NETWORK: %s",np->lan_text);centered(app,198,1,s);
+    } else {
+        color(app,170,185,200);centered(app,125,2,"JOINING");color(app,232,242,250);centered(app,155,3,np->code);
+    }
+    color(app,232,242,250);centered(app,222,2,np->status);
+    for(int i=0;i<FF_PLAYERS;++i) {
+        int x=55+i*180;bool taken=(np->seats>>i)&1u;bool mine=taken&&np->owner[i]==(np->host?0:np->me)&&(np->host||np->me>=0);
+        color(app,taken?seat_body[i][0]/3:30,taken?seat_body[i][1]/3:38,taken?seat_body[i][2]/3:50);rect(app,x,255,150,120);
+        color(app,seat_color[i][0],seat_color[i][1],seat_color[i][2]);rect(app,x,255,150,6);
+        char s[32];snprintf(s,sizeof(s),"PLAYER %d",i+1);text(app,x+12,272,2,s);text(app,x+12,296,2,seat_name[i]);
+        if(np->mode==FF_TEAMS) {color(app,200,210,220);text(app,x+12,320,1,i&1?"TEAM RED":"TEAM BLUE");}
+        color(app,232,242,250);text(app,x+12,342,2,!taken?"OPEN":mine?"YOU":"ONLINE");
+    }
+    color(app,232,242,250);centered(app,400,2,np->mode==FF_TEAMS?"MODE: 2 VS 2":"MODE: FREE FOR ALL");
+    color(app,170,185,200);
+    if(np->host) {
+        centered(app,440,3,ff_np_can_start(np,np->mode)?"START OR ENTER TO PLAY":np->mode==FF_TEAMS?"2 VS 2 NEEDS FOUR PLAYERS":"ANOTHER PLAYER NEEDED");
+        centered(app,480,1,"Y/JETPACK OR TAB CHANGES MODE");
+    } else centered(app,440,2,np->me>=0?"THE HOST STARTS THE MATCH":"");
+    centered(app,520,1,"ESC/BACK LEAVES");
 }
 static unsigned seats_of(const FF_Game *g) {
     unsigned seats=0;for(int i=0;i<FF_PLAYERS;++i) if(g->players[i].active) seats|=1u<<i;
@@ -342,7 +397,7 @@ static bool parse_ticks(const char *s,int *ticks) {
     *ticks=(int)value;return true;
 }
 int main(int argc,char **argv) {
-    const char *data=NULL,*screenshot=NULL;int ticks=0,players=2;bool auto_play=false,fullscreen=false,teams=false,show_lobby=false;
+    const char *data=NULL,*screenshot=NULL,*join=NULL;int ticks=0,players=2,local_players=0;bool auto_play=false,fullscreen=false,teams=false,show_lobby=false,host=false;
     for(int i=1;i<argc;++i) {
         if(!strcmp(argv[i],"--fullscreen")) fullscreen=true;
         else if(!strcmp(argv[i],"--data")&&i+1<argc) data=argv[++i];
@@ -351,10 +406,14 @@ int main(int argc,char **argv) {
         else if(!strcmp(argv[i],"--players")&&i+1<argc&&argv[i+1][0]>='2'&&argv[i+1][0]<='4'&&!argv[i+1][1]) players=argv[++i][0]-'0';
         else if(!strcmp(argv[i],"--teams")) teams=true;
         else if(!strcmp(argv[i],"--lobby")) show_lobby=true;
-        else if(!strcmp(argv[i],"--help")) {puts("funny-furries [--fullscreen] [--data LOCAL_IMPORT] [--smoke TICKS [--players 2-4] [--teams] [--lobby]] [--screenshot FILE.bmp]\nWithout --data, play the asset-free practice arena. F1 shows controls.");return 0;}
+        else if(!strcmp(argv[i],"--host")) host=true;
+        else if(!strcmp(argv[i],"--join")&&i+1<argc) join=argv[++i];
+        else if(!strcmp(argv[i],"--local")&&i+1<argc&&argv[i+1][0]>='1'&&argv[i+1][0]<='3'&&!argv[i+1][1]) local_players=argv[++i][0]-'0';
+        else if(!strcmp(argv[i],"--help")) {puts("funny-furries [--fullscreen] [--data LOCAL_IMPORT] [--host | --join CODE] [--local 1-3] [--smoke TICKS [--players 2-4] [--teams] [--lobby]] [--screenshot FILE.bmp]\nWithout --data, play the asset-free practice arena. F1 shows controls.\n--host opens an online match and shows its join code; --join CODE joins one.\nEveryone online needs the same arena import.");return 0;}
         else {fprintf(stderr,"Unknown or incomplete option. Use --help.\n");return 2;}
     }
     if(teams&&players!=4) {fprintf(stderr,"--teams needs --players 4.\n");return 2;}
+    if(host&&join) {fprintf(stderr,"Use either --host or --join.\n");return 2;}
     ff_fault_init();
     static FF_Arena arena;FF_Game game;App app={0};int result=1;char error[256];
     if(data) {
@@ -365,7 +424,7 @@ int main(int argc,char **argv) {
     } else ff_arena_practice(&arena);
     if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_AUDIO)<0) goto fail;
     if(!(IMG_Init(IMG_INIT_PNG)&IMG_INIT_PNG)) goto fail;
-    app.window=SDL_CreateWindow("Funny Furries 0.2.0 - test release",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1000,750,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
+    app.window=SDL_CreateWindow("Funny Furries 0.3.0 - test release",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1000,750,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
     if(!app.window) goto fail;
     app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
     if(!app.renderer) app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_SOFTWARE);
@@ -387,17 +446,77 @@ int main(int argc,char **argv) {
     ff_input_init(&app.input);
     ff_game_setup(&game,&arena,12345,(1u<<players)-1,teams?FF_TEAMS:FF_FFA);
     Lobby lobby={0};
+    static FF_Netplay np;bool entering=false,copied=false;char entry[40]="",entry_error[96]="",copied_code[20]="";
+    uint8_t online_previous[FF_PLAYERS]={0};char online_result[128]="";
+    if(host) ff_np_host(&np,&arena,local_players?local_players:1,FF_NET_PORT,!getenv("FF_NET_LAN_ONLY"));
+    if(join&&!ff_np_join(&np,&arena,join,local_players?local_players:1,!getenv("FF_NET_LAN_ONLY"))) {fprintf(stderr,"%s\n",np.status);result=2;goto cleanup;}
+    if(host&&np.phase==FF_NP_OFF) {fprintf(stderr,"%s\n",np.status);result=2;goto cleanup;}
+    if(host||join) printf("online code=%s lan=%s\n",np.code,np.lan_text),fflush(stdout);
     bool running=true,help=false,paused=false,in_lobby=!auto_play||show_lobby;uint64_t previous=SDL_GetPerformanceCounter(),accumulator=0;
     uint64_t frequency=SDL_GetPerformanceFrequency();
     while(running) {
-        SDL_Event event;bool start=false,back=false;
+        SDL_Event event;bool start=false,back=false,leave=false,mode_key=false;
+        bool online=np.phase!=FF_NP_OFF,playing_online=np.phase==FF_NP_PLAYING;
         while(SDL_PollEvent(&event)) {
             ff_input_event(&app.input,&event);
             if(event.type==SDL_QUIT) running=false;
-            if(event.type==SDL_WINDOWEVENT&&event.window.event==SDL_WINDOWEVENT_FOCUS_LOST&&!auto_play) paused=true;
+            if(event.type==SDL_WINDOWEVENT&&event.window.event==SDL_WINDOWEVENT_FOCUS_LOST&&!auto_play&&!online) paused=true;
+            if(entering&&event.type==SDL_TEXTINPUT) {
+                for(const char *c=event.text.text;*c;++c) {
+                    char ch=(char)(*c>='a'&&*c<='z'?*c-32:*c);size_t n=strlen(entry);
+                    if(n<sizeof(entry)-1&&((ch>='A'&&ch<='Z')||(ch>='0'&&ch<='9')||ch=='-'||ch=='.'||ch==':')) {entry[n]=ch;entry[n+1]=0;}
+                }
+                continue;
+            }
+            if(event.type==SDL_KEYDOWN&&!event.key.repeat&&entering) {
+                SDL_Keycode key=event.key.keysym.sym;size_t n=strlen(entry);
+                if(key==SDLK_ESCAPE) {entering=false;entry_error[0]=0;}
+                else if(key==SDLK_BACKSPACE&&n) entry[n-1]=0;
+                else if(key==SDLK_v&&(event.key.keysym.mod&KMOD_CTRL)) {
+                    char *clip=SDL_GetClipboardText();
+                    if(clip) {
+                        for(const char *c=clip;*c&&strlen(entry)<sizeof(entry)-1;++c) {
+                            char ch=(char)(*c>='a'&&*c<='z'?*c-32:*c);size_t m=strlen(entry);
+                            if((ch>='A'&&ch<='Z')||(ch>='0'&&ch<='9')||ch=='-'||ch=='.'||ch==':') {entry[m]=ch;entry[m+1]=0;}
+                        }
+                        SDL_free(clip);
+                    }
+                } else if(key==SDLK_RETURN||key==SDLK_KP_ENTER) {
+                    int local=seat_count(lobby.joined);
+                    if(ff_np_join(&np,&arena,entry,local?local:1,!getenv("FF_NET_LAN_ONLY"))) {entering=false;entry_error[0]=0;}
+                    else snprintf(entry_error,sizeof(entry_error),"%s",np.status);
+                }
+                continue;
+            }
+            if(event.type==SDL_KEYDOWN&&!event.key.repeat&&online) {
+                SDL_Keycode key=event.key.keysym.sym;
+                if(key==SDLK_F1) help=!help;
+                else if(key==SDLK_ESCAPE) leave=true;
+                else if(key==SDLK_RETURN||key==SDLK_KP_ENTER) start=true;
+                else if(key==SDLK_TAB) mode_key=true;
+                continue;
+            }
+            if(event.type==SDL_CONTROLLERBUTTONDOWN&&entering) {
+                if(event.cbutton.button==SDL_CONTROLLER_BUTTON_BACK) {entering=false;entry_error[0]=0;}
+                if(event.cbutton.button==SDL_CONTROLLER_BUTTON_START) {
+                    SDL_Event enter={0};enter.type=SDL_KEYDOWN;enter.key.keysym.sym=SDLK_RETURN;SDL_PushEvent(&enter);
+                }
+                continue;
+            }
+            if(event.type==SDL_CONTROLLERBUTTONDOWN&&online) {
+                if(event.cbutton.button==SDL_CONTROLLER_BUTTON_START) {if(help) help=false;else start=true;}
+                if(event.cbutton.button==SDL_CONTROLLER_BUTTON_BACK) {if(help) help=false;else leave=true;}
+                if(event.cbutton.button==SDL_CONTROLLER_BUTTON_A&&np.phase==FF_NP_ENDED) start=true;
+                continue;
+            }
             if(event.type==SDL_KEYDOWN&&!event.key.repeat) {
                 SDL_Keycode key=event.key.keysym.sym;
                 if(key==SDLK_F1) help=!help;
+                else if(in_lobby&&key==SDLK_h) {
+                    int local=seat_count(lobby.joined);
+                    ff_np_host(&np,&arena,local?local:1,FF_NET_PORT,!getenv("FF_NET_LAN_ONLY"));copied=false;copied_code[0]=0;
+                }
+                else if(in_lobby&&key==SDLK_j) {entering=true;entry[0]=0;entry_error[0]=0;}
                 else if(in_lobby) {
                     if(key==SDLK_ESCAPE) running=false;
                     if((key==SDLK_RETURN||key==SDLK_KP_ENTER)&&lobby_ready(&lobby)) start=true;
@@ -413,10 +532,31 @@ int main(int argc,char **argv) {
                     else if(in_lobby) start=lobby_ready(&lobby);
                     else paused=!paused;
                 }
-                if(event.cbutton.button==SDL_CONTROLLER_BUTTON_BACK) {if(help) help=false;else if(!in_lobby) back=true;}
+                if(event.cbutton.button==SDL_CONTROLLER_BUTTON_BACK) {
+                    if(help) help=false;
+                    else if(!in_lobby) back=true;
+                    else {int local=seat_count(lobby.joined);ff_np_host(&np,&arena,local?local:1,FF_NET_PORT,!getenv("FF_NET_LAN_ONLY"));copied=false;copied_code[0]=0;}
+                }
             }
         }
-        if(in_lobby&&!auto_play) {
+        if(online) {
+            uint8_t keys[FF_PLAYERS];ff_input_read(&app.input,keys);
+            for(int i=0;i<FF_PLAYERS;++i) {
+                uint8_t pressed=keys[i]&(uint8_t)~online_previous[i];online_previous[i]=keys[i];
+                if(i<np.local_count&&(pressed&FF_FLY)) mode_key=true;
+            }
+            if(np.phase==FF_NP_LOBBY) {
+                ff_np_poll(&np);
+                if(np.host&&mode_key) np.mode=np.mode==FF_TEAMS?FF_FFA:FF_TEAMS;
+                if(np.host&&start) ff_np_start(&np,np.mode,0);
+                if(np.host&&strcmp(copied_code,np.code)&&(np.have_public||!np.stun_until)) {
+                    /* Hand the code straight to the chat the players use to arrange the match. */
+                    copied=SDL_SetClipboardText(np.code)==0;snprintf(copied_code,sizeof(copied_code),"%s",np.code);
+                }
+            }
+            if(leave||(np.phase==FF_NP_ENDED&&start)) {ff_np_close(&np);in_lobby=true;paused=help=false;ff_input_read(&app.input,lobby.previous);}
+        } else if(entering) {
+        } else if(in_lobby&&!auto_play) {
             uint8_t keys[FF_PLAYERS];ff_input_read(&app.input,keys);
             if(!help) lobby_update(&lobby,&app.input,keys);
             if(start&&lobby_ready(&lobby)) {
@@ -428,7 +568,37 @@ int main(int argc,char **argv) {
         if(elapsed>frequency/4) elapsed=frequency/4;
         accumulator+=elapsed*FF_HZ;
         if(auto_play) accumulator=frequency;
-        if(paused||help||(in_lobby&&!auto_play)) accumulator=0;
+        if(playing_online&&np.phase==FF_NP_PLAYING) {
+            /* Online the clock never stops: the others are still playing. */
+            if(auto_play) accumulator=frequency;
+            while(accumulator>=frequency) {
+                uint8_t keys[FF_PLAYERS];ff_input_read(&app.input,keys);
+                if(auto_play) for(int i=0;i<FF_PLAYERS;++i) {
+                    int seat=ff_np_seat_of_local(&np,i);uint32_t t=np.rb.frame;
+                    keys[i]=seat<0?0:(uint8_t)(((t/(90u+(unsigned)seat*20u))%2?FF_LEFT:FF_RIGHT)|(t%(29u+(unsigned)seat*6u)==0?FF_JUMP:0)|FF_FIRE|(t%(19u+(unsigned)seat)==0?FF_PUNCH:0));
+                }
+                unsigned sounds=ff_np_tick(&np,keys);accumulator-=frequency;
+                if(app.audio) for(int i=0;i<FF_SOUNDS;++i) if((sounds&(1u<<i))&&app.sounds[i]) Mix_PlayChannel(-1,app.sounds[i],0);
+                if(auto_play) break;
+            }
+            if(auto_play&&ff_rb_settled(&np.rb)>=(uint32_t)ticks+FF_RB_CHECK) {
+                uint32_t target=(uint32_t)ticks-(uint32_t)ticks%FF_RB_CHECK;unsigned slot=(target/FF_RB_CHECK)%16u;
+                snprintf(online_result,sizeof(online_result),"online frame=%u state=%08x rollbacks=%u desync=%d",
+                         np.rb.check_frame[slot],np.rb.check_hash[slot],np.rb.rollbacks,np.rb.desync!=UINT32_MAX);
+                /* Keep the others supplied with our inputs before leaving; they may still quit first. */
+                for(uint32_t until=SDL_GetTicks()+2000;SDL_GetTicks()<until;) {ff_np_send(&np);SDL_Delay(10);}
+                running=false;
+            }
+            if(auto_play) SDL_Delay(10);
+            accumulator=auto_play?0:accumulator;
+        } else if(online&&auto_play&&np.phase==FF_NP_LOBBY) {
+            int n=0;for(int i=0;i<FF_PLAYERS;++i) n+=(np.seats>>i)&1u;
+            static int lobby_frames;
+            if(show_lobby&&++lobby_frames>=ticks) running=false;
+            if(np.host&&n==players) ff_np_start(&np,teams?FF_TEAMS:FF_FFA,4242);
+            SDL_Delay(10);
+        } else if(online&&auto_play&&np.phase==FF_NP_ENDED) {fprintf(stderr,"online: %s\n",np.ended);result=1;goto cleanup;}
+        if(paused||help||(in_lobby&&!auto_play)||online||entering) accumulator=0;
         while(accumulator>=frequency) {
             uint8_t keys[FF_PLAYERS];ff_input_read(&app.input,keys);
             if(auto_play) {
@@ -442,7 +612,14 @@ int main(int argc,char **argv) {
             if(auto_play&&game.tick>=(uint32_t)ticks) {running=false;break;}
         }
         if(SDL_SetRenderTarget(app.renderer,app.scene)<0) goto fail;
-        if(in_lobby) {draw_lobby(&app,&lobby,&app.input);if(help) draw_help(&app);}
+        if(np.phase==FF_NP_PLAYING) {
+            draw(&app,&arena,&np.rb.state,help,false);draw_net_overlay(&app,&np);
+            static bool reported;
+            if(np.rb.desync!=UINT32_MAX&&!reported) {reported=true;fprintf(stderr,"Online desync at frame %u\n",np.rb.desync);ff_fault("runtime");}
+        }
+        else if(np.phase!=FF_NP_OFF) {draw_online(&app,&np,copied);if(help) draw_help(&app);}
+        else if(entering) draw_code_entry(&app,entry,entry_error);
+        else if(in_lobby) {draw_lobby(&app,&lobby,&app.input);if(help) draw_help(&app);}
         else draw(&app,&arena,&game,help,paused);
         if(SDL_SetRenderTarget(app.renderer,NULL)<0) goto fail;
         color(&app,0,0,0);SDL_RenderClear(app.renderer);
@@ -456,11 +633,14 @@ int main(int argc,char **argv) {
         SDL_RenderPresent(app.renderer);
         if(!auto_play) SDL_Delay(1);
     }
+    if(online_result[0]) puts(online_result);
+    else
     printf("ticks=%u state=%08x arena=%s\n",game.tick,ff_game_hash(&game),arena.imported?"local-import":"practice");
     result=0;goto cleanup;
 fail:
     fprintf(stderr,"Runtime fault: %s\n",SDL_GetError());ff_fault("runtime");
 cleanup:
+    ff_np_close(&np);
     ff_input_close(&app.input);
     for(int i=0;i<FF_IMAGES;++i) if(app.images[i].texture) SDL_DestroyTexture(app.images[i].texture);
     for(int i=0;i<FF_SOUNDS;++i) if(app.sounds[i]) Mix_FreeChunk(app.sounds[i]);

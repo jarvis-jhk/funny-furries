@@ -156,4 +156,10 @@ fix what Jan reports.
       fault relay. Shipped v0.2.0 prerelease 2026-10-16; physical 3-4 pad/Deck play is feedback.
 
 ## M3 — Rollback online
-- [ ] Rollback netcode (GGPO/GekkoNet), lobby with join code, NAT traversal, VPS relay fallback.
+Done when: a prerelease where 2-4 copies connect by join code over UDP (direct/LAN or STUN hole
+punching) and play an FFA/2v2 match with rollback netcode; a lossy, delayed multi-process test stays
+in sync.
+- [x] Own rollback (no GGPO/GekkoNet needed: the simulation is one plain struct), join code, online
+      lobby, STUN + ntfy hole punching, LAN broadcast, desync checksums.
+- [ ] Relay fallback for carrier-grade NAT. Needs a public UDP relay; JARVIS's VPS is not usable
+      (no public UDP, and Jan's domains must not appear in releases). Open until there is demand.

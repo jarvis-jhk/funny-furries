@@ -53,6 +53,25 @@ controller feel. Tests attach four real SDL virtual controllers and exercise hel
 input, separate seats, removal, replacement, a four-pad 2 vs 2 match and keyboard
 focus handling.
 
+Online: H (or a pad's Back) in the player menu hosts, J joins with a code;
+`--host` / `--join CODE` with `--local 1-3` do the same from the command line.
+The engine side is `src/rollback.c` (snapshots of every frame, prediction
+"still holding what they held", re-simulation when a real input differs, an
+input delay of two frames, at most twelve frames of guessing, and a checksum of
+every 32nd confirmed frame exchanged to detect desyncs) and `src/netplay.c`
+(UDP star around the host, which forwards every input to every guest; time
+sync by waiting a tick when running ahead). `src/net.c` holds sockets, STUN
+(Google/Cloudflare public servers) and the join code: the host's public
+address and a 16-bit token in 13 base-32 letters with a check bit. Hole
+punching uses the public ntfy.sh over plain HTTP: the guest posts its STUN
+address to a topic derived from the code and the host sends to it. Guests
+also broadcast on the LAN. `FF_NET_LOSS`/`FF_NET_DELAY`/`FF_NET_JITTER`
+(percent, ms, ms) simulate a bad line; `FF_NET_LAN_ONLY=1` skips STUN and
+ntfy. Tests: `test_rollback` (in-memory network, 2-4 machines, loss/latency,
+against an offline run), `test_net` (codes, STUN parsing) and `test_netplay.py`
+(real processes over loopback UDP with simulated loss). `net_probe internet`
+checks STUN and the ntfy round trip live; it is not run in CI.
+
 Unexpected native faults use an optional `FF_FAULT_REPORT_URL` environment variable
 with the private lane report endpoint. A separate courier posts a fixed anonymous
 version/device-class/category payload; the process never waits for the network.

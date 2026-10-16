@@ -32,3 +32,52 @@ jobs:
           build/native/funny-furries --smoke 3000 --players 4 --teams --screenshot build/four.bmp
           build/native/funny-furries --smoke 3000 --players 3
           build/native/funny-furries --smoke 60 --lobby --screenshot build/lobby.bmp
+      - name: Online match between two real game processes on a bad line
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+          FF_NET_LAN_ONLY: '1'
+        run: |
+          build/native/funny-furries --host --local 2 --smoke 1500 --players 4 --teams > build/host.txt &
+          host=$!
+          sleep 1
+          FF_NET_LOSS=10 FF_NET_DELAY=40 FF_NET_JITTER=30 build/native/funny-furries --join 127.0.0.1:27590 --local 2 --smoke 1500 > build/guest.txt
+          wait $host
+          cat build/host.txt build/guest.txt
+          grep '^online frame' build/host.txt | cut -d' ' -f2-3 > build/host-state.txt
+          grep '^online frame' build/guest.txt | cut -d' ' -f2-3 > build/guest-state.txt
+          test -s build/host-state.txt && diff build/host-state.txt build/guest-state.txt
+      - name: Offline reference checksums for the cross-platform comparison
+        run: |
+          for match in "2 ffa" "3 ffa" "4 teams"; do build/native/net_probe offline $match 3008; done | tee build/sim-linux.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sim-linux
+          path: build/sim-linux.txt
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-pkgconf mingw-w64-ucrt-x86_64-SDL2 mingw-w64-ucrt-x86_64-SDL2_image mingw-w64-ucrt-x86_64-SDL2_mixer mingw-w64-ucrt-x86_64-python
+      - name: Build and test rollback and online play on Windows
+        shell: msys2 {0}
+        run: |
+          cmake -S . -B build/native -G Ninja -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build/native --parallel 2
+          ctest --test-dir build/native --output-on-failure -R "rollback|net_codes|netplay|match"
+          for match in "2 ffa" "3 ffa" "4 teams"; do build/native/net_probe.exe offline $match 3008; done | tr -d '\r' | tee build/sim-windows.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sim-windows
+          path: build/sim-windows.txt
+  same-simulation:
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      - name: Linux and Windows simulate identical matches
+        run: diff sim-linux/sim-linux.txt sim-windows/sim-windows.txt && cat sim-linux/sim-linux.txt
