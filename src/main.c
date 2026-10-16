@@ -17,6 +17,7 @@ typedef struct {
     SDL_Window *window;SDL_Renderer *renderer;SDL_Texture *scene,*backdrop; FF_Input input;
     Image images[FF_IMAGES], tinted[2][FF_IMAGES]; Mix_Chunk *sounds[FF_SOUNDS]; bool audio;
     const char *assets; const FF_Mods *mods;
+    int levels[16], level_count;   /* the import's other original levels, by frame number */
 } App;
 /* A mod's own file wins; otherwise the player's imported original. */
 static bool image_path(const App *app,int id,char *path,size_t capacity) {
@@ -157,20 +158,46 @@ static void held(App *app,const FF_Arena *a,int id,int x,int y,bool left) {
     SDL_Rect dest={x-anchor,y-a->hot_y[id],im->w,im->h};
     SDL_RenderCopyEx(app->renderer,im->texture,NULL,&dest,0,NULL,left?SDL_FLIP_HORIZONTAL:SDL_FLIP_NONE);
 }
+/* Ticks a sequence shows before a one-time animation has finished. */
+static uint32_t sequence_ticks(const FF_Sequence *s) {
+    return s->speed>0?(uint32_t)((s->count*100+s->speed-1)/s->speed):(uint32_t)s->count*4u;
+}
+/* Like the original, the plain hand is swapped for the shooting hand only while a
+ * punch or shot plays: the fist anim 12, or the weapon's 13 ice, 14 rocket, 15 flame.
+ * A looping weapon animation stays up while the trigger keeps being pulled. */
+static bool shooting_hand(const FF_Arena *a,const FF_Game *g,int i,int dir,int *image,bool *custom) {
+    const FF_Player *p=&g->players[i];
+    bool punch=g->punched[i]&&(!g->fired[i]||g->punched[i]>=g->fired[i]);
+    uint32_t start=punch?g->punched[i]:g->fired[i];
+    if(!start) return false;
+    uint32_t since=g->tick-start;
+    if(!punch&&p->weapon==FF_FISTS) return false;
+    if(!punch&&a->weapons[p->weapon].hand_image>=0) {*custom=true;*image=a->weapons[p->weapon].hand_image;return since<12;}
+    int anim=punch?12:p->weapon==FF_ICE?13:p->weapon==FF_ROCKET?14:15;
+    const FF_Sequence *s=&a->sprites[i&1][4][anim][dir];
+    if(!s->count) s=&a->sprites[i&1][4][anim][0];
+    if(!s->count) return false;
+    if(since>=(s->once?sequence_ticks(s):12u)) return false;
+    *custom=false;*image=s->image[ff_sequence_frame(s,since,!s->once)];
+    return true;
+}
 static void draw_player(App *app,const FF_Arena *a,const FF_Game *g,int i) {
     const FF_Player *p=&g->players[i];if(!p->active||!p->lives||p->respawn||(p->invulnerable&&g->tick%4<2)) return;
     int x=p->x/FF_FP,y=p->y/FF_FP,dir=p->facing<0;
     int anim=p->grounded?(abs(p->vx)>FF_FP/4?1:0):(p->vy<0?7:8);
     if(a->imported) {
         /* The source uses independent feet/body/hand/hat objects at one origin. */
-        const int order[]={0,1,2,3,4};
+        int shooting=-1;bool custom=false;
+        bool armed=shooting_hand(a,g,i,dir,&shooting,&custom);
         for(int part=0;part<FF_PARTS;++part) {
-            int index=order[part];int active_anim=index==2&&p->punch_ticks?12:anim;
-            if(index==4&&p->weapon==FF_FISTS) continue;
-            if(index==4) active_anim=p->weapon==FF_ICE?13:p->weapon==FF_ROCKET?14:15;
-            if(index==4&&a->weapons[p->weapon].hand_image>=0) {held(app,a,a->weapons[p->weapon].hand_image,x,y-16,dir);continue;}
-            int id=animation_image(a,i,index,active_anim,dir,g->tick);
-            if(index==1) sprite_for(app,a,id,x,y-16,i);else sprite(app,a,id,x,y-16);
+            if(part==2&&armed) continue;
+            if(part==4) {
+                if(!armed) continue;
+                if(custom) held(app,a,shooting,x,y-16,dir);else sprite(app,a,shooting,x,y-16);
+                continue;
+            }
+            int id=animation_image(a,i,part,anim,dir,g->tick);
+            if(part==1) sprite_for(app,a,id,x,y-16,i);else sprite(app,a,id,x,y-16);
         }
     } else {
         color(app,seat_body[i][0],seat_body[i][1],seat_body[i][2]);rect(app,x-12,y-31,24,26);
@@ -248,6 +275,42 @@ static void hud(App *app,const FF_Arena *a,const FF_Game *g) {
     }
 }
 static void draw_help(App *app);
+/* The water's top above a point, or -1 when the point is not under water. */
+static int water_top(const FF_Arena *a,int x,int y) {
+    int top=-1;
+    for(int i=0;i<a->device_count;++i) {
+        const FF_Device *d=&a->devices[i];
+        if(d->kind==FF_WATER&&x>=d->x&&x<d->x+d->w&&y>=d->y&&(top<0||d->y<top)) top=d->y;
+    }
+    return top;
+}
+/* A fan under water blows a bubble every 12 ticks, as in the original. Bubbles are
+ * scenery, worked out from the tick alone: they drift with the fan's draught until
+ * they reach the surface or a wall, then pop. */
+static void draw_bubbles(App *app,const FF_Arena *a,uint32_t tick) {
+    const FF_Sequence *rise=&a->bubble_sprites[0],*pop=&a->bubble_sprites[1];
+    if(!rise->count) return;
+    for(int i=0;i<a->device_count;++i) {
+        const FF_Device *d=&a->devices[i];
+        if(d->kind<FF_FAN_LEFT||d->kind>FF_FAN_UP) continue;
+        int cx=d->x+d->w/2,cy=d->y+d->h/2,surface=water_top(a,cx,cy);
+        if(surface<0) continue;
+        /* Half pixels per tick; sideways bubbles still rise a little. */
+        int dx=d->kind==FF_FAN_LEFT?-3:d->kind==FF_FAN_RIGHT?3:0,dy=d->kind==FF_FAN_UP?-3:-1;
+        for(uint32_t k=0;k<6;++k) {
+            uint32_t age=(tick+(uint32_t)i*5u)%12u+k*12u,end=0;
+            while(end<60) {
+                int x=cx+dx*(int)end/2,y=cy+dy*(int)end/2;
+                if(y<surface||x<0||x>=FF_W||y>=FF_H||a->mask[y][x]==FF_SOLID) break;
+                ++end;
+            }
+            uint32_t at=age<end?age:end;
+            int x=cx+dx*(int)at/2,y=cy+dy*(int)at/2;
+            if(age<end) sprite(app,a,rise->image[ff_sequence_frame(rise,age,true)],x,y);
+            else if(pop->count&&age-end<(uint32_t)pop->count*3u) sprite(app,a,pop->image[(age-end)/3u],x,y);
+        }
+    }
+}
 static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paused) {
     SDL_RenderCopy(app->renderer,app->backdrop,NULL,NULL);
     for(int i=0;i<a->device_count;++i) {
@@ -261,6 +324,7 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
         else if(idle->count) id=idle->image[ff_sequence_frame(idle,g->tick,true)];
         sprite(app,a,id,pos.x+a->hot_x[d->image],pos.y+a->hot_y[d->image]);
     }
+    draw_bubbles(app,a,g->tick);
     for(int i=0;i<FF_HAZARDS;++i) {
         const FF_Hazard *h=&g->hazards[i];if(!h->life) continue;
         const FF_Sequence *seq=&a->hazard_sprites[h->kind-1][h->vx<0];
@@ -319,7 +383,7 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
     if(help||paused||g->winner>=0) {
         color(app,12,20,33);rect(app,90,160,620,270);color(app,232,242,250);
         if(help) draw_help(app);
-        else if(paused) text(app,240,270,4,"PAUSED - P TO PLAY");
+        else if(paused) centered(app,270,4,"PAUSED - P TO PLAY");
         else {
             char s[64];
             if(g->winner==FF_DRAW) snprintf(s,sizeof(s),"DRAW");
@@ -567,15 +631,27 @@ static void load_mod(const char *dir,const char *name,void *user) {
     else {fprintf(stderr,"%s\n",error);++l->failed;}
 }
 /* Arena 0 is the imported original (or practice); the rest are mod levels. */
+/* Arena 0 is the import's first level, then its other original levels, then mod levels. */
+static void arena_label(const App *app,const FF_Arena *base,const FF_Mods *mods,int index,char *name,size_t capacity) {
+    if(index>app->level_count&&index<=app->level_count+mods->level_count) snprintf(name,capacity,"%s",mods->level_name[index-app->level_count-1]);
+    else if(app->level_count) snprintf(name,capacity,"LEVEL %d",index+1);
+    else snprintf(name,capacity,"%s",base->imported?"ORIGINAL":"PRACTICE");
+}
 static bool choose_arena(App *app,FF_Arena *arena,const FF_Arena *base,FF_Mods *mods,int index,char *name,size_t capacity) {
     char error[256];
     for(int id=FF_MOD_IMAGES;id<FF_IMAGES;++id) if(app->images[id].texture) {SDL_DestroyTexture(app->images[id].texture);app->images[id].texture=NULL;}
     *arena=*base;mods->next_picture=FF_MOD_IMAGES;
-    snprintf(name,capacity,"%s",base->imported?"ORIGINAL":"PRACTICE");
-    if(index>0&&index<=mods->level_count) {
-        if(!ff_level_apply(arena,mods,mods->level_path[index-1],read_png,error,sizeof(error))) {fprintf(stderr,"%s\n",error);*arena=*base;return false;}
-        snprintf(name,capacity,"%s",mods->level_name[index-1]);
+    if(index<0||index>app->level_count+mods->level_count) index=0;
+    arena_label(app,base,mods,0,name,capacity);
+    if(index>0&&index<=app->level_count) {
+        static FF_Arena level;char path[4096];
+        snprintf(path,sizeof(path),"%s/level-%d.ff",app->assets,app->levels[index-1]);
+        if(!ff_arena_load(&level,path,error,sizeof(error))) {fprintf(stderr,"%s\n",error);return false;}
+        ff_arena_take_level(arena,&level);
+    } else if(index>app->level_count) {
+        if(!ff_level_apply(arena,mods,mods->level_path[index-app->level_count-1],read_png,error,sizeof(error))) {fprintf(stderr,"%s\n",error);*arena=*base;return false;}
     }
+    arena_label(app,base,mods,index,name,capacity);
     mod_hotspots(app,arena);
     if(!assets_ready(app,arena)) {fprintf(stderr,"Images of arena %s are missing\n",name);*arena=*base;return false;}
     if(app->backdrop&&SDL_SetRenderTarget(app->renderer,app->backdrop)==0) {background(app,arena);SDL_SetRenderTarget(app->renderer,NULL);}
@@ -606,7 +682,9 @@ static bool parse_ticks(const char *s,int *ticks) {
     *ticks=(int)value;return true;
 }
 int main(int argc,char **argv) {
-    const char *mod_dirs[16];int mod_dir_count=0,arena_index=0;bool no_mods=false;
+    /* Start-up stages, reported only when the first frame is slow to come. */
+    uint32_t started=ff_net_ms(),stage[4]={0};
+    const char *mod_dirs[16];int mod_dir_count=0,arena_index=0,level_number=0;bool no_mods=false;
     const char *data=NULL,*screenshot=NULL,*join=NULL,*wz_code=NULL,*ranked=NULL;bool wz_host=false;int ticks=0,players=2,local_players=0;bool auto_play=false,fullscreen=false,teams=false,show_lobby=false,host=false;
     for(int i=1;i<argc;++i) {
         if(!strcmp(argv[i],"--fullscreen")) fullscreen=true;
@@ -614,6 +692,7 @@ int main(int argc,char **argv) {
         else if(!strcmp(argv[i],"--mod")&&i+1<argc&&mod_dir_count<16) mod_dirs[mod_dir_count++]=argv[++i];
         else if(!strcmp(argv[i],"--no-mods")) no_mods=true;
         else if(!strcmp(argv[i],"--arena")&&i+1<argc&&parse_ticks(argv[i+1],&arena_index)) ++i;
+        else if(!strcmp(argv[i],"--level")&&i+1<argc&&parse_ticks(argv[i+1],&level_number)) ++i;
         else if(!strcmp(argv[i],"--smoke")&&i+1<argc&&parse_ticks(argv[i+1],&ticks)) {++i;auto_play=true;}
         else if(!strcmp(argv[i],"--screenshot")&&i+1<argc) screenshot=argv[++i];
         else if(!strcmp(argv[i],"--players")&&i+1<argc&&argv[i+1][0]>='2'&&argv[i+1][0]<='4'&&!argv[i+1][1]) players=argv[++i][0]-'0';
@@ -627,7 +706,7 @@ int main(int argc,char **argv) {
         else if(!strcmp(argv[i],"--warpzone-code")&&i+1<argc) wz_code=argv[++i];
         else if(!strcmp(argv[i],"--ranked")&&i+1<argc&&(!strcmp(argv[i+1],"1v1")||!strcmp(argv[i+1],"ffa")||!strcmp(argv[i+1],"2v2"))) ranked=argv[++i];
         else if(!strcmp(argv[i],"--local")&&i+1<argc&&argv[i+1][0]>='1'&&argv[i+1][0]<='3'&&!argv[i+1][1]) local_players=argv[++i][0]-'0';
-        else if(!strcmp(argv[i],"--help")) {puts("funny-furries [--fullscreen] [--data LOCAL_IMPORT] [--host | --join CODE] [--warpzone-host | --warpzone-join ROOM | --warpzone-code CODE | --ranked 1v1|ffa|2v2] [--local 1-3] [--mod DIR]... [--no-mods] [--arena N] [--smoke TICKS [--players 2-4] [--teams] [--lobby]] [--screenshot FILE.bmp]\nWithout --data, play the asset-free practice arena. F1 shows controls.\n--host opens an online match and shows its join code; --join CODE joins one.\nThe --warpzone options do the same through Warpzone rooms (relay included) and its ranked queues.\nEveryone online needs the same arena import.\n--mod DIR loads a mod directory (docs/MODDING.md); without --no-mods the mods active in\nthe Warpzone launcher load too. --arena N starts on the N-th mod level.");return 0;}
+        else if(!strcmp(argv[i],"--help")) {puts("funny-furries [--fullscreen] [--data LOCAL_IMPORT] [--host | --join CODE] [--warpzone-host | --warpzone-join ROOM | --warpzone-code CODE | --ranked 1v1|ffa|2v2] [--local 1-3] [--mod DIR]... [--no-mods] [--arena N] [--level N] [--smoke TICKS [--players 2-4] [--teams] [--lobby]] [--screenshot FILE.bmp]\nWithout --data, play the asset-free practice arena. F1 shows controls.\n--host opens an online match and shows its join code; --join CODE joins one.\nThe --warpzone options do the same through Warpzone rooms (relay included) and its ranked queues.\nEveryone online needs the same arena import.\n--mod DIR loads a mod directory (docs/MODDING.md); without --no-mods the mods active in\nthe Warpzone launcher load too. --arena N starts on the N-th mod level, --level N on the original's level N.");return 0;}
         else {fprintf(stderr,"Unknown or incomplete option. Use --help.\n");return 2;}
     }
     if(teams&&players!=4) {fprintf(stderr,"--teams needs --players 4.\n");return 2;}
@@ -640,6 +719,9 @@ int main(int argc,char **argv) {
             fprintf(stderr,"Cannot load local import. Run tools/import_arena.py first.\n");return 2;
         }
         app.assets=data;
+        for(int n=0;n<64&&app.level_count<16;++n) {
+            if(snprintf(path,sizeof(path),"%s/level-%d.ff",data,n)<(int)sizeof(path)&&ff_arena_exists(path)) app.levels[app.level_count++]=n;
+        }
     } else ff_arena_practice(&arena);
     {
         /* Smoke runs only load the mods they name, so tests never depend on this machine's set. */
@@ -650,23 +732,29 @@ int main(int argc,char **argv) {
         if(load.failed||mod_dir_count) mod_hash[0]=0;   /* not the launcher's exact set: no lockfile for rooms */
         base=arena;app.mods=&mods;
     }
+    stage[0]=ff_net_ms();
     if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_AUDIO)<0) goto fail;
     if(!(IMG_Init(IMG_INIT_PNG)&IMG_INIT_PNG)) goto fail;
-    app.window=SDL_CreateWindow("Funny Furries 0.5.0 - test release",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1000,750,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
+    app.window=SDL_CreateWindow("Funny Furries 0.6.0 - test release",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1000,750,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
     if(!app.window) goto fail;
     app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
     if(!app.renderer) app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_SOFTWARE);
     if(!app.renderer||SDL_RenderSetLogicalSize(app.renderer,FF_W,FF_H)<0) goto fail;
     app.scene=SDL_CreateTexture(app.renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,FF_W,FF_H);
     if(!app.scene) goto fail;
+    stage[1]=ff_net_ms();
     if(data&&!assets_ready(&app,&base)) {fprintf(stderr,"Incomplete local image import.\n");result=2;goto cleanup;}
     app.backdrop=SDL_CreateTexture(app.renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,FF_W,FF_H);
     if(!app.backdrop||SDL_SetRenderTarget(app.renderer,app.backdrop)<0) goto fail;
     if(SDL_SetRenderTarget(app.renderer,NULL)<0) goto fail;
     if(arena_index>mods.level_count) {fprintf(stderr,"There is no mod arena %d.\n",arena_index);result=2;goto cleanup;}
+    if(arena_index) arena_index+=app.level_count;   /* --arena counts mod levels only */
+    if(level_number>1+app.level_count) {fprintf(stderr,"There is no level %d.\n",level_number);result=2;goto cleanup;}
+    if(level_number>0) arena_index=level_number-1;
     if(!choose_arena(&app,&arena,&base,&mods,arena_index,arena_name,sizeof(arena_name))&&arena_index) {result=2;goto cleanup;}
+    stage[2]=ff_net_ms();
     app.audio=Mix_OpenAudio(44100,AUDIO_S16SYS,2,1024)==0;
-    if(app.audio) for(int i=0;i<FF_SOUNDS;++i) if(mods.sound_path[i]||(data&&i<8&&arena.sound_ids[i]>=0)) {
+    if(app.audio) for(int i=0;i<FF_SOUNDS;++i) if(mods.sound_path[i]||(data&&arena.sound_ids[i]>=0)) {
         char path[4096];
         if(mods.sound_path[i]) snprintf(path,sizeof(path),"%s",mods.sound_path[i]);
         else snprintf(path,sizeof(path),"%s/sound-23-%d.wav",data,arena.sound_ids[i]);
@@ -674,13 +762,14 @@ int main(int argc,char **argv) {
         if(!app.sounds[i]) {fprintf(stderr,"Incomplete local sound import.\n");result=2;goto cleanup;}
         Mix_VolumeChunk(app.sounds[i],MIX_MAX_VOLUME/3);
     }
+    stage[3]=ff_net_ms();
     ff_input_init(&app.input);
     ff_game_setup(&game,&arena,12345,(1u<<players)-1,teams?FF_TEAMS:FF_FFA);
-    Lobby lobby={0};lobby.arena=arena_index;lobby.arenas=1+mods.level_count;
+    Lobby lobby={0};lobby.arena=arena_index;lobby.arenas=1+app.level_count+mods.level_count;
     /* Smoke runs stay off the network unless they test Warpzone itself. */
     bool wz_asked=wz_host||wz_code||ranked||getenv("WARPZONE_JOIN")||getenv("WARPZONE_HOST");
     for(int i=1;i<argc;++i) wz_asked|=!strcmp(argv[i],"--warpzone-join")||!strncmp(argv[i],"warpzone://",11);
-    static FF_Wz wz;if(!auto_play||wz_asked) ff_wz_open(&wz,"0.5.0");
+    static FF_Wz wz;if(!auto_play||wz_asked) ff_wz_open(&wz,"0.6.0");
     wz.arena=&arena;
     bool naming=false,ranked_menu=false;char name_entry[20]="";int ranked_choice=0;uint32_t wz_deadline=0;
     if(ff_wz_launch(&wz,argc,argv)==2) wz_host=true;
@@ -706,10 +795,10 @@ int main(int argc,char **argv) {
             if(wz.reload_mods) {
                 ok=reload_mods(&app,&base,&mods,data,wz.mod_path,wz.mod_paths);
                 snprintf(mod_hash,sizeof(mod_hash),"%s",ok?wz.room_lockfile:"");
-                lobby.arenas=1+mods.level_count;
+                lobby.arenas=1+app.level_count+mods.level_count;
             }
-            int wanted=0;
-            for(int i=0;i<mods.level_count;++i) if(!strcmp(mods.level_name[i],wz.room_arena)) wanted=i+1;
+            int wanted=0;char label[32];
+            for(int i=1;i<lobby.arenas;++i) {arena_label(&app,&base,&mods,i,label,sizeof(label));if(!strcmp(label,wz.room_arena)) wanted=i;}
             ok=ok&&choose_arena(&app,&arena,&base,&mods,wanted,arena_name,sizeof(arena_name));
             lobby.arena=arena_index=ok?wanted:0;
             if(ok) ff_wz_reloaded(&wz,&np);
@@ -951,6 +1040,12 @@ int main(int argc,char **argv) {
             SDL_Surface *s=SDL_CreateRGBSurfaceWithFormat(0,w,h,32,SDL_PIXELFORMAT_RGBA32);
             if(!s||SDL_RenderReadPixels(app.renderer,NULL,SDL_PIXELFORMAT_RGBA32,s->pixels,s->pitch)<0||SDL_SaveBMP(s,screenshot)<0) {SDL_FreeSurface(s);goto fail;}
             SDL_FreeSurface(s);
+        }
+        if(started) {
+            uint32_t now=ff_net_ms();
+            if(now-started>1500) fprintf(stderr,"slow start: data %ums, SDL and window %ums, images %ums, sounds %ums, rest %ums\n",
+                stage[0]-started,stage[1]-stage[0],stage[2]-stage[1],stage[3]-stage[2],now-stage[3]);
+            started=0;
         }
         SDL_RenderPresent(app.renderer);
         if(!auto_play) SDL_Delay(1);

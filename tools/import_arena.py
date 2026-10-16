@@ -279,6 +279,12 @@ def import_lines(files, docs, frame):
                     for image in direction['image_ids']:
                         image_info(image)
                         lines.append(f'sprite {player} {part} {anim["id"]} {int(direction["id"] == 16)} {image}')
+                    # Header: speed byte 0, repeat count u16 at 2 (0 loops for ever).
+                    if not direction.get('header_hex'):
+                        continue
+                    header = bytes.fromhex(direction['header_hex'])
+                    once = int(int.from_bytes(header[2:4], 'little') != 0)
+                    lines.append(f'spritespeed {player} {part} {anim["id"]} {int(direction["id"] == 16)} {min(header[0], 100)} {once}')
 
     def first_image(name):
         return active_image(name)
@@ -305,6 +311,8 @@ def import_lines(files, docs, frame):
         ident = first_image('mph 2' if name == 'mph' else name)
         width, height, _ = image_info(ident)
         hx, hy = map(signed16, images[ident]['image']['hot_spot_raw_u16'])
+        if x-hx >= W or y-hy >= 600 or x-hx+width <= 0 or y-hy+height <= 0:
+            continue   # parked outside the frame (levels 8, 9 and 11 keep a spare platform below it)
         lines.append(f'device {device_kinds[name]} {x-hx} {y-hy} {width} {height} {ident if device_kinds[name] < 10 else -1}')
         kind = device_kinds[name]
         if kind < 10 and kind not in animated:
@@ -353,6 +361,11 @@ def import_lines(files, docs, frame):
                 ax, ay = map(signed16, info['action_point_raw_u16'])
                 hx, hy = map(signed16, info['hot_spot_raw_u16'])
                 lines.append(f'muzzle {player} {kind} {int(d["id"] == 16)} {ax-hx} {ay-hy-16}')
+    if ('Bubble', 2) in global_names:
+        for popping, anim_id in ((0, 0), (1, 12)):
+            found = sequence('Bubble', anim_id)
+            if found:
+                lines += [f'bubble {popping} {found[0]} {image}' for image in found[1]]
     for a in animations('Flame'):
         if a['id'] in (0, 12):
             for d in a['directions']:
@@ -412,6 +425,11 @@ def import_lines(files, docs, frame):
         entry = sounds[name]
         wanted.add(entry['file'])
         lines.append(f'sound {sound} {entry["id"]}')
+    # The original's event sounds: jump, landing, spring, splash, jetpack, shot on a wall, collecting, being hit.
+    for sound, name in enumerate(('hup', 'land', 'spring03', 'h2ohit1', 'fly', 'lashit', 'ghealth', 'gdie2'), 16):
+        if name in sounds:
+            wanted.add(sounds[name]['file'])
+            lines.append(f'sound {sound} {sounds[name]["id"]}')
     return '\n'.join(lines) + '\n', wanted, {'frame': frame, 'layers': layers, 'spawns': len(usable), 'devices': device_count, 'collision_markers': markers, 'collision_pixels': sum(sum(bool(v) for v in row) for row in collisions)}
 
 
@@ -497,9 +515,23 @@ def scoreboard(docs, placements, names, sequence, image_info):
 def import_arena(bundle: Path, output: Path, frame=3):
     manifest, files, docs = checked_bundle(bundle)
     text, wanted, summary = import_lines(files, docs, frame)
+    # Every other playable frame becomes an extra level beside arena.ff (the original's
+    # levels are frames 3-12); title and menu frames are not arenas and are skipped.
+    levels = {}
+    for other in range(len(docs['project-index.json']['frames'])):
+        if other == frame:
+            continue
+        try:
+            level_text, level_wanted, _ = import_lines(files, docs, other)
+        except (ValueError, KeyError, IndexError, struct.error, zlib.error):
+            continue
+        levels[f'level-{other}.ff'] = level_text.encode('ascii')
+        wanted |= level_wanted
+    summary['levels'] = sorted(int(name[6:-3]) for name in levels)
     payloads = {name: files[name] for name in sorted(wanted)}
     payloads['arena.ff'] = text.encode('ascii')
-    report = {'importer': 'arena-import/6', 'source_sha256': manifest['source']['sha256'], **summary,
+    payloads.update(levels)
+    report = {'importer': 'arena-import/7', 'source_sha256': manifest['source']['sha256'], **summary,
               'fidelity': 'prototype; collision flags, timing and feel need original-game acceptance',
               'files': {name: hashlib.sha256(raw).hexdigest() for name, raw in payloads.items()}}
     payloads['import.json'] = (json.dumps(report, indent=2, sort_keys=True) + '\n').encode()
@@ -531,10 +563,11 @@ def main():
         print(f'Import refused: {error}', file=sys.stderr)
         return 2
     except Exception as error:
-        project.report_fault(type(error).__name__, version='arena-import/6', title='Arena import failed')
+        project.report_fault(type(error).__name__, version='arena-import/7', title='Arena import failed')
         print('Arena import failed; original input was not modified.', file=sys.stderr)
         return 1
-    print(f'Imported frame {summary["frame"]}: {summary["layers"]} layers, {summary["spawns"]} spawn candidates.\nPlay: build/native/funny-furries --data {args.output}')
+    print(f'Imported frame {summary["frame"]}: {summary["layers"]} layers, {summary["spawns"]} spawn candidates, '
+          f'{len(summary["levels"])} more levels.\nPlay: build/native/funny-furries --data {args.output}')
     return 0
 
 

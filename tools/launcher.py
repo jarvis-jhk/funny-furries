@@ -20,7 +20,7 @@ if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import export_project, import_arena, project_index
 
-VERSION = '0.5.0'
+VERSION = '0.6.0'
 TOPIC = 'https://ntfy.sh/funny-furries-faults-a93c6b4e12d8'
 ROOT = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]))
 PACKAGE = Path(sys.executable).parent if getattr(sys, 'frozen', False) else ROOT
@@ -68,6 +68,11 @@ def import_copy(source, home, reader_source=None):
     reader = project_index.load_reader(reader_source)
     raw = source_bytes(source)
     original = raw
+    # The copy behind the current import: nothing to redo (Warpzone hands it over on every start).
+    kept = Path(home) / KEPT
+    current = selected(Path(home))
+    if current and kept.is_file() and kept.read_bytes() == raw:
+        return current
     try:
         game = reader.read(raw)
         if game.family != 'cnc':
@@ -77,7 +82,7 @@ def import_copy(source, home, reader_source=None):
             raw, _ = unprotect(game)
         manifest, files = export_project.research_bundle(reader, raw)
         sha = manifest['source']['sha256']
-        target = Path(home) / ('arena-v6-' + sha)
+        target = Path(home) / ('arena-v7-' + sha)
         if target.exists():
             try:
                 check_import(target)
@@ -113,7 +118,7 @@ def keep_original(home, raw):
 
 def check_import(target):
     report = json.loads((target / 'import.json').read_text())
-    if report.get('importer') != 'arena-import/6' or not report.get('files'):
+    if report.get('importer') != 'arena-import/7' or not report.get('files'):
         raise project_index.InputError('Local import needs replacing. Choose your original copy again.')
     for name, digest in report['files'].items():
         if Path(name).name != name or '\\' in name or name in {'.', '..'}:
@@ -136,7 +141,7 @@ def save_selection(home, target):
 def selected(home):
     try:
         name = json.loads((home / 'selected.json').read_text())['arena']
-        if not isinstance(name, str) or Path(name).name != name or not name.startswith('arena-v6-'):
+        if not isinstance(name, str) or Path(name).name != name or not name.startswith('arena-v7-'):
             return None
         target = home / name
         check_import(target)

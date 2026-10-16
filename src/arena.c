@@ -40,8 +40,19 @@ void ff_arena_practice(FF_Arena *a) {
     asset_defaults(a);
 }
 
+void ff_arena_take_level(FF_Arena *dst,const FF_Arena *level) {
+    memcpy(dst->tiles,level->tiles,sizeof(dst->tiles));memcpy(dst->mask,level->mask,sizeof(dst->mask));
+    memcpy(dst->spawns,level->spawns,sizeof(dst->spawns));dst->spawn_count=level->spawn_count;
+    memcpy(dst->layers,level->layers,sizeof(dst->layers));dst->layer_count=level->layer_count;
+    memcpy(dst->hot_x,level->hot_x,sizeof(int)*FF_ORIGINAL_IMAGES);memcpy(dst->hot_y,level->hot_y,sizeof(int)*FF_ORIGINAL_IMAGES);
+    memcpy(dst->bonuses,level->bonuses,sizeof(dst->bonuses));dst->bonus_count=level->bonus_count;
+    memcpy(dst->devices,level->devices,sizeof(dst->devices));dst->device_count=level->device_count;
+    memcpy(dst->paths,level->paths,sizeof(dst->paths));
+    memcpy(dst->device_sprites,level->device_sprites,sizeof(dst->device_sprites));
+    dst->hud=level->hud;dst->imported=level->imported;
+}
 /* A small bounded text format keeps imported game content separate from code. */
-bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity) {
+static FILE *open_text(const char *path) {
 #ifdef _WIN32
     wchar_t wide[4096];
     FILE *f=NULL;
@@ -49,6 +60,11 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
 #else
     FILE *f=fopen(path,"r");
 #endif
+    return f;
+}
+bool ff_arena_exists(const char *path) {FILE *f=open_text(path);if(f) fclose(f);return f!=NULL;}
+bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity) {
+    FILE *f=open_text(path);
     if (!f) { snprintf(error,capacity,"Cannot open arena data"); return false; }
     memset(a,0,sizeof(*a));
     asset_defaults(a);
@@ -77,6 +93,9 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
             if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_PARTS||n[2]<0||n[2]>=FF_ANIMS||n[3]<0||n[3]>1||n[4]<0||n[4]>=FF_ORIGINAL_IMAGES) {ok=false;break;}
             FF_Sequence *s=&a->sprites[n[0]][n[1]][n[2]][n[3]];
             if(s->count==FF_ANIM_FRAMES) {ok=false;break;} s->image[s->count++]=n[4];
+        } else if (sscanf(line,"spritespeed %d %d %d %d %d %d %c",&n[0],&n[1],&n[2],&n[3],&n[4],&n[5],&tail)==6) {
+            if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_PARTS||n[2]<0||n[2]>=FF_ANIMS||n[3]<0||n[3]>1||n[4]<0||n[4]>100||n[5]<0||n[5]>1) {ok=false;break;}
+            FF_Sequence *s=&a->sprites[n[0]][n[1]][n[2]][n[3]];s->speed=n[4];s->once=n[5];
         } else if (sscanf(line,"pickup %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<0||n[0]>5||n[1]<0||n[1]>=FF_ORIGINAL_IMAGES) {ok=false;break;} a->pickup_images[n[0]]=n[1];
         } else if (sscanf(line,"shot %d %d %c",&n[0],&n[1],&tail)==2) {
@@ -108,6 +127,9 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
             if(n[0]<0||n[0]>=a->blast_sprite.count||n[1]<-4096||n[1]>4096||
                n[2]<-4096||n[2]>4096||n[3]<1||n[3]>4096||n[4]<1||n[4]>4096) {ok=false;break;}
             a->blast_boxes[n[0]]=(FF_Box){n[1],n[2],n[3],n[4]};
+        } else if (sscanf(line,"bubble %d %d %d %c",&n[0],&n[1],&n[2],&tail)==3) {
+            if(n[0]<0||n[0]>1||n[1]<1||n[1]>100||n[2]<0||n[2]>=FF_ORIGINAL_IMAGES||
+               !add_frame(&a->bubble_sprites[n[0]],n[1],n[2])) {ok=false;break;}
         } else if (sscanf(line,"fire %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_ORIGINAL_IMAGES) {ok=false;break;}
             FF_Sequence *s=&a->fire_sprites[n[0]];
@@ -143,7 +165,7 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
             if(c[0]>0xffffff||n[0]<1||n[0]>FF_W||n[1]<1||n[1]>40) {ok=false;break;}
             a->hud.fuel_color=c[0];a->hud.fuel_width=n[0];a->hud.fuel_height=n[1];
         } else if (sscanf(line,"sound %d %d %c",&n[0],&n[1],&tail)==2) {
-            if(n[0]<0||n[0]>=8||n[1]<0||n[1]>4096) {ok=false;break;} a->sound_ids[n[0]]=n[1];
+            if(n[0]<0||n[0]>=FF_SOUNDS||(n[0]>=8&&n[0]<16)||n[1]<0||n[1]>4096) {ok=false;break;} a->sound_ids[n[0]]=n[1];
         } else {ok=false;break;}
     }
     if(ferror(f)||version!=1||a->spawn_count<2) ok=false;

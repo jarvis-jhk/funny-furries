@@ -1,11 +1,11 @@
 # Funny Furries
 
 An SDL2 reimplementation of Funny Furries 2 Xmas (Bastiaan de Jong, 1999).
-The test release plays arena 1 with **up to four players** (controllers and two
-keyboard layouts), free for all or 2 vs 2, on one screen or **online** through
-[Warpzone](https://github.com/jarvis-jhk/warpzone) rooms (with relay fallback)
-and ranked queues, with rollback netcode, on Linux, Windows and Steam Deck. More arenas are
-later roadmap work.
+The test release plays all ten of the original's arenas with **up to four players**
+(controllers and two keyboard layouts), free for all or 2 vs 2, on one screen or
+**online** through [Warpzone](https://github.com/jarvis-jhk/warpzone) rooms (with
+relay fallback) and ranked queues, with rollback netcode, on Linux, Windows and
+Steam Deck. In the start menu X/punch picks the arena.
 
 **Mods** add arenas, weapons, rules, skins and sounds — plain text and pictures,
 no code, so a modded online match stays in sync. Get them in the Warpzone

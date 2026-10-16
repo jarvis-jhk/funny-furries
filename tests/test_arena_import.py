@@ -231,7 +231,7 @@ class ArenaImportTests(unittest.TestCase):
              patch.object(arena, 'import_arena', side_effect=OSError('private path/token')), \
              patch.object(arena.project, 'report_fault') as reporter:
             self.assertEqual(arena.main(), 1)
-        reporter.assert_called_once_with('OSError', version='arena-import/6', title='Arena import failed')
+        reporter.assert_called_once_with('OSError', version='arena-import/7', title='Arena import failed')
 
     @unittest.skipUnless(os.environ.get('FF_NATIVE_GAME'), 'native binary not supplied')
     def test_real_renderer_with_synthetic_import(self):
@@ -260,6 +260,12 @@ class ArenaImportTests(unittest.TestCase):
             self.assertEqual(report['devices'], 38)
             self.assertIn('path 16 352 688 1 -1', text)
             self.assertEqual(report['collision_markers'], 58)
+            # The original's other nine levels, the event sounds and the shooting hand's timing.
+            self.assertEqual(report['levels'], [4, 5, 6, 7, 8, 9, 10, 11, 12])
+            for level in report['levels']:
+                self.assertTrue((root / f'output/level-{level}.ff').read_text().startswith('FFARENA 1\n'))
+            for record in ('sound 16 ', 'sound 18 ', 'sound 23 ', 'spritespeed 0 4 14 0 25 1', 'spritespeed 0 4 15 0 32 0', 'bubble 0 '):
+                self.assertIn(record, text)
 
 
 if __name__ == '__main__':

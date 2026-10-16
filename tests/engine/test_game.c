@@ -191,7 +191,7 @@ static void hazards_and_blasts(void) {
     FF_Game g;clean(&g);
     /* Contact and the resulting explosion are separate eight-point hits. */
     for(int i=0;i<2;++i) {g.players[i].x=300*FF_FP;g.players[i].y=560*FF_FP;}
-    g.hazards[0]=(FF_Hazard){300*FF_FP,544*FF_FP,0,0,FF_BOMB_FLY,200,0};
+    g.hazards[0]=(FF_Hazard){300*FF_FP,544*FF_FP,0,0,FF_BOMB_FLY,1,0,0};
     tick(&g,0,0,1);CHECK(!g.hazards[0].life);
     CHECK(g.players[0].health==84&&g.players[1].health==84);
     CHECK(g.sounds&FF_SOUND_BLAST);
@@ -205,27 +205,41 @@ static void hazards_and_blasts(void) {
     tick(&g,0,0,17);CHECK(g.players[0].health==92&&g.players[1].health==92);
     /* Reverse slot order must still propagate an entire chain. */
     clean(&g);g.players[0].invulnerable=g.players[1].invulnerable=100;
-    for(int i=0;i<4;++i) g.hazards[3-i]=(FF_Hazard){(300+35*i)*FF_FP,200*FF_FP,0,0,FF_BOMB_FLY,200,0};
+    for(int i=0;i<4;++i) g.hazards[3-i]=(FF_Hazard){(300+35*i)*FF_FP,200*FF_FP,0,0,FF_BOMB_FLY,1,0,0};
     g.blasts[0]=(FF_Blast){280*FF_FP,200*FF_FP,20,0};tick(&g,0,0,1);
     for(int i=0;i<4;++i) CHECK(!g.hazards[i].life);
     clean(&g);g.players[0].x=300*FF_FP;g.players[0].y=560*FF_FP;
     g.players[0].weapon=FF_ICE;g.players[0].ammo=1;
-    g.hazards[0]=(FF_Hazard){345*FF_FP,542*FF_FP,0,0,FF_BOMB_FLY,200,0};
+    g.hazards[0]=(FF_Hazard){345*FF_FP,542*FF_FP,0,0,FF_BOMB_FLY,1,0,0};
     tick(&g,FF_FIRE,0,8);CHECK(!g.hazards[0].life);
     clean(&g);g.players[0].x=300*FF_FP;g.players[0].y=560*FF_FP;
-    g.hazards[0]=(FF_Hazard){340*FF_FP,544*FF_FP,0,0,FF_BOMB_FLY,200,0};
+    g.hazards[0]=(FF_Hazard){340*FF_FP,544*FF_FP,0,0,FF_BOMB_FLY,1,0,0};
     tick(&g,FF_PUNCH,0,1);CHECK(!g.hazards[0].life);
     /* A walking bomb turns before stepping off a ledge. */
     clean(&g);arena.imported=true;memset(arena.tiles,0,sizeof(arena.tiles));
     memset(&arena.mask[300][80],FF_PLATFORM,100);
-    g.hazards[0]=(FF_Hazard){173*FF_FP,299*FF_FP,FF_FP,0,FF_BOMB_WALK,200,1};
+    g.hazards[0]=(FF_Hazard){173*FF_FP,299*FF_FP,FF_FP,0,FF_BOMB_WALK,1,1,0};
     tick(&g,0,0,1);CHECK(g.hazards[0].vx<0);
-    /* Falling bombs bounce from one-way surfaces but detonate on solids. */
-    g.hazards[0]=(FF_Hazard){120*FF_FP,299*FF_FP,0,FF_FP,FF_BOMB,200,0};
-    tick(&g,0,0,1);CHECK(g.hazards[0].life&&g.hazards[0].vy<0);
+    /* Falling bombs bounce from one-way surfaces and solids alike, lower every time,
+     * and go off once a bounce is spent; walking bombs never expire. */
+    g.hazards[0]=(FF_Hazard){120*FF_FP,299*FF_FP,0,FF_FP,FF_BOMB,1,0,4*FF_FP};
+    tick(&g,0,0,1);CHECK(g.hazards[0].life&&g.hazards[0].vy==-4*FF_FP);
     memset(&arena.mask[300][80],FF_SOLID,100);
-    g.hazards[0]=(FF_Hazard){120*FF_FP,299*FF_FP,0,FF_FP,FF_BOMB,200,0};
-    tick(&g,0,0,1);CHECK(!g.hazards[0].life);
+    g.hazards[0]=(FF_Hazard){120*FF_FP,299*FF_FP,0,FF_FP,FF_BOMB,1,0,4*FF_FP};
+    tick(&g,0,0,1);CHECK(g.hazards[0].life&&g.hazards[0].vy==-4*FF_FP);
+    g.players[0].active=g.players[1].active=0;   /* nobody falls out of this floorless arena meanwhile */
+    int top=g.hazards[0].y,bounces=1,ticks=1;
+    while(g.hazards[0].life&&ticks<2000) {
+        int before=g.hazards[0].vy;tick(&g,0,0,1);++ticks;
+        if(g.hazards[0].life&&before>=0&&g.hazards[0].vy<0) {CHECK(-g.hazards[0].vy<4*FF_FP);++bounces;}
+        if(g.hazards[0].life&&g.hazards[0].y<top) top=g.hazards[0].y;
+    }
+    CHECK(!g.hazards[0].life&&g.blasts[0].life&&bounces>5&&top<270*FF_FP);
+    clean(&g);arena.imported=true;memset(arena.tiles,0,sizeof(arena.tiles));
+    memset(&arena.mask[300][80],FF_SOLID,100);
+    g.hazards[0]=(FF_Hazard){130*FF_FP,299*FF_FP,FF_FP,0,FF_BOMB_WALK,1,1,0};
+    g.players[0].active=g.players[1].active=0;
+    tick(&g,0,0,3000);CHECK(g.hazards[0].life);
     /* Scheduled hazards use the arena's actual bonus points and seeded RNG. */
     clean(&g);arena.bonus_count=1;arena.bonuses[0]=(FF_Point){400,100};
     g.trap_wait=1;FF_Game replay=g;
@@ -347,6 +361,34 @@ static void four_players(void) {
         ff_game_tick(&a,&arena,keys);ff_game_tick(&b,&arena,keys);CHECK(ff_game_hash(&a)==ff_game_hash(&b));
     }
 }
+/* Jan's 2026-10-16 play-test of 0.5.0. */
+static void playtest_fixes(void) {
+    FF_Game g;clean(&g);g.players[1].active=0;
+    /* Walking over a floor spring leaves it alone; landing on it throws you up. */
+    arena.device_count=1;arena.devices[0]=(FF_Device){FF_BOUNCE_UP,300,552,32,8,-1};
+    FF_Player *p=&g.players[0];p->x=240*FF_FP;p->y=560*FF_FP;p->vx=p->vy=0;p->grounded=1;
+    tick(&g,FF_RIGHT,0,60);CHECK(p->x>360*FF_FP);CHECK(!g.device_hit[0]);CHECK(p->grounded);
+    p->x=316*FF_FP;p->y=480*FF_FP;p->vx=0;p->grounded=0;
+    int thrown=0;for(int i=0;i<40&&!thrown;++i) {tick(&g,0,0,1);thrown=p->vy<0;}
+    CHECK(thrown&&g.device_hit[0]&&(g.sounds&FF_SOUND_SPRING));
+    /* Jumping makes the original's jump sound. */
+    clean(&g);g.players[1].active=0;p=&g.players[0];tick(&g,0,0,60);
+    tick(&g,FF_JUMP,0,1);CHECK(p->vy<0&&(g.sounds&FF_SOUND_JUMP));
+    /* The ice gun's left muzzle sits inside the shooter's reach: firing left never hurts them. */
+    clean(&g);g.players[1].x=700*FF_FP;p=&g.players[0];p->x=400*FF_FP;p->y=560*FF_FP;p->facing=-1;
+    arena.muzzles[0][FF_ICE][1]=(FF_Point){-12,-11};p->weapon=FF_ICE;p->ammo=5;
+    tick(&g,FF_FIRE|FF_LEFT,0,1);tick(&g,FF_FIRE,0,30);CHECK(p->health==100);CHECK(p->ammo<5);
+    /* Up at the water's surface jumps out, onto a ledge level with the water. */
+    clean(&g);g.players[1].active=0;p=&g.players[0];
+    arena.device_count=1;arena.devices[0]=(FF_Device){FF_WATER,0,480,800,16,-1};
+    for(int x=20;x<29;++x) arena.tiles[30][x]=FF_PLATFORM;
+    p->x=400*FF_FP;p->y=548*FF_FP;p->vx=p->vy=0;
+    tick(&g,FF_JUMP,0,80);tick(&g,0,0,100);CHECK(p->grounded&&p->y==480*FF_FP);
+    /* The sky is open: a jetpack carries a furry above the top edge, and it comes back. */
+    clean(&g);g.players[1].active=0;p=&g.players[0];p->x=60*FF_FP;p->y=100*FF_FP;p->fuel=300;
+    int highest=p->y;for(int i=0;i<120;++i) {tick(&g,FF_FLY,0,1);if(p->y<highest) highest=p->y;}
+    CHECK(highest<0);tick(&g,0,0,400);CHECK(p->grounded&&p->y==560*FF_FP&&p->lives==3);
+}
 static void determinism(void) {
     FF_Game a,b;clean(&a);b=a;
     uint32_t r=17;
@@ -360,4 +402,4 @@ static void determinism(void) {
     b.players[0].previous^=FF_JUMP;CHECK(ff_game_hash(&a)!=ff_game_hash(&b));
     printf("replay=%08x\n",ff_game_hash(&a));
 }
-int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();sensor_body_and_directional_bounces();hazards_and_blasts();imported_weapon_geometry();reference_jump();wind_and_bonus_regions();four_players();determinism();printf("%u game checks passed\n",checks);return 0;}
+int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();sensor_body_and_directional_bounces();hazards_and_blasts();imported_weapon_geometry();reference_jump();wind_and_bonus_regions();four_players();playtest_fixes();determinism();printf("%u game checks passed\n",checks);return 0;}

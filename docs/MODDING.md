@@ -60,7 +60,7 @@ FFMOD 1
 image 1024 snowball.png            # a new picture, numbered 1024-1535
 image 1026 snow-cannon.png 5 -1    # ... with its hot spot (x y); otherwise its centre
 image 52 my-own-body.png           # a number below 1024 replaces that original picture
-sound 9 zap.wav                    # a sound slot: 0-7 replace the original's, 8-15 are new
+sound 9 zap.wav                    # a sound slot: 0-7 and 16-23 replace the original's, 8-15 are new
 weapon 4 name=SNOWBALLS speed=55 gravity=20 pellets=3 spread=2 bounces=1 shot=1024
 rule gravity 28
 rule jump 36
@@ -71,6 +71,10 @@ level midnight-peaks.ff            # an arena of this mod
 File names are relative to the mod folder; `..` and absolute paths are refused.
 A mod with any line the game does not understand is left out completely, with
 the line number on the console.
+
+The original's sound slots: 0 punch, 1 ice gun, 2 flame thrower, 3 rocket, 4 burn,
+5 bonus appears, 6 death, 7 explosion, 16 jump, 17 landing, 18 spring, 19 splash,
+20 jetpack, 21 shot hits a wall, 22 pickup, 23 hit.
 
 ### Weapons
 
@@ -100,7 +104,7 @@ names; a new slot starts from a plain gun.
 ### Picture numbers
 
 Numbers 0-1023 are the original game's pictures from the player's own import;
-the import directory (`~/.local/share/funny-furries/arena-v6-…`, or
+the import directory (`~/.local/share/funny-furries/arena-v7-…`, or
 `%LOCALAPPDATA%\funny-furries\…` on Windows) has them as `image-21-<number>.png`
 for you to look at. A replacement keeps the original's hot spot unless you give one.
 

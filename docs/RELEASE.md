@@ -1,16 +1,22 @@
-# Funny Furries 0.5.0 — mods test release
+# Funny Furries 0.6.0 — all ten arenas
 
-This preview plays the original arena 1 with two to four players on controllers
-or the two keyboard layouts, free for all or 2 vs 2, on one screen or online.
-Movement, weapons and devices are based on the original, with approximate timing
-and collision details. It is not the complete original game. Other original
-arenas and automatic updates are not included yet.
+This preview plays all ten of the original's arenas with two to four players on
+controllers or the two keyboard layouts, free for all or 2 vs 2, on one screen or
+online. Movement, weapons and devices are based on the original, with approximate
+timing and collision details. It is not the complete original game. Automatic
+updates are not included yet.
 
-New in 0.5.0: fans, water, springs and the weapon, health and jetpack pickups
-run their original animations; bombs no longer appear in the top left corner;
-a two-player game shows the original scoreboard at the bottom; and **mods**
-(see below and [MODDING.md](MODDING.md)). The first start after the update
-imports your copy once more; from now on later updates redo that by themselves.
+New in 0.6.0 (fixes from Jan's play-test of 0.5.0): the original's other nine
+arenas (X/punch in the start menu, `--level N`); weapons appear in the hand only
+while firing and the punch plays the original's punching fist; jump, landing,
+spring, splash, jetpack, hit, wall-hit and pickup sounds; the ice gun no longer
+hits its shooter when fired to the left; up at the water's surface jumps out (the
+right ice ledge of level 1 can be reached from the water); fans under water blow
+bubbles; floor springs no longer fire when walked over; the sky is open above the
+top edge; bombs stay until set off, and bouncing bombs bounce lower and lower and
+then explode; the pause text is centred; a start with an unchanged copy no longer
+redoes the import. The first start after the update imports your copy once more
+by itself.
 
 ## Windows
 
@@ -140,7 +146,7 @@ unsupported game copies are not reported.
 5. Keep the live ntfy → issue → maintenance-queue relay running, with the private
    queue URL only in its local config. No new scheduler job is needed. A controlled
    anonymous transport probe must be received, deduplicated and cleaned up.
-6. Tag only that tested source (`v0.5.0` for the mods release), push the tag,
+6. Tag only that tested source (`v0.6.0` for the all-arenas release), push the tag,
    and upload the already checked binary/source archives, the example mod ZIPs
    (`mods/pack.py`) and SHA256SUMS as a GitHub prerelease. Confirm the release is published and
    every uploaded asset downloads with the expected hash. Record remaining human

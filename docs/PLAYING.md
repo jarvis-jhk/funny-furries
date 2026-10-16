@@ -118,7 +118,9 @@ build/native/funny-furries --data export/arena-1
 
 The importer defaults to storage frame 3 (the original menu's level 1), with
 512 scenery layers, multipart red/blue animations, all three weapon/pickup
-sprites and eight sound effects. Original PNG/WAV files are copied into an atomic,
+sprites and sixteen sound effects; the original's other levels (frames 4-12) go
+beside it as `level-<frame>.ff`. The start menu's X/punch cycles through them
+(level 1, levels 2-10, then mod levels); `--level N` starts on level N. Original PNG/WAV files are copied into an atomic,
 immutable local directory. Repeating the command verifies identical contents;
 changed output is refused. Supply `--output export/another-name` after changing
 the importer. Input files, filenames and hashes are checked before publication.

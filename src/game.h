@@ -22,7 +22,8 @@
 #define FF_DEVICES 256
 #define FF_HAZARDS 32
 #define FF_BLASTS 32
-#define FF_SOUNDS 16
+/* Slots 0-7 and 16-23 are the original's sounds, 8-15 belong to mods. */
+#define FF_SOUNDS 24
 #define FF_WEAPONS 8
 #define FF_PLAYERS 4
 /* winner: -1 while playing, a player index (free-for-all), FF_TEAM_WIN+team, or FF_DRAW. */
@@ -33,7 +34,9 @@ enum { FF_LEFT=1, FF_RIGHT=2, FF_JUMP=4, FF_PUNCH=8, FF_FIRE=16, FF_FLY=32 };
 enum { FF_FISTS, FF_ICE, FF_FLAME, FF_ROCKET, FF_HEALTH, FF_FUEL };
 enum { FF_FFA, FF_TEAMS };
 enum { FF_SOLID=1, FF_PLATFORM=2 };
-enum { FF_SOUND_PUNCH=1, FF_SOUND_ICE=2, FF_SOUND_FLAME=4, FF_SOUND_ROCKET=8, FF_SOUND_HIT=16, FF_SOUND_PICKUP=32, FF_SOUND_DEATH=64, FF_SOUND_BLAST=128 };
+enum { FF_SOUND_PUNCH=1, FF_SOUND_ICE=2, FF_SOUND_FLAME=4, FF_SOUND_ROCKET=8, FF_SOUND_HIT=16, FF_SOUND_PICKUP=32, FF_SOUND_DEATH=64, FF_SOUND_BLAST=128,
+       FF_SOUND_JUMP=1<<16, FF_SOUND_LAND=1<<17, FF_SOUND_SPRING=1<<18, FF_SOUND_SPLASH=1<<19,
+       FF_SOUND_JETPACK=1<<20, FF_SOUND_SHOT_WALL=1<<21, FF_SOUND_COLLECT=1<<22, FF_SOUND_HURT=1<<23 };
 enum { FF_BOMB=1, FF_BOMB_WALK, FF_BOMB_FLY };
 enum { FF_WATER=1, FF_FAN_LEFT, FF_FAN_RIGHT, FF_FAN_UP, FF_BOUNCE_UP,
        FF_BOUNCE_DOWN, FF_BOUNCE_LEFT, FF_BOUNCE_RIGHT, FF_MOVING_PLATFORM,
@@ -60,8 +63,8 @@ typedef struct { int x, y, w, h; } FF_Box;
 typedef struct { int min_x, max_x, speed, direction; } FF_Path;
 typedef struct { int image, x, y, w, h, kind; uint32_t color[2]; } FF_Layer;
 /* speed is the original's animation speed: frames advance by speed/100 per tick;
- * 0 keeps the old fixed four ticks per frame. */
-typedef struct { int count, speed, image[FF_ANIM_FRAMES]; } FF_Sequence;
+ * 0 keeps the old fixed four ticks per frame. once: plays one time instead of looping. */
+typedef struct { int count, speed, once, image[FF_ANIM_FRAMES]; } FF_Sequence;
 /* The original two-player scoreboard: counters drawn over its panel image. */
 enum { FF_HUD_LIVES, FF_HUD_SCORE, FF_HUD_AMMO, FF_HUD_FUEL, FF_HUD_ITEM, FF_HUD_FIELDS };
 typedef struct {
@@ -87,6 +90,7 @@ typedef struct {
     FF_Path paths[FF_DEVICES];
     /* [kind][0] runs all the time, [kind][1] plays once when a device fires. */
     FF_Sequence device_sprites[FF_WIND_UP+1][2], pickup_sprites[6];
+    FF_Sequence bubble_sprites[2];   /* rising, popping: drawing only */
     FF_Weapon weapons[FF_WEAPONS]; FF_Rules rules;
     FF_Hud hud;
     bool imported;
@@ -100,7 +104,8 @@ typedef struct {
 } FF_Player;
 typedef struct { int32_t x, y, vx, vy; int kind, owner, life, direction, settled, bounced; } FF_Shot;
 typedef struct { int x, y, kind, active, timer; } FF_Pickup;
-typedef struct { int32_t x, y, vx, vy; int kind, life, grounded; } FF_Hazard;
+/* bounce: the speed a bouncing bomb leaves the floor with next; it shrinks each time. */
+typedef struct { int32_t x, y, vx, vy; int kind, life, grounded, bounce; } FF_Hazard;
 typedef struct { int32_t x, y; int life; unsigned hit; } FF_Blast;
 typedef struct {
     FF_Player players[FF_PLAYERS];
@@ -111,14 +116,19 @@ typedef struct {
     uint32_t rng, tick;
     int winner, round_wait, mode;
     unsigned sounds;
-    /* Tick a bouncer last fired; drawing only, so it stays out of the hash. */
-    uint32_t device_hit[FF_DEVICES];
+    /* Ticks a bouncer last fired and a player last shot or punched; drawing only,
+     * so they stay out of the hash. */
+    uint32_t device_hit[FF_DEVICES], fired[FF_PLAYERS], punched[FF_PLAYERS];
 } FF_Game;
 void ff_arena_practice(FF_Arena *a);
 int ff_pickup_kinds(const FF_Arena *a);
 /* The weapon a pickup kind gives, or 0 for health and fuel. */
 int ff_pickup_weapon(int kind);
 bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity);
+/* Another of the original's levels: its scenery, collision and devices replace dst's;
+ * furries, weapons, rules and sounds (perhaps modded) stay. */
+void ff_arena_take_level(FF_Arena *dst, const FF_Arena *level);
+bool ff_arena_exists(const char *path);
 /* seats is a bit mask of the players taking part; 2v2 pairs even and odd seats. */
 void ff_game_setup(FF_Game *g, const FF_Arena *a, uint32_t seed, unsigned seats, int mode);
 void ff_game_init(FF_Game *g, const FF_Arena *a, uint32_t seed);

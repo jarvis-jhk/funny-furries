@@ -1,5 +1,29 @@
 # Notes
 
+**Current — 2026-10-16, 0.6.0: Jan's play-test of 0.5.0 (`t_mvbh783vldrdh` + follow-ups `t_mvbh7s6lmzmwh`,
+`t_mvbhe67ipk9s0`, `t_mvbhk46lq6zvl`, `t_mvbhm0rwrlbwr`, `t_mvbhq1d9sp9zg`, Opus):**
+Evidence from frame-3 events (tool: /tmp scripts, method = group rows by object name, actions -2/0 = play
+sample with bank id): the hand is hidden and `P1 shoothand` shown only in the fire/punch rows (A 2 1 Hand,
+A 2 0 shoothand, anim by name "hitting"/"Icewea…"/"Missil…"/"Flame …"), so the gun is visible only while it
+fires; punch = shoothand anim 12 (10 frames, speed 65, once). Importer `arena-import/7` (dir `arena-v7-`)
+writes `spritespeed p part anim dir speed once` (header byte 0, repeat u16 at 2), `bubble` (Bubble anim 0/12),
+sounds 16-23 = hup/land/spring03/h2ohit1/fly/lashit/ghealth/gdie2 (rows: hup on P1d flag 1, land flag 4,
+spring global 8, splash Water flag, fly timer while flying, lashit bullet vs wall, ghealth every pickup,
+gdie2 punch/bullet hits; au only the R40 burn) and every other playable frame as `level-<frame>.ff`
+(frames 4-12; 8/9/11 park a spare mph at y=608, now skipped). Engine: shooter immune to own shot only
+while it flies away and unbounced (turned-back missiles still hit, as tested before); BOUNCE_UP only for a
+furry airborne at tick start; up within 8 px of the water surface sets vy=-jump*3/32 (level-1 right ice
+ledge sits exactly at the water top, 448); no ceiling at y<0; hazards never time out, at most 6 live,
+FF_BOMB bounce starts 4 px/tick and shrinks 1/4 per bounce, explodes when <=1/2 (FF_Hazard.bounce, hashed).
+Drawing-only: `fired`/`punched` ticks, bubbles from the tick alone (underwater fans every 12 ticks,
+3 half-px/tick, pop at surface/wall). Game: arena list = level 1, original levels, then mod levels
+(`--arena N` still = mod level N; new `--level N`); `ff_arena_take_level` swaps scenery/collision/devices
+/hud and keeps (modded) furries/weapons/rules/sounds. Pause text centred. Slow start: the launcher redid the
+full import (14 s here) whenever handed the copy (Warpzone `--import-copy`/env) — now returns the current
+import when the bytes equal the kept copy (0.16 s); game prints `slow start:` stage timings if the first
+frame takes >1.5 s. "Popups disappear": not reproduced (pickups only go on collection or a new round) —
+asked Jan. Jump pads on walk-over and fan bubbles not checked against a Wine run of the original.
+
 **Current — 2026-10-16, 0.5.0 released: Jan's laptop test + mods (`t_mvb31v2653xfu0`, `t_mvb3b7vv5bqj9p`, Opus):**
 Jan's laptop test found missing animations (fans, springs, weapon pickups), bombs all in the top
 left corner, and asked for the original bottom UI in normal 2P games, then mod support through
