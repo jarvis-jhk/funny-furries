@@ -34,6 +34,9 @@ Asked warpzone lane to take tier 3 + [mods] live (t_mvb58cu8m4249). Public Warpz
 FurryWorkshop (id 2; "JARVIS" is reserved), identity agent `data/furries/wz-jarvis/` — keep it, it owns
 the mod names. When the lane reports live: run agent `data/furries/mods-release/upload.sh`, then Jan
 approves (he is the only moderator). Evidence agent `data/furries/mods-release/`. Next version > 0.5.0.
+2026-10-16 18:4x UTC (`t_mvbb494zfi8op`): warpzone lane reported tier 3 + [mods] live; upload.sh ran against
+production, low-gravity/midnight-peaks/snowball-arsenal 1.0.0 all `uploaded (pending)`. Waiting on Jan's
+moderator approval (`wz approve`); not public until then.
 
 **2026-10-16, Warpzone data hand-over (`t_mvb0neos40p3vs`, report API from the warpzone worker):**
 tools/launcher.py reads `WARPZONE_DATA_FF2XMAS` (launcher ≥0.1.2, warpzone PR #8): no valid
