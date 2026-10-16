@@ -160,6 +160,7 @@ Done when: a prerelease where 2-4 copies connect by join code over UDP (direct/L
 punching) and play an FFA/2v2 match with rollback netcode; a lossy, delayed multi-process test stays
 in sync.
 - [x] Own rollback (no GGPO/GekkoNet needed: the simulation is one plain struct), join code, online
-      lobby, STUN + ntfy hole punching, LAN broadcast, desync checksums.
+      lobby, STUN + ntfy hole punching, LAN broadcast, desync checksums. Shipped v0.3.0 prerelease
+      2026-10-16; play across two real home networks is feedback.
 - [ ] Relay fallback for carrier-grade NAT. Needs a public UDP relay; JARVIS's VPS is not usable
       (no public UDP, and Jan's domains must not appear in releases). Open until there is demand.

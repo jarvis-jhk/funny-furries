@@ -1,8 +1,16 @@
 # Notes
 
 
-**Current — 2026-10-16, M3 rollback online (`t_mvattm341e3ere`, Opus):** item
-`furries-rollback-online`. Own rollback instead of GGPO/GekkoNet: `FF_Game` is one plain
+**Current — 2026-10-16, v0.3.0 online prerelease (`t_mvattm341e3ere`, Opus):**
+https://github.com/jarvis-jhk/funny-furries/releases/tag/v0.3.0 (tag = `6200b4e`), URL sent to Jan;
+item `furries-rollback-online` done. CI on 6200b4e: native 38892396286 (Linux, Windows, Linux/Windows
+same-simulation diff), exporter 38892396436, release packages 38892403008; rev-parse checked in logs.
+The first package run failed on an -O3 -Wstringop-overflow false positive in net_probe (fixed by
+bounding the local-player loops). Downloaded Linux package imported the real full ZIP and played an
+online 2v2 (two players per machine, 10 % loss/50 ms) with identical checksums; both packages audited;
+published assets re-downloaded, SHA256SUMS OK. Evidence agent `data/furries/online/`. Next version >0.3.0.
+Open for Jan's feedback, not a block: two real home networks/routers, Deck on-screen keyboard.
+Earlier in this session: Own rollback instead of GGPO/GekkoNet: `FF_Game` is one plain
 struct, so a snapshot is a copy. `src/rollback.c` (128-frame ring, 2-frame input delay,
 12 frames max prediction, checksum of every 32nd confirmed frame), `src/netplay.c` (UDP star
 around the host; host forwards all inputs; stall a tick when running ahead), `src/net.c`
