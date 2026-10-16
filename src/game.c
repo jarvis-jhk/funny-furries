@@ -94,6 +94,12 @@ static void move_player(FF_Player *p,const FF_Arena *a) {
     }
     if(p->grounded) {p->y=floor_pixel(p->y)*FF_FP;p->vy=0;}
 }
+int ff_sequence_frame(const FF_Sequence *s,uint32_t ticks,bool loop) {
+    if(s->count<=0) return 0;
+    uint32_t step=s->speed>0?(uint32_t)((uint64_t)ticks*(uint32_t)s->speed/100u):ticks/4u;
+    if(loop) return (int)(step%(uint32_t)s->count);
+    return step<(uint32_t)s->count?(int)step:s->count-1;
+}
 FF_Point ff_device_position(const FF_Arena *a,int device,uint32_t tick) {
     const FF_Device *d=&a->devices[device];
     if(d->kind!=FF_MOVING_PLATFORM) return (FF_Point){d->x,d->y};
@@ -116,7 +122,7 @@ static bool underwater(const FF_Player *p,const FF_Arena *a) {
 static bool overlaps(int x,int y,int w,int h,const FF_Device *d) {
     return x<d->x+d->w&&x+w>d->x&&y<d->y+d->h&&y+h>d->y;
 }
-static void device_forces(FF_Player *p,const FF_Arena *a) {
+static void device_forces(FF_Game *g,FF_Player *p,const FF_Arena *a) {
     int x=p->x/FF_FP,feet=p->y/FF_FP,y=feet-16;
     if(p->bounce_wait) --p->bounce_wait;
     bool wind_volumes=false;
@@ -141,7 +147,7 @@ static void device_forces(FF_Player *p,const FF_Arena *a) {
         else if(d->kind==FF_BOUNCE_LEFT&&p->vx>0) p->vx=-100*FF_FP/8;
         else if(d->kind==FF_BOUNCE_RIGHT&&p->vx<0) p->vx=100*FF_FP/8;
         else continue;
-        p->grounded=0;p->bounce_wait=2;
+        p->grounded=0;p->bounce_wait=2;g->device_hit[i]=g->tick;
     }
 }
 static void platform_carry(FF_Player *p,const FF_Arena *a,uint32_t tick) {
@@ -367,7 +373,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
             if((keys&FF_JUMP)&&p->vy>-20*FF_FP/8) p->vy=clamp(p->vy-2*FF_FP/8,-20*FF_FP/8,100*FF_FP/8);
         }
         if((keys&FF_FLY)&&p->fuel) {p->vy=clamp(p->vy-FF_FP/2,-5*FF_FP,8*FF_FP);--p->fuel;}
-        device_forces(p,a);
+        device_forces(g,p,a);
         int32_t old_y=p->y;
         move_player(p,a);
         platform_land(p,a,g->tick,old_y);

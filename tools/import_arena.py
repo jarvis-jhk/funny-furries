@@ -72,7 +72,7 @@ def checked_bundle(path: Path):
         if len(raw) != entry['bytes'] or hashlib.sha256(raw).hexdigest() != entry['sha256']:
             raise ValueError('bundle file checksum mismatch')
         files[name] = raw
-    required = ('project-index.json', 'frame-layout.json', 'backdrops.json', 'animations.json', 'image-manifest.json', 'audio-manifest.json')
+    required = ('project-index.json', 'frame-layout.json', 'backdrops.json', 'animations.json', 'image-manifest.json', 'audio-manifest.json', 'displays.json')
     documents = {name: json.loads(files[name]) for name in required}
     if any(d['source']['sha256'] != manifest['source']['sha256'] for d in documents.values()):
         raise ValueError('mixed source bundle')
@@ -145,6 +145,21 @@ def import_lines(files, docs, frame):
         if len(data) != 1:
             raise ValueError('ambiguous global animation body')
         return [a for a in data[0]['animations'] if a.get('directions')]
+
+    def sequence(name, anim_id=0, direction=0):
+        """Images and speed of one animation direction (speed = header byte 0)."""
+        for a in animations(name):
+            if a['id'] != anim_id:
+                continue
+            choices = [d for d in a['directions'] if d['image_ids']]
+            if not choices:
+                return None
+            d = next((d for d in choices if d['id'] == direction), choices[0])
+            speed = bytes.fromhex(d['header_hex'])[0] if d.get('header_hex') else 0
+            for image in d['image_ids']:
+                image_info(image)
+            return max(1, min(100, speed)), d['image_ids'][:32]
+        return None
 
     for placement in layout['placements']:
         for record in placement['records']:
@@ -283,6 +298,7 @@ def import_lines(files, docs, frame):
                     'bounce up': 5, 'bounce down': 6, 'bounce L': 7,
                     'bounce R': 8, 'mph': 9, 'Wind L': 10, 'Wind R': 11, 'Wind up': 12}
     device_count = 0
+    animated = set()
     for name, x, y, direction in active_placements:
         if name not in device_kinds:
             continue
@@ -290,6 +306,13 @@ def import_lines(files, docs, frame):
         width, height, _ = image_info(ident)
         hx, hy = map(signed16, images[ident]['image']['hot_spot_raw_u16'])
         lines.append(f'device {device_kinds[name]} {x-hx} {y-hy} {width} {height} {ident if device_kinds[name] < 10 else -1}')
+        kind = device_kinds[name]
+        if kind < 10 and kind not in animated:
+            animated.add(kind)
+            for fired, anim_id in ((0, 0), (1, 12)):
+                found = sequence('mph 2' if name == 'mph' else name, anim_id)
+                if found and (fired or len(found[1]) > 1):
+                    lines += [f'devanim {kind} {fired} {found[0]} {image}' for image in found[1]]
         if name == 'mph':
             px0, py0, px1, py1 = active_bounds('mph', direction)
             stops = []
@@ -312,6 +335,9 @@ def import_lines(files, docs, frame):
     for kind, name in enumerate(('', 'IceGun', 'Flame Thrower', 'Rocket Launcher', 'Health 25', 'Jetpack')):
         if kind:
             lines.append(f'pickup {kind} {first_image(name)}')
+            found = sequence(name)
+            if found and len(found[1]) > 1:
+                lines += [f'pickanim {kind} {found[0]} {image}' for image in found[1]]
     for kind, name in enumerate(('', 'bullet', 'Flame', 'Rocket')):
         if kind:
             lines.append(f'shot {kind} {first_image(name)}')
@@ -336,7 +362,8 @@ def import_lines(files, docs, frame):
                         lines.append(f'fire {int(a["id"] == 12)} {image}')
                     break
     for name, x, y, _ in active_placements:
-        if name == 'Bonus' and 0 <= x < W and 0 <= y < 560:
+        # Ten Bonus objects wait at exactly (0, 0) outside play; they are not spawn points.
+        if name == 'Bonus' and 0 <= x < W and 0 <= y < 560 and (x, y) != (0, 0):
             lines.append(f'bonus {x} {y}')
     for kind, name in enumerate(('Bomb', 'Bombwalk', 'Bombfly'), 1):
         if (name, 2) not in global_names:
@@ -350,6 +377,9 @@ def import_lines(files, docs, frame):
                 for image in d['image_ids'] or []:
                     image_info(image)
                     lines.append(f'hazard {kind} {int(d["id"] == 16)} {image}')
+            found = sequence(name)
+            if found:
+                lines.append(f'hazardspeed {kind} {found[0]}')
     if ('Explosion', 2) in global_names:
         for a in animations('Explosion'):
             if a['id'] == 0:
@@ -362,6 +392,7 @@ def import_lines(files, docs, frame):
                             hx, hy = map(signed16, info['hot_spot_raw_u16'])
                             lines.append(f'blastbox {frame_id} {-hx} {-hy} {width} {height}')
                         break
+    lines += scoreboard(docs, active_placements, names, sequence, image_info)
     for ident, info in images.items():
         if info['file'] in wanted:
             hx, hy = map(signed16, info['image']['hot_spot_raw_u16'])
@@ -384,12 +415,85 @@ def import_lines(files, docs, frame):
     return '\n'.join(lines) + '\n', wanted, {'frame': frame, 'layers': layers, 'spawns': len(usable), 'devices': device_count, 'collision_markers': markers, 'collision_pixels': sum(sum(bool(v) for v in row) for row in collisions)}
 
 
+def scoreboard(docs, placements, names, sequence, image_info):
+    """The original two-player panel: counter places, digit images, weapon icons, bars.
+
+    The panel itself is an ordinary backdrop layer. Bar and fuel extents are the dark
+    strips of that panel image around the objects' placements."""
+    at = {}
+    for name, x, y, _ in placements:
+        at.setdefault(name, (x, y))
+    fields = ('Lives', 'Score', 'ammo', 'Fuel', 'Item Player')
+    if any(f'{f} {p}' not in at for f in fields for p in (1, 2)):
+        return []
+    displays = {o['id']: o for g in docs['displays.json']['global_object_lists'] for o in g['objects']}
+    globals_by_name = {o['name']: o['id'] for g in docs['project-index.json']['global_object_lists'] for o in g}
+    def sections(name):
+        data = displays.get(globals_by_name.get(name), {}).get('display_data') or []
+        return data[0]['sections'] if len(data) == 1 else []
+    digits = next((s['image_ids'] for s in sections('ammo 1') if s['type_raw_u16'] == 1 and len(s['image_ids'] or []) >= 10), None)
+    if not digits:
+        return []
+    lines = []
+    for player in (1, 2):
+        for field, name in enumerate(fields):
+            x, y = at[f'{name} {player}']
+            lines.append(f'hudfield {player - 1} {field} {x} {y}')
+    for n, image in enumerate(digits[:11]):
+        image_info(image)
+        lines.append(f'huddigit {n} {image}')
+    # Item Player directions: 16 ice gun, 0 flame thrower, 8 rocket launcher, 24 empty hand.
+    for weapon, direction in enumerate((24, 16, 0, 8)):
+        found = sequence('Item Player 1', 0, direction)
+        if found:
+            lines += [f'hudweapon {weapon} {found[0]} {image}' for image in found[1]]
+    fuel = next((s for s in sections('Fuel 1') if s['type_raw_u16'] == 3), None)
+    panel = next(((x, y, o) for o in docs['backdrops.json']['global_object_lists'][0]['objects']
+                  if o['backdrop'] and o['backdrop']['artwork']['kind'] in {'image', 'mosaic'}
+                  for n, x, y, _ in placements if n == 'Scorebord' and globals_by_name.get('Scorebord') == o['id']), None)
+    if panel:
+        px, py, o = panel
+        width, height, rgba = image_info(o['backdrop']['artwork']['image_id'])
+        def dark(x, y):
+            x, y = x - px, y - py
+            if not (0 <= x < width and 0 <= y < height):
+                return False
+            r, g, b = rgba[(y * width + x) * 4:(y * width + x) * 4 + 3]
+            return r + g + b < 60
+        if fuel:
+            fx, fy = at['Fuel 1']
+            run = 0
+            while dark(fx + run, fy):
+                run += 1
+            tall = 0
+            while dark(fx + 1, fy + tall):
+                tall += 1
+            red, green, blue = bytes.fromhex(fuel['raw_hex'])[6:9]
+            if run and tall:
+                lines.append(f'hudfuel {red:02x}{green:02x}{blue:02x} {run} {tall}')
+        if 'Bar white' in at and all(n in globals_by_name for n in ('Bar white', 'Bar Blue', 'Bar Red')):
+            bx, by = at['Bar white']
+            left = bx - 1
+            while dark(left - 1, by):
+                left -= 1
+            right = bx + 1
+            while dark(right, by):
+                right += 1
+            if left < bx - 1 and right > bx + 1:
+                for bar, name in enumerate(('Bar white', 'Bar Blue', 'Bar Red')):
+                    found = sequence(name)
+                    if found:
+                        lines.append(f'hudbar {bar} {found[1][0]}')
+                lines.append(f'hudbarbox {bx} {by} {left} {right}')
+    return lines
+
+
 def import_arena(bundle: Path, output: Path, frame=3):
     manifest, files, docs = checked_bundle(bundle)
     text, wanted, summary = import_lines(files, docs, frame)
     payloads = {name: files[name] for name in sorted(wanted)}
     payloads['arena.ff'] = text.encode('ascii')
-    report = {'importer': 'arena-import/5', 'source_sha256': manifest['source']['sha256'], **summary,
+    report = {'importer': 'arena-import/6', 'source_sha256': manifest['source']['sha256'], **summary,
               'fidelity': 'prototype; collision flags, timing and feel need original-game acceptance',
               'files': {name: hashlib.sha256(raw).hexdigest() for name, raw in payloads.items()}}
     payloads['import.json'] = (json.dumps(report, indent=2, sort_keys=True) + '\n').encode()
@@ -421,7 +525,7 @@ def main():
         print(f'Import refused: {error}', file=sys.stderr)
         return 2
     except Exception as error:
-        project.report_fault(type(error).__name__, version='arena-import/5', title='Arena import failed')
+        project.report_fault(type(error).__name__, version='arena-import/6', title='Arena import failed')
         print('Arena import failed; original input was not modified.', file=sys.stderr)
         return 1
     print(f'Imported frame {summary["frame"]}: {summary["layers"]} layers, {summary["spawns"]} spawn candidates.\nPlay: build/native/funny-furries --data {args.output}')

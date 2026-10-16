@@ -40,7 +40,16 @@ typedef struct { int x, y; } FF_Point;
 typedef struct { int x, y, w, h; } FF_Box;
 typedef struct { int min_x, max_x, speed, direction; } FF_Path;
 typedef struct { int image, x, y, w, h, kind; uint32_t color[2]; } FF_Layer;
-typedef struct { int count, image[FF_ANIM_FRAMES]; } FF_Sequence;
+/* speed is the original's animation speed: frames advance by speed/100 per tick;
+ * 0 keeps the old fixed four ticks per frame. */
+typedef struct { int count, speed, image[FF_ANIM_FRAMES]; } FF_Sequence;
+/* The original two-player scoreboard: counters drawn over its panel image. */
+enum { FF_HUD_LIVES, FF_HUD_SCORE, FF_HUD_AMMO, FF_HUD_FUEL, FF_HUD_ITEM, FF_HUD_FIELDS };
+typedef struct {
+    bool on; FF_Point field[2][FF_HUD_FIELDS]; int digits[11];
+    FF_Sequence weapon[4]; int bar[3]; FF_Point bar_at; int bar_left, bar_right;
+    uint32_t fuel_color; int fuel_width, fuel_height;
+} FF_Hud;
 typedef struct {
     uint8_t tiles[FF_ROWS][FF_COLS];
     uint8_t mask[FF_H][FF_W];
@@ -56,6 +65,9 @@ typedef struct {
     FF_Box blast_boxes[FF_ANIM_FRAMES];
     FF_Device devices[FF_DEVICES]; int device_count;
     FF_Path paths[FF_DEVICES];
+    /* [kind][0] runs all the time, [kind][1] plays once when a device fires. */
+    FF_Sequence device_sprites[FF_WIND_UP+1][2], pickup_sprites[6];
+    FF_Hud hud;
     bool imported;
 } FF_Arena;
 typedef struct {
@@ -78,6 +90,8 @@ typedef struct {
     uint32_t rng, tick;
     int winner, round_wait, mode;
     unsigned sounds;
+    /* Tick a bouncer last fired; drawing only, so it stays out of the hash. */
+    uint32_t device_hit[FF_DEVICES];
 } FF_Game;
 void ff_arena_practice(FF_Arena *a);
 bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity);
@@ -87,4 +101,6 @@ void ff_game_init(FF_Game *g, const FF_Arena *a, uint32_t seed);
 void ff_game_tick(FF_Game *g, const FF_Arena *a, const uint8_t input[FF_PLAYERS]);
 uint32_t ff_game_hash(const FF_Game *g);
 FF_Point ff_device_position(const FF_Arena *a, int device, uint32_t tick);
+/* Frame index of a sequence that has run for ticks (looping, or held on its last frame). */
+int ff_sequence_frame(const FF_Sequence *s, uint32_t ticks, bool loop);
 #endif

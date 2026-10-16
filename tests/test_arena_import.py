@@ -37,7 +37,7 @@ def fixture(path, wind=False):
     if wind:
         objects.append({'id': 9, 'name': 'Wind up', 'type': 2, 'global': True})
     records = []
-    placements = ((0, 80, 200), (1, 100, 120), (2, 200, 120), (3, 300, 200), (8, 120, 150))
+    placements = ((0, 80, 200), (1, 100, 120), (2, 200, 120), (3, 300, 200), (8, 120, 150), (8, 0, 0))
     if wind:
         placements += ((9, 500, 200),)
     for ident, x, y in placements:
@@ -51,6 +51,7 @@ def fixture(path, wind=False):
         'frame-layout.json': document(frames=[{'dimension_inputs': {'width': {'raw_u16': 800}, 'height': {'raw_u16': 600}}, 'placements': [{'records': records}]}]),
         'backdrops.json': document(frames=[{'object_lists': [{'objects': [{'id': 0, 'backdrop': stale}, {'id': 3, 'backdrop': {'header_hex': bytes(68).hex(), 'artwork': {'kind': 'image', 'image_id': 1}}}]}]}], global_object_lists=[{'objects': [{'id': 0, 'backdrop': shape}]}]),
         'animations.json': document(global_object_lists=[{'objects': [{'id': n, 'active_data': [{'animations': [{'id': 0, 'directions': [{'id': 0, 'image_ids': [1]}, {'id': 16, 'image_ids': [1]}]}]}]} for n in range(1, len(names))]}]),
+        'displays.json': document(frames=[], global_object_lists=[{'objects': []}]),
         'image-manifest.json': document(banks=[{'segment_id': 21, 'entries': [{'id': 1, 'file': 'image-21-1.png', 'image': {'hot_spot_raw_u16': [4, 65535], 'action_point_raw_u16': [12, 5]}}]}]),
     }
     for obj in docs['animations.json']['global_object_lists'][0]['objects']:
@@ -97,6 +98,9 @@ class ArenaImportTests(unittest.TestCase):
             self.assertIn('muzzle 0 1 0 8 -10', text)
             self.assertIn('blastbox 0 -4 1 32 16', text)
             self.assertIn('bonus 120 150', text)
+            self.assertNotIn('bonus 0 0', text)  # Parked Bonus objects are not spawn points.
+            self.assertNotIn('pickanim', text)  # Single-frame pickups stay still.
+            self.assertIn('hazardspeed 1 1', text)
             self.assertIn('hazard 1 0 1', text)
             self.assertIn('hazard 2 1 1', text)
             self.assertIn('hazard 3 0 1', text)
@@ -227,7 +231,7 @@ class ArenaImportTests(unittest.TestCase):
              patch.object(arena, 'import_arena', side_effect=OSError('private path/token')), \
              patch.object(arena.project, 'report_fault') as reporter:
             self.assertEqual(arena.main(), 1)
-        reporter.assert_called_once_with('OSError', version='arena-import/5', title='Arena import failed')
+        reporter.assert_called_once_with('OSError', version='arena-import/6', title='Arena import failed')
 
     @unittest.skipUnless(os.environ.get('FF_NATIVE_GAME'), 'native binary not supplied')
     def test_real_renderer_with_synthetic_import(self):

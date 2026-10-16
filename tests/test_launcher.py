@@ -28,10 +28,10 @@ class LauncherTests(unittest.TestCase):
             home = Path(directory)
             (home / 'selected.json').write_text('{"arena":"../outside"}')
             self.assertIsNone(launcher.selected(home))
-            arena = home / 'arena-v5-test'
+            arena = home / 'arena-v6-test'
             arena.mkdir()
             (arena / 'arena.ff').write_bytes(b'local')
-            (arena / 'import.json').write_text('{"importer":"arena-import/5","files":{"arena.ff":"' + hashlib.sha256(b'local').hexdigest() + '"}}')
+            (arena / 'import.json').write_text('{"importer":"arena-import/6","files":{"arena.ff":"' + hashlib.sha256(b'local').hexdigest() + '"}}')
             launcher.save_selection(home, arena)
             self.assertEqual(launcher.selected(home), arena)
             (arena / 'arena.ff').write_bytes(b'damaged')
@@ -56,7 +56,7 @@ class LauncherTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
             found = home / 'Downloads' / 'funnyfurries.zip'
-            arena = home / 'arena-v5-x'
+            arena = home / 'arena-v6-x'
             with patch.dict(os.environ, {launcher.WARPZONE_DATA: str(found)}), \
                     patch.object(launcher, 'selected', return_value=None), \
                     patch.object(launcher, 'import_copy', return_value=arena) as copy, \
@@ -79,7 +79,7 @@ class LauncherTests(unittest.TestCase):
     def test_warpzone_copy_is_not_reimported_once_selected(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
-            arena = home / 'arena-v5-x'
+            arena = home / 'arena-v6-x'
             with patch.dict(os.environ, {launcher.WARPZONE_DATA: str(home / 'FF2xmas.cca')}), \
                     patch.object(launcher, 'selected', return_value=arena), \
                     patch.object(launcher, 'import_copy') as copy, \
@@ -97,7 +97,7 @@ class LauncherTests(unittest.TestCase):
             demo = home / 'funnyfurries.zip'
             with zipfile.ZipFile(demo, 'w') as stream:
                 stream.writestr('readme.txt', b'demo')
-            arena = home / 'arena-v5-chosen'
+            arena = home / 'arena-v6-chosen'
             for argv in (['launcher', '--home', str(home)],
                          ['launcher', '--home', str(home), '--import-copy', str(demo)]):
                 with patch.dict(os.environ, {launcher.WARPZONE_DATA: str(demo)}), \
@@ -127,7 +127,7 @@ class LauncherTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), before)
             self.assertTrue((target / 'arena.ff').is_file())
             self.assertFalse(list(home.glob('.import-*')))
-            self.assertEqual(len(list(home.glob('arena-v5-*'))), 1)
+            self.assertEqual(len(list(home.glob('arena-v6-*'))), 1)
             (target / 'arena.ff').write_bytes(b'damaged')
             self.assertIsNone(launcher.selected(home))
             repaired = launcher.import_copy(source, home, Path(os.environ['FF_KLIKBACK_SRC']))

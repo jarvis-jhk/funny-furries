@@ -165,7 +165,48 @@ static void draw_player(App *app,const FF_Arena *a,const FF_Game *g,int i) {
         if(p->punch_ticks) rect(app,x+(dir?-30:12),y-22,18,10);
     }
 }
-static void hud(App *app,const FF_Game *g) {
+/* Counters are right-aligned on their placement and stand on it, as in the original. */
+static void counter(App *app,const FF_Hud *h,FF_Point at,int value) {
+    char s[16];snprintf(s,sizeof(s),"%d",value<0?0:value);
+    int x=at.x;
+    for(int i=(int)strlen(s)-1;i>=0;--i) {
+        Image *im=load_image(app,h->digits[s[i]-'0']);if(!im) return;
+        x-=im->w;SDL_Rect dest={x,at.y-im->h,im->w,im->h};SDL_RenderCopy(app->renderer,im->texture,NULL,&dest);
+    }
+}
+static void stretched(App *app,int id,int x,int y,int w,int h) {
+    Image *im=load_image(app,id);if(!im||w<=0) return;
+    /* The bar images are short vertical gradients: widen their middle column. */
+    SDL_Rect src={im->w/2,0,1,im->h},dest={x,y,w,h};SDL_RenderCopy(app->renderer,im->texture,&src,&dest);
+}
+/* The original panel is part of the backdrop; this fills in its counters, the
+ * weapon in hand, the jetpack fuel and both health bars around the centre line. */
+static void original_hud(App *app,const FF_Arena *a,const FF_Game *g) {
+    const FF_Hud *h=&a->hud;
+    for(int i=0;i<2;++i) {
+        const FF_Player *p=&g->players[i];
+        counter(app,h,h->field[i][FF_HUD_LIVES],p->lives);
+        counter(app,h,h->field[i][FF_HUD_SCORE],p->score);
+        counter(app,h,h->field[i][FF_HUD_AMMO],p->weapon==FF_FISTS?0:p->ammo);
+        const FF_Sequence *w=&h->weapon[p->weapon];
+        if(w->count) sprite(app,a,w->image[ff_sequence_frame(w,g->tick,true)],h->field[i][FF_HUD_ITEM].x,h->field[i][FF_HUD_ITEM].y);
+        if(h->fuel_width&&p->fuel) {
+            rgb(app,h->fuel_color);FF_Point f=h->field[i][FF_HUD_FUEL];
+            rect(app,f.x,f.y,p->fuel*h->fuel_width/300,h->fuel_height);
+        }
+    }
+    if(h->bar_right>h->bar_left) {
+        Image *white=load_image(app,h->bar[0]);int height=white?white->h:24;
+        int top=h->bar_at.y-(white?a->hot_y[h->bar[0]]:12);
+        int left=h->bar_at.x-h->bar_left,right=h->bar_right-h->bar_at.x;
+        const FF_Player *blue=&g->players[0],*red=&g->players[1];
+        if(blue->lives&&!blue->respawn) {int w=blue->health*left/100;stretched(app,h->bar[1],h->bar_at.x-w,top,w,height);}
+        if(red->lives&&!red->respawn) {int w=red->health*right/100;stretched(app,h->bar[2],h->bar_at.x,top,w,height);}
+        if(white) {SDL_Rect dest={h->bar_at.x-white->w/2,top,white->w,height};SDL_RenderCopy(app->renderer,white->texture,NULL,&dest);}
+    }
+}
+static void hud(App *app,const FF_Arena *a,const FF_Game *g) {
+    if(a->hud.on&&g->players[0].active&&g->players[1].active&&!g->players[2].active&&!g->players[3].active) {original_hud(app,a,g);return;}
     color(app,12,20,33);rect(app,0,560,800,40);
     const char *weapons[]={"FISTS","ICE","FLAME","ROCKET"};char s[120];
     int seats=0;for(int i=0;i<FF_PLAYERS;++i) seats+=g->players[i].active;
@@ -193,19 +234,26 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
     SDL_RenderCopy(app->renderer,app->backdrop,NULL,NULL);
     for(int i=0;i<a->device_count;++i) {
         const FF_Device *d=&a->devices[i];FF_Point pos=ff_device_position(a,i,g->tick);
-        Image *im=load_image(app,d->image);
-        if(im) {SDL_Rect dest={pos.x,pos.y,im->w,im->h};SDL_RenderCopy(app->renderer,im->texture,NULL,&dest);}
+        if(d->image<0) continue;
+        /* Device positions are the first frame's corner; later frames keep its hot spot. */
+        const FF_Sequence *idle=&a->device_sprites[d->kind][0],*fired=&a->device_sprites[d->kind][1];
+        uint32_t since=g->tick-g->device_hit[i];int id=d->image;
+        if(fired->count&&g->device_hit[i]&&(uint64_t)since*(uint32_t)fired->speed<100u*(uint64_t)fired->count)
+            id=fired->image[ff_sequence_frame(fired,since,false)];
+        else if(idle->count) id=idle->image[ff_sequence_frame(idle,g->tick,true)];
+        sprite(app,a,id,pos.x+a->hot_x[d->image],pos.y+a->hot_y[d->image]);
     }
     for(int i=0;i<FF_HAZARDS;++i) {
         const FF_Hazard *h=&g->hazards[i];if(!h->life) continue;
         const FF_Sequence *seq=&a->hazard_sprites[h->kind-1][h->vx<0];
         if(!seq->count) seq=&a->hazard_sprites[h->kind-1][0];
         int x=h->x/FF_FP,y=h->y/FF_FP;
-        if(seq->count) sprite(app,a,seq->image[(g->tick/4)%(unsigned)seq->count],x,y);
+        if(seq->count) sprite(app,a,seq->image[ff_sequence_frame(seq,g->tick,true)],x,y);
         else {color(app,245,80,35);rect(app,x-6,y-6,12,12);color(app,255,220,90);rect(app,x-2,y-10,4,5);}
     }
     for(int i=0;i<FF_PICKUPS;++i) {const FF_Pickup *p=&g->pickups[i];if(!p->active) continue;
-        int id=a->pickup_images[p->kind];
+        int id=a->pickup_images[p->kind];const FF_Sequence *spin=&a->pickup_sprites[p->kind];
+        if(spin->count) id=spin->image[ff_sequence_frame(spin,g->tick,true)];
         if(id>=0) sprite(app,a,id,p->x,p->y);
         else {color(app,220,190,70);rect(app,p->x-9,p->y-9,18,18);color(app,20,30,40);
             const char *names[]={"","I","F","R","H","J"};text(app,p->x-5,p->y-5,2,names[p->kind]);}
@@ -246,7 +294,7 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
             color(app,255,225,100);rect(app,x-r/2,y-r/2,r,r);
         }
     }
-    hud(app,g);
+    hud(app,a,g);
     if(help||paused||g->winner>=0) {
         color(app,12,20,33);rect(app,90,160,620,270);color(app,232,242,250);
         if(help) draw_help(app);
@@ -449,6 +497,15 @@ static bool assets_ready(App *app,const FF_Arena *a) {
     for(int i=0;i<a->device_count;++i) if(a->devices[i].image>=0&&!load_image(app,a->devices[i].image)) return false;
     for(int i=1;i<6;++i) if(a->pickup_images[i]>=0&&!load_image(app,a->pickup_images[i])) return false;
     for(int i=1;i<4;++i) if(a->shot_images[i]>=0&&!load_image(app,a->shot_images[i])) return false;
+    const FF_Sequence *more[FF_WIND_UP*2+5+4];int n=0;
+    for(int k=1;k<=FF_WIND_UP;++k) {more[n++]=&a->device_sprites[k][0];more[n++]=&a->device_sprites[k][1];}
+    for(int k=1;k<6;++k) more[n++]=&a->pickup_sprites[k];
+    for(int k=0;k<4;++k) more[n++]=&a->hud.weapon[k];
+    for(int k=0;k<n;++k) for(int i=0;i<more[k]->count;++i) if(!load_image(app,more[k]->image[i])) return false;
+    if(a->hud.on) {
+        for(int i=0;i<10;++i) if(!load_image(app,a->hud.digits[i])) return false;
+        for(int i=0;i<3;++i) if(a->hud.bar[i]>=0&&!load_image(app,a->hud.bar[i])) return false;
+    }
     return true;
 }
 static bool parse_ticks(const char *s,int *ticks) {

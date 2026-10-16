@@ -27,6 +27,7 @@ PACKAGE = Path(sys.executable).parent if getattr(sys, 'frozen', False) else ROOT
 MAX_INPUT = 32 * 1024 * 1024
 # The Warpzone launcher sets this to the copy it found on the machine (descriptor [[data]] id ff2xmas).
 WARPZONE_DATA = 'WARPZONE_DATA_FF2XMAS'
+KEPT = 'original-FF2xmas.cca'
 
 
 def data_home():
@@ -66,6 +67,7 @@ def import_copy(source, home, reader_source=None):
     reader_source = reader_source or (ROOT if getattr(sys, 'frozen', False) else ROOT / 'reader')
     reader = project_index.load_reader(reader_source)
     raw = source_bytes(source)
+    original = raw
     try:
         game = reader.read(raw)
         if game.family != 'cnc':
@@ -75,7 +77,7 @@ def import_copy(source, home, reader_source=None):
             raw, _ = unprotect(game)
         manifest, files = export_project.research_bundle(reader, raw)
         sha = manifest['source']['sha256']
-        target = Path(home) / ('arena-v5-' + sha)
+        target = Path(home) / ('arena-v6-' + sha)
         if target.exists():
             try:
                 check_import(target)
@@ -88,14 +90,30 @@ def import_copy(source, home, reader_source=None):
             bundle = export_project.save_bundle(manifest, files, Path(scratch))
             import_arena.import_arena(bundle, target)
         check_import(target)
+        keep_original(home, original)
         return target
     except (ValueError, KeyError, IndexError, struct.error) as error:
         raise project_index.InputError('This copy is unsupported or incomplete. Use the full FF2 Xmas game, not the demo.') from error
 
 
+def keep_original(home, raw):
+    """Keep the player's own copy beside its import, so a newer importer can
+    redo the import without asking again. It never leaves this machine."""
+    path = Path(home) / KEPT
+    if path.exists() and path.read_bytes() == raw:
+        return
+    with tempfile.NamedTemporaryFile(dir=home, delete=False) as stream:
+        temp = Path(stream.name)
+        stream.write(raw)
+    try:
+        os.replace(temp, path)
+    finally:
+        temp.unlink(missing_ok=True)
+
+
 def check_import(target):
     report = json.loads((target / 'import.json').read_text())
-    if report.get('importer') != 'arena-import/5' or not report.get('files'):
+    if report.get('importer') != 'arena-import/6' or not report.get('files'):
         raise project_index.InputError('Local import needs replacing. Choose your original copy again.')
     for name, digest in report['files'].items():
         if Path(name).name != name or '\\' in name or name in {'.', '..'}:
@@ -118,7 +136,7 @@ def save_selection(home, target):
 def selected(home):
     try:
         name = json.loads((home / 'selected.json').read_text())['arena']
-        if not isinstance(name, str) or Path(name).name != name or not name.startswith('arena-v5-'):
+        if not isinstance(name, str) or Path(name).name != name or not name.startswith('arena-v6-'):
             return None
         target = home / name
         check_import(target)
@@ -270,6 +288,13 @@ def main():
         return 0
     try:
         target = None if args.reimport else selected(args.home)
+        if not target and not args.reimport and not args.import_copy and (args.home / KEPT).is_file():
+            # An update changed the importer: redo it from the kept copy, silently.
+            try:
+                target = import_copy(args.home / KEPT, args.home, args.reader_source)
+                save_selection(args.home, target)
+            except project_index.InputError:
+                target = None
         found = os.environ.get(WARPZONE_DATA)
         if args.import_copy and not found:
             target = import_copy(args.import_copy, args.home, args.reader_source)
