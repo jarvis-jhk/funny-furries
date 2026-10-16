@@ -18,6 +18,7 @@ typedef struct {
     Image images[FF_IMAGES], tinted[2][FF_IMAGES]; Mix_Chunk *sounds[FF_SOUNDS]; bool audio;
     const char *assets; const FF_Mods *mods;
     int levels[16], level_count;   /* the import's other original levels, by frame number */
+    struct Bubbles *bubbles;
 } App;
 /* A mod's own file wins; otherwise the player's imported original. */
 static bool image_path(const App *app,int id,char *path,size_t capacity) {
@@ -189,6 +190,9 @@ static void draw_player(App *app,const FF_Arena *a,const FF_Game *g,int i) {
         /* The source uses independent feet/body/hand/hat objects at one origin. */
         int shooting=-1;bool custom=false;
         bool armed=shooting_hand(a,g,i,dir,&shooting,&custom);
+        /* The jetpack sits on the back as long as there is fuel, like the original's fly object. */
+        const FF_Sequence *pack=&a->jetpack[dir];
+        if(p->fuel&&pack->count) sprite(app,a,pack->image[0],x,y-16);
         for(int part=0;part<FF_PARTS;++part) {
             if(part==2&&armed) continue;
             if(part==4) {
@@ -284,37 +288,72 @@ static int water_top(const FF_Arena *a,int x,int y) {
     }
     return top;
 }
-/* A fan under water blows a bubble every 12 ticks, as in the original. Bubbles are
- * scenery, worked out from the tick alone: they drift with the fan's draught until
- * they reach the surface or a wall, then pop. */
-static void draw_bubbles(App *app,const FF_Arena *a,uint32_t tick) {
-    const FF_Sequence *rise=&a->bubble_sprites[0],*pop=&a->bubble_sprites[1];
-    if(!rise->count) return;
+/* Bubbles are scenery, simulated beside the game and never part of its state. As in
+ * the original, an underwater fan blows one every 12-23 ticks (at most 16 at once) at
+ * speed 3 in its own direction; a bubble also rises a pixel every fourth tick, a pixel
+ * a tick in an upward draught, and two pixels a tick sideways once a side draught has
+ * caught it. It vanishes at the surface or a wall and wobbles away when a furry
+ * touches it. */
+enum { BUBBLES=16 };
+typedef struct { int32_t x, y, vx, vy; int clock, drift; uint32_t popped; bool live; } Bubble;
+struct Bubbles { Bubble b[BUBBLES]; int wait[FF_DEVICES]; uint32_t tick, rng; const FF_Arena *arena; };
+static bool bubble_in(const Bubble *b,const FF_Device *d) {
+    int x=b->x/FF_FP,y=b->y/FF_FP;
+    return x+3>d->x&&x-3<d->x+d->w&&y+3>d->y&&y-3<d->y+d->h;
+}
+static void bubbles_step(struct Bubbles *s,const FF_Arena *a,const FF_Game *g) {
+    int live=0;for(int k=0;k<BUBBLES;++k) live+=s->b[k].live;
     for(int i=0;i<a->device_count;++i) {
         const FF_Device *d=&a->devices[i];
-        if(d->kind<FF_FAN_LEFT||d->kind>FF_FAN_UP) continue;
-        int cx=d->x+d->w/2,cy=d->y+d->h/2,surface=water_top(a,cx,cy);
-        if(surface<0) continue;
-        /* Half pixels per tick; sideways bubbles still rise a little. */
-        int dx=d->kind==FF_FAN_LEFT?-3:d->kind==FF_FAN_RIGHT?3:0,dy=d->kind==FF_FAN_UP?-3:-1;
-        for(uint32_t k=0;k<6;++k) {
-            uint32_t age=(tick+(uint32_t)i*5u)%12u+k*12u,end=0;
-            while(end<60) {
-                int x=cx+dx*(int)end/2,y=cy+dy*(int)end/2;
-                if(y<surface||x<0||x>=FF_W||y>=FF_H||a->mask[y][x]==FF_SOLID) break;
-                ++end;
-            }
-            uint32_t at=age<end?age:end;
-            int x=cx+dx*(int)at/2,y=cy+dy*(int)at/2;
-            if(age<end) sprite(app,a,rise->image[ff_sequence_frame(rise,age,true)],x,y);
-            else if(pop->count&&age-end<(uint32_t)pop->count*3u) sprite(app,a,pop->image[(age-end)/3u],x,y);
+        if(d->kind<FF_FAN_LEFT||d->kind>FF_FAN_UP||d->image<0) continue;
+        int x=d->x+a->hot_x[d->image],y=d->y+a->hot_y[d->image];
+        if(water_top(a,x,y)<0||--s->wait[i]>0||live>=BUBBLES) continue;
+        s->rng=s->rng*1103515245u+12345u;s->wait[i]=12+(int)((s->rng>>16)%12u);
+        for(int k=0;k<BUBBLES;++k) if(!s->b[k].live) {
+            int speed=3*FF_FP/8;
+            s->b[k]=(Bubble){x*FF_FP,y*FF_FP,d->kind==FF_FAN_LEFT?-speed:d->kind==FF_FAN_RIGHT?speed:0,d->kind==FF_FAN_UP?-speed:0,0,0,0,true};
+            ++live;break;
         }
+    }
+    for(int k=0;k<BUBBLES;++k) {
+        Bubble *b=&s->b[k];if(!b->live) continue;
+        b->x+=b->vx+b->drift*2*FF_FP;b->y+=b->vy;
+        if(--b->clock<-3) {b->y-=FF_FP;b->clock=0;}
+        for(int i=0;i<a->device_count;++i) {
+            const FF_Device *d=&a->devices[i];if(!bubble_in(b,d)) continue;
+            if(d->kind==FF_WIND_UP) b->y-=FF_FP;
+            else if(d->kind==FF_WIND_RIGHT) b->drift=1;
+            else if(d->kind==FF_WIND_LEFT) b->drift=-1;
+            else if(d->kind==FF_WATER) b->live=false;
+        }
+        int x=b->x/FF_FP,y=b->y/FF_FP;
+        if(x<0||x>=FF_W||y<0||y>=FF_H||a->mask[y][x]==FF_SOLID) b->live=false;
+        if(!b->live||b->popped) continue;
+        for(int i=0;i<FF_PLAYERS;++i) {
+            const FF_Player *p=&g->players[i];
+            if(p->active&&p->lives&&!p->respawn&&abs(p->x/FF_FP-x)<10&&y>p->y/FF_FP-30&&y<p->y/FF_FP) b->popped=s->tick;
+        }
+    }
+}
+static void draw_bubbles(App *app,const FF_Arena *a,const FF_Game *g) {
+    const FF_Sequence *rise=&a->bubble_sprites[0],*pop=&a->bubble_sprites[1];
+    struct Bubbles *s=app->bubbles;
+    if(!rise->count||!s) return;
+    if(s->arena!=a||g->tick<s->tick||g->tick-s->tick>500) {memset(s,0,sizeof(*s));s->arena=a;s->tick=g->tick;s->rng=1;}
+    while(s->tick<g->tick) {++s->tick;bubbles_step(s,a,g);}
+    for(int k=0;k<BUBBLES;++k) {
+        Bubble *b=&s->b[k];if(!b->live) continue;
+        int x=b->x/FF_FP,y=b->y/FF_FP;
+        if(!b->popped) {sprite(app,a,rise->image[0],x,y);continue;}
+        uint32_t age=s->tick-b->popped;
+        if(!pop->count||(uint64_t)age*(uint32_t)pop->speed>=100u*(uint64_t)pop->count) b->live=false;
+        else sprite(app,a,pop->image[ff_sequence_frame(pop,age,false)],x,y);
     }
 }
 static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paused) {
     SDL_RenderCopy(app->renderer,app->backdrop,NULL,NULL);
     for(int i=0;i<a->device_count;++i) {
-        const FF_Device *d=&a->devices[i];FF_Point pos=ff_device_position(a,i,g->tick);
+        const FF_Device *d=&a->devices[i];FF_Point pos=ff_device_position(a,g,i);
         if(d->image<0) continue;
         /* Device positions are the first frame's corner; later frames keep its hot spot. */
         const FF_Sequence *idle=&a->device_sprites[d->kind][0],*fired=&a->device_sprites[d->kind][1];
@@ -324,7 +363,7 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
         else if(idle->count) id=idle->image[ff_sequence_frame(idle,g->tick,true)];
         sprite(app,a,id,pos.x+a->hot_x[d->image],pos.y+a->hot_y[d->image]);
     }
-    draw_bubbles(app,a,g->tick);
+    draw_bubbles(app,a,g);
     for(int i=0;i<FF_HAZARDS;++i) {
         const FF_Hazard *h=&g->hazards[i];if(!h->life) continue;
         const FF_Sequence *seq=&a->hazard_sprites[h->kind-1][h->vx<0];
@@ -587,7 +626,8 @@ static bool assets_ready(App *app,const FF_Arena *a) {
     for(int i=0;i<a->device_count;++i) if(a->devices[i].image>=0&&!load_image(app,a->devices[i].image)) return false;
     for(int i=1;i<6;++i) if(a->pickup_images[i]>=0&&!load_image(app,a->pickup_images[i])) return false;
     for(int i=1;i<4;++i) if(a->shot_images[i]>=0&&!load_image(app,a->shot_images[i])) return false;
-    const FF_Sequence *more[FF_WIND_UP*2+5+4];int n=0;
+    const FF_Sequence *more[FF_WIND_UP*2+5+4+4];int n=0;
+    for(int k=0;k<2;++k) {more[n++]=&a->jetpack[k];more[n++]=&a->bubble_sprites[k];}
     for(int k=1;k<=FF_WIND_UP;++k) {more[n++]=&a->device_sprites[k][0];more[n++]=&a->device_sprites[k][1];}
     for(int k=1;k<6;++k) more[n++]=&a->pickup_sprites[k];
     for(int k=0;k<4;++k) more[n++]=&a->hud.weapon[k];
@@ -713,6 +753,7 @@ int main(int argc,char **argv) {
     if(host&&join) {fprintf(stderr,"Use either --host or --join.\n");return 2;}
     ff_fault_init();
     static FF_Arena arena,base;static FF_Mods mods;FF_Game game;App app={0};int result=1;char error[256];
+    static struct Bubbles bubbles;app.bubbles=&bubbles;
     char arena_name[32]="",mod_hash[80]="";
     if(data) {
         char path[4096];if(snprintf(path,sizeof(path),"%s/arena.ff",data)>=(int)sizeof(path)||!ff_arena_load(&arena,path,error,sizeof(error))) {
@@ -735,7 +776,7 @@ int main(int argc,char **argv) {
     stage[0]=ff_net_ms();
     if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_AUDIO)<0) goto fail;
     if(!(IMG_Init(IMG_INIT_PNG)&IMG_INIT_PNG)) goto fail;
-    app.window=SDL_CreateWindow("Funny Furries 0.6.0 - test release",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1000,750,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
+    app.window=SDL_CreateWindow("Funny Furries 0.7.0 - test release",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1000,750,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
     if(!app.window) goto fail;
     app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
     if(!app.renderer) app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_SOFTWARE);
@@ -769,7 +810,7 @@ int main(int argc,char **argv) {
     /* Smoke runs stay off the network unless they test Warpzone itself. */
     bool wz_asked=wz_host||wz_code||ranked||getenv("WARPZONE_JOIN")||getenv("WARPZONE_HOST");
     for(int i=1;i<argc;++i) wz_asked|=!strcmp(argv[i],"--warpzone-join")||!strncmp(argv[i],"warpzone://",11);
-    static FF_Wz wz;if(!auto_play||wz_asked) ff_wz_open(&wz,"0.6.0");
+    static FF_Wz wz;if(!auto_play||wz_asked) ff_wz_open(&wz,"0.7.0");
     wz.arena=&arena;
     bool naming=false,ranked_menu=false;char name_entry[20]="";int ranked_choice=0;uint32_t wz_deadline=0;
     if(ff_wz_launch(&wz,argc,argv)==2) wz_host=true;

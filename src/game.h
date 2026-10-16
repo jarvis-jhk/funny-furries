@@ -55,6 +55,7 @@ typedef struct {
     int pellets, spread;   /* shots per trigger pull, fanned out by spread directions */
     int sound;     /* sound slot */
     int shot_image, pickup_image, hand_image;   /* drawing only */
+    int recoil;    /* pushes the shooter back, against the shot */
 } FF_Weapon;
 /* Weapon slots 1-3 are the original's; pickup kinds 1-3 and 6+ give weapons, 4 health, 5 fuel. */
 typedef struct { int lives, gravity, jump, weapons; } FF_Rules;
@@ -91,6 +92,7 @@ typedef struct {
     /* [kind][0] runs all the time, [kind][1] plays once when a device fires. */
     FF_Sequence device_sprites[FF_WIND_UP+1][2], pickup_sprites[6];
     FF_Sequence bubble_sprites[2];   /* rising, popping: drawing only */
+    FF_Sequence jetpack[2];          /* worn on the back while there is fuel; drawing only */
     FF_Weapon weapons[FF_WEAPONS]; FF_Rules rules;
     FF_Hud hud;
     bool imported;
@@ -115,6 +117,8 @@ typedef struct {
     int trap_wait, pickup_wait;
     uint32_t rng, tick;
     int winner, round_wait, mode;
+    /* Moving platforms: where each is, which way it goes and how far it moved this tick. */
+    int platform_x[FF_DEVICES], platform_dir[FF_DEVICES], platform_dx[FF_DEVICES];
     unsigned sounds;
     /* Ticks a bouncer last fired and a player last shot or punched; drawing only,
      * so they stay out of the hash. */
@@ -134,7 +138,7 @@ void ff_game_setup(FF_Game *g, const FF_Arena *a, uint32_t seed, unsigned seats,
 void ff_game_init(FF_Game *g, const FF_Arena *a, uint32_t seed);
 void ff_game_tick(FF_Game *g, const FF_Arena *a, const uint8_t input[FF_PLAYERS]);
 uint32_t ff_game_hash(const FF_Game *g);
-FF_Point ff_device_position(const FF_Arena *a, int device, uint32_t tick);
+FF_Point ff_device_position(const FF_Arena *a, const FF_Game *g, int device);
 /* Frame index of a sequence that has run for ticks (looping, or held on its last frame). */
 int ff_sequence_frame(const FF_Sequence *s, uint32_t ticks, bool loop);
 #endif

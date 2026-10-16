@@ -12,10 +12,11 @@ static void asset_defaults(FF_Arena *a) {
     for(int i=0;i<FF_SOUNDS;++i) a->sound_ids[i]=-1;
     for(int p=0;p<2;++p) for(int w=1;w<4;++w) for(int d=0;d<2;++d)
         a->muzzles[p][w][d]=(FF_Point){d?-16:16,-18};
-    /* The original three, exactly as the engine had them built in. */
-    a->weapons[FF_ICE]=(FF_Weapon){"ICE",100,0,100,6,6,-7,8,25,50,0,0,0,0,1,0,1,-1,-1,-1};
-    a->weapons[FF_FLAME]=(FF_Weapon){"FLAME",40,FF_FP/4,270,8,0,0,8,15,30,0,0,4,0,1,0,2,-1,-1,-1};
-    a->weapons[FF_ROCKET]=(FF_Weapon){"ROCKET",57,0,100,8,0,0,50,8,16,1,1,0,0,1,0,3,-1,-1,-1};
+    /* The original three, exactly as the engine had them built in; the last field is the
+     * original's recoil (ice 4, rocket 15). */
+    a->weapons[FF_ICE]=(FF_Weapon){"ICE",100,0,100,6,6,-7,8,25,50,0,0,0,0,1,0,1,-1,-1,-1,4};
+    a->weapons[FF_FLAME]=(FF_Weapon){"FLAME",40,FF_FP/4,270,8,0,0,8,15,30,0,0,4,0,1,0,2,-1,-1,-1,0};
+    a->weapons[FF_ROCKET]=(FF_Weapon){"ROCKET",57,0,100,8,0,0,50,8,16,1,1,0,0,1,0,3,-1,-1,-1,15};
     for(int k=0;k<FF_WEAPONS;++k) if(k<FF_ICE||k>FF_ROCKET) a->weapons[k].shot_image=a->weapons[k].pickup_image=a->weapons[k].hand_image=-1;
     snprintf(a->weapons[FF_FISTS].name,sizeof(a->weapons[0].name),"FISTS");
     a->rules=(FF_Rules){3,FF_FP/4,44,3};
@@ -130,6 +131,9 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
         } else if (sscanf(line,"bubble %d %d %d %c",&n[0],&n[1],&n[2],&tail)==3) {
             if(n[0]<0||n[0]>1||n[1]<1||n[1]>100||n[2]<0||n[2]>=FF_ORIGINAL_IMAGES||
                !add_frame(&a->bubble_sprites[n[0]],n[1],n[2])) {ok=false;break;}
+        } else if (sscanf(line,"jetpack %d %d %c",&n[0],&n[1],&tail)==2) {
+            if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_ORIGINAL_IMAGES||
+               !add_frame(&a->jetpack[n[0]],0,n[1])) {ok=false;break;}
         } else if (sscanf(line,"fire %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_ORIGINAL_IMAGES) {ok=false;break;}
             FF_Sequence *s=&a->fire_sprites[n[0]];

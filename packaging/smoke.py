@@ -20,7 +20,7 @@ if os.name == 'nt':
 with tempfile.TemporaryDirectory(prefix='furries package ü ') as directory:
     home = Path(directory)
     fixture(home / 'bundle', wind=True)
-    target = home / 'arena-v7-synthetic'
+    target = home / 'arena-v8-synthetic'
     import_arena.import_arena(home / 'bundle', target, 0)
     launcher.save_selection(home, target)
     screenshot = home / 'frame.bmp'

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+static void platforms_reset(FF_Game *g,const FF_Arena *a);
 static int clamp(int x,int lo,int hi) { return x<lo?lo:(x>hi?hi:x); }
 static uint32_t random_word(FF_Game *g) {
     uint32_t x=g->rng; x^=x<<13; x^=x>>17; x^=x<<5; return g->rng=x;
@@ -22,6 +23,22 @@ static bool blocked(const FF_Arena *a,int x,int y) {
         for(int xx=x-half;xx<x+half;++xx) if(tile(a,xx,yy)==FF_SOLID) return true;
     }
     return false;
+}
+/* Only the side sensors stop a walk: they end eight pixels above the feet. */
+static bool side_blocked(const FF_Arena *a,int x,int y) {
+    if(x-11<0||x+10>=FF_W) return true;
+    for(int yy=y-26;yy<y-8;++yy) {
+        int half=yy>=y-21?11:7;
+        for(int xx=x-half;xx<x+half;++xx) if(tile(a,xx,yy)==FF_SOLID) return true;
+    }
+    return false;
+}
+/* The original lifts a furry whose lower body is in the ground but whose head is
+ * clear, so steps up to eight pixels high are walked up without a jump. */
+static int step_up(const FF_Arena *a,int x,int y) {
+    if(side_blocked(a,x,y)) return -1;
+    for(int lift=1;lift<=8;++lift) if(!blocked(a,x,y-lift)) return lift;
+    return -1;
 }
 static bool supported(const FF_Arena *a,int x,int y) {
     for(int xx=x-9;xx<x+9;++xx)
@@ -59,7 +76,7 @@ static void reset_player(FF_Player *p,FF_Point pos,int who) {
 }
 void ff_game_setup(FF_Game *g,const FF_Arena *a,uint32_t seed,unsigned seats,int mode) {
     memset(g,0,sizeof(*g));g->rng=seed?seed:1;g->winner=-1;g->trap_wait=400+(int)(random_word(g)%400);
-    g->mode=mode==FF_TEAMS?FF_TEAMS:FF_FFA;
+    g->mode=mode==FF_TEAMS?FF_TEAMS:FF_FFA;platforms_reset(g,a);
     for(int i=0;i<FF_PLAYERS;++i) {
         FF_Player *p=&g->players[i];
         p->active=!!(seats&(1u<<i));p->team=g->mode==FF_TEAMS?(i&1):i;
@@ -80,7 +97,11 @@ static void move_player(FF_Player *p,const FF_Arena *a) {
     int step=p->vx<0?-1:1;
     for(int x=old;x!=target;) {
         x+=step;
-        if(blocked(a,x,y)) {next=(x-step)*FF_FP;p->vx=0;break;}
+        if(blocked(a,x,y)) {
+            int lift=step_up(a,x,y);
+            if(lift<0) {next=(x-step)*FF_FP;p->vx=0;break;}
+            y-=lift;p->y=y*FF_FP;if(p->vy>0) p->vy=0;
+        }
     }
     p->x=next;
     int x=floor_pixel(p->x);next=p->y+p->vy;
@@ -107,16 +128,41 @@ int ff_sequence_frame(const FF_Sequence *s,uint32_t ticks,bool loop) {
     if(loop) return (int)(step%(uint32_t)s->count);
     return step<(uint32_t)s->count?(int)step:s->count-1;
 }
-FF_Point ff_device_position(const FF_Arena *a,int device,uint32_t tick) {
+static void platform_range(const FF_Arena *a,int device,int *lo,int *hi,int *speed) {
+    const FF_Device *d=&a->devices[device];const FF_Path *path=&a->paths[device];
+    *lo=path->speed?path->min_x:d->x;*hi=path->speed?path->max_x:d->x+128;*speed=path->speed?path->speed:2;
+}
+FF_Point ff_device_position(const FF_Arena *a,const FF_Game *g,int device) {
     const FF_Device *d=&a->devices[device];
-    if(d->kind!=FF_MOVING_PLATFORM) return (FF_Point){d->x,d->y};
-    const FF_Path *path=&a->paths[device];
-    int lo=path->speed?path->min_x:d->x,hi=path->speed?path->max_x:d->x+128;
-    int speed=path->speed?path->speed:2,dir=path->speed?path->direction:1;
-    uint32_t span=(uint32_t)(hi-lo),period=2*span;
-    uint32_t phase=(uint32_t)(dir<0?period-(uint32_t)(d->x-lo):(uint32_t)(d->x-lo));
-    phase=(phase+(tick%period)*(uint32_t)speed)%period;
-    return (FF_Point){lo+(int)(phase<=span?phase:period-phase),d->y};
+    return (FF_Point){d->kind==FF_MOVING_PLATFORM?g->platform_x[device]:d->x,d->y};
+}
+static void platforms_reset(FF_Game *g,const FF_Arena *a) {
+    for(int i=0;i<a->device_count;++i) {
+        g->platform_x[i]=a->devices[i].x;g->platform_dx[i]=0;
+        g->platform_dir[i]=a->paths[i].speed&&a->paths[i].direction<0?-1:1;
+    }
+}
+/* Platforms turn at their reverse markers and, as in the original, when one runs into
+ * another of the same kind: each then heads away from the other. */
+static void platforms_move(FF_Game *g,const FF_Arena *a) {
+    for(int i=0;i<a->device_count;++i) {
+        if(a->devices[i].kind!=FF_MOVING_PLATFORM) continue;
+        int lo,hi,speed,old=g->platform_x[i];platform_range(a,i,&lo,&hi,&speed);
+        int x=clamp(old+g->platform_dir[i]*speed,lo,hi);
+        if(x==lo) g->platform_dir[i]=1;
+        if(x==hi) g->platform_dir[i]=-1;
+        g->platform_x[i]=x;g->platform_dx[i]=x-old;
+    }
+    for(int i=0;i<a->device_count;++i) {
+        const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM) continue;
+        for(int k=i+1;k<a->device_count;++k) {
+            const FF_Device *e=&a->devices[k];
+            if(e->kind!=FF_MOVING_PLATFORM||e->image!=d->image||d->y>=e->y+e->h||e->y>=d->y+d->h) continue;
+            int x=g->platform_x[i],other=g->platform_x[k];
+            if(x>=other+e->w||other>=x+d->w||x==other) continue;
+            g->platform_dir[i]=x<other?-1:1;g->platform_dir[k]=-g->platform_dir[i];
+        }
+    }
 }
 static bool underwater_at(const FF_Player *p,const FF_Arena *a,int rise) {
     int x=p->x/FF_FP,y=p->y/FF_FP-16-rise;
@@ -159,26 +205,39 @@ static void device_forces(FF_Game *g,FF_Player *p,const FF_Arena *a,bool airborn
         p->grounded=0;p->bounce_wait=2;g->device_hit[i]=g->tick;g->sounds|=FF_SOUND_SPRING;
     }
 }
-static void platform_carry(FF_Player *p,const FF_Arena *a,uint32_t tick) {
+static void platform_carry(FF_Player *p,const FF_Arena *a,const FF_Game *g) {
     if(!p->grounded) return;
     for(int i=0;i<a->device_count;++i) {
-        const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM) continue;
-        FF_Point old=ff_device_position(a,i,tick-1),now=ff_device_position(a,i,tick);
+        const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM||!g->platform_dx[i]) continue;
+        int dx=g->platform_dx[i],old=g->platform_x[i]-dx;
         int x=p->x/FF_FP,y=p->y/FF_FP;
-        if(y==old.y&&x+8>=old.x&&x-9<old.x+d->w) {
-            int next=x+now.x-old.x;
-            if(!blocked(a,next,y)) p->x+=FF_FP*(now.x-old.x);
+        if(y==d->y&&x+8>=old&&x-9<old+d->w) {
+            if(!blocked(a,x+dx,y)) p->x+=FF_FP*dx;
         }
     }
 }
-static void platform_land(FF_Player *p,const FF_Arena *a,uint32_t tick,int32_t old_y) {
+static void platform_land(FF_Player *p,const FF_Arena *a,const FF_Game *g,int32_t old_y) {
     if(p->vy<0) return;
     for(int i=0;i<a->device_count;++i) {
         const FF_Device *d=&a->devices[i];if(d->kind!=FF_MOVING_PLATFORM) continue;
-        FF_Point now=ff_device_position(a,i,tick);int x=p->x/FF_FP;
-        if(old_y<=now.y*FF_FP&&p->y>=now.y*FF_FP&&x+8>=now.x&&x-9<now.x+d->w) {
-            p->y=now.y*FF_FP;p->vy=0;p->grounded=1;
+        int x=p->x/FF_FP,left=g->platform_x[i];
+        if(old_y<=d->y*FF_FP&&p->y>=d->y*FF_FP&&x+8>=left&&x-9<left+d->w) {
+            p->y=d->y*FF_FP;p->vy=0;p->grounded=1;
         }
+    }
+}
+/* The original's feet sensor stands on the other furry's head sensor: a falling furry
+ * stops with its feet 26 pixels above the other's and can jump off from there. */
+static void player_land(FF_Game *g,const FF_Arena *a,int who,int32_t falling) {
+    FF_Player *p=&g->players[who];
+    if(falling<0||p->vy<0) return;
+    int x=p->x/FF_FP,y=floor_pixel(p->y);
+    for(int k=0;k<FF_PLAYERS;++k) {
+        const FF_Player *other=&g->players[k];
+        if(k==who||!live(other)) continue;
+        int ox=other->x/FF_FP,top=floor_pixel(other->y)-26;
+        if(abs(x-ox)>=16||y<=top-1||y>=top+19||blocked(a,x,top)) continue;
+        p->y=top*FF_FP;p->vy=0;p->grounded=1;return;
     }
 }
 static const int direction_x[32];
@@ -200,6 +259,7 @@ static void shoot(FF_Game *g,const FF_Arena *a,FF_Player *p,int owner) {
     }
     if(!fired) return;
     --p->ammo;p->cooldown=w->cooldown;g->fired[owner]=g->tick;
+    p->vx=clamp(p->vx-p->facing*w->recoil*FF_FP/8,-100*FF_FP/8,100*FF_FP/8);
     g->sounds|=1u<<w->sound;
     if(!p->ammo) p->weapon=FF_FISTS;
 }
@@ -279,8 +339,10 @@ static void hazard_tick(FF_Game *g,const FF_Arena *a,int damage[FF_PLAYERS]) {
             int32_t next_y=h->y+h->vy;
             int target=floor_pixel(next_y),step=h->vy<0?-1:1;
             h->grounded=0;x=floor_pixel(h->x);
+            /* The bouncing bomb's position is its centre; it rests on its bottom edge. */
+            int bottom=h->kind==FF_BOMB?5:0;
             for(int yy=y;yy!=target;) {
-                yy+=step;int terrain=tile(a,x,yy);
+                yy+=step;int terrain=tile(a,x,yy+bottom);
                 if(terrain==FF_SOLID||(step>0&&terrain==FF_PLATFORM)) {
                     /* A bouncing bomb loses height with every bounce and goes off once it lies still. */
                     if(h->kind==FF_BOMB&&step>0&&h->bounce<=FF_FP/2) {blast(g,h->x,yy*FF_FP);h->life=0;}
@@ -369,6 +431,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
         return;
     }
     int damage[FF_PLAYERS]={0}, burning[FF_PLAYERS]={0}, knock[FF_PLAYERS]={0}, lift[FF_PLAYERS]={0};
+    platforms_move(g,a);
     for(int i=0;i<FF_PLAYERS;++i) {
         FF_Player *p=&g->players[i];uint8_t keys=input[i];
         if(!p->active||!p->lives) {p->previous=keys;continue;}
@@ -381,7 +444,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
         if(p->punch_ticks) --p->punch_ticks;
         if(p->burn_wait) --p->burn_wait;
         bool wet=underwater(p,a),airborne=!p->grounded;
-        platform_carry(p,a,g->tick);
+        platform_carry(p,a,g);
         int horizontal=!!(keys&FF_RIGHT)-!!(keys&FF_LEFT);
         if(horizontal) {
             /* Input cannot erase a stronger bounce or explosion impulse. */
@@ -410,7 +473,8 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
         device_forces(g,p,a,airborne);
         int32_t old_y=p->y,falling=p->vy;
         move_player(p,a);
-        platform_land(p,a,g->tick,old_y);
+        platform_land(p,a,g,old_y);
+        player_land(g,a,i,falling);
         if(airborne&&p->grounded&&falling>=2*FF_FP) g->sounds|=FF_SOUND_LAND;
         if(!wet&&underwater(p,a)) g->sounds|=FF_SOUND_SPLASH;
         if((keys&FF_PUNCH)&&!p->cooldown) {
@@ -448,7 +512,10 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
             s->x=start_x+s->vx*(j+1)/steps;s->y=start_y+s->vy*(j+1)/steps;
             int x=s->x/FF_FP,y=s->y/FF_FP;
             int terrain=tile(a,x,y);
-            bool surface=terrain==FF_SOLID||(w->gravity&&s->vy>=0&&terrain==FF_PLATFORM);
+            /* One-way tops stop shots coming down through them, like furries; falling
+             * shots stop anywhere on them. */
+            bool surface=terrain==FF_SOLID||(terrain==FF_PLATFORM&&
+                (w->gravity?s->vy>=0:s->vy>0&&tile(a,x,y-1)!=FF_PLATFORM));
             if(surface||x<0||x>=FF_W||y<0||y>=560) {
                 int32_t back_x=start_x+s->vx*j/steps,back_y=start_y+s->vy*j/steps;
                 if(w->flame&&surface&&x>=0&&x<FF_W&&y>=0&&y<=560) {
@@ -458,7 +525,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
                     /* Reflect the axis that ran into something; floors take some speed off. */
                     int bx=floor_pixel(back_x),by=floor_pixel(back_y);
                     bool side=x<0||x>=FF_W||tile(a,x,by)==FF_SOLID;
-                    bool floor=y<0||y>=560||tile(a,bx,y)==FF_SOLID||(w->gravity&&s->vy>=0&&tile(a,bx,y)==FF_PLATFORM);
+                    bool floor=y<0||y>=560||tile(a,bx,y)==FF_SOLID||(tile(a,bx,y)==FF_PLATFORM&&(w->gravity?s->vy>=0:s->vy>0));
                     if(side||!floor) s->vx=-s->vx;
                     if(floor||!side) s->vy=s->vy>0?-s->vy*3/4:-s->vy;
                     s->x=back_x;s->y=back_y;++s->bounced;
@@ -549,6 +616,7 @@ uint32_t ff_game_hash(const FF_Game *g) {
     uint32_t h=2166136261u;
 #define HASH(v) do { uint32_t bits=(uint32_t)(v); for(int byte=0;byte<4;++byte) {h^=(bits>>(byte*8))&255u;h*=16777619u;} } while(0)
     HASH(g->pickup_wait);HASH(g->trap_wait);HASH(g->rng);HASH(g->tick);HASH(g->winner);HASH(g->round_wait);HASH(g->sounds);HASH(g->mode);
+    for(int i=0;i<FF_DEVICES;++i) {HASH(g->platform_x[i]);HASH(g->platform_dir[i]);HASH(g->platform_dx[i]);}
     for(int i=0;i<FF_PLAYERS;++i) {const FF_Player *p=&g->players[i];HASH(p->active);HASH(p->team);
         HASH(p->x);HASH(p->y);HASH(p->vx);HASH(p->vy);HASH(p->facing);HASH(p->health);HASH(p->lives);HASH(p->score);
         HASH(p->fuel);HASH(p->weapon);HASH(p->ammo);HASH(p->grounded);HASH(p->cooldown);HASH(p->punch_ticks);

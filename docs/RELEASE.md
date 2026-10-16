@@ -1,10 +1,22 @@
-# Funny Furries 0.6.0 — all ten arenas
+# Funny Furries 0.7.0 — closer to the original
 
 This preview plays all ten of the original's arenas with two to four players on
 controllers or the two keyboard layouts, free for all or 2 vs 2, on one screen or
 online. Movement, weapons and devices are based on the original, with approximate
 timing and collision details. It is not the complete original game. Automatic
 updates are not included yet.
+
+New in 0.7.0 (fixes from Jan's play-test of 0.6.0, checked against the original's
+event rows): bubbles from underwater fans look and move like the original's (a
+small ring every 12-23 ticks, slow rise up the whole column, pushed by draughts,
+gone at the surface); moving platforms start the way the original's markers say
+and turn around when they run into each other; steps up to eight pixels are walked
+up without jumping (the top corners of level 3); a furry can land and stand on
+the other's head; the ice gun and rocket launcher push the shooter back (mods:
+`recoil`); rockets no longer fly down through one-way tops; bouncing bombs rest
+on their bottom edge instead of sinking into the scoreboard; the jetpack shows on
+the furry's back while there is fuel. The first start after the update imports
+your copy once more by itself.
 
 New in 0.6.0 (fixes from Jan's play-test of 0.5.0): the original's other nine
 arenas (X/punch in the start menu, `--level N`); weapons appear in the hand only
@@ -146,7 +158,7 @@ unsupported game copies are not reported.
 5. Keep the live ntfy → issue → maintenance-queue relay running, with the private
    queue URL only in its local config. No new scheduler job is needed. A controlled
    anonymous transport probe must be received, deduplicated and cleaned up.
-6. Tag only that tested source (`v0.6.0` for the all-arenas release), push the tag,
+6. Tag only that tested source (`v0.7.0` for the closer-to-the-original release), push the tag,
    and upload the already checked binary/source archives, the example mod ZIPs
    (`mods/pack.py`) and SHA256SUMS as a GitHub prerelease. Confirm the release is published and
    every uploaded asset downloads with the expected hash. Record remaining human

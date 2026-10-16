@@ -194,7 +194,7 @@ class Warpzone(unittest.TestCase):
                     os.path.join(packed, name + '-1.0.0.zip'))
             self.wz('moderator', 'approve', 'funny-furries', name, '1.0.0')
         host_home = os.path.relpath(self.homes[0], self.dir.name)
-        lock = json.loads(self.wz(host_home, 'resolve', 'funny-furries', '0.6.0', *names))
+        lock = json.loads(self.wz(host_home, 'resolve', 'funny-furries', '0.7.0', *names))
         self.wz(host_home, 'mod-sync', 'funny-furries', lock['hash'])
         host = subprocess.Popen([GAME, '--warpzone-host', '--arena', '1', '--smoke', '1500'],
                                 env=self.env(0, FF_WZ_VERBOSE='1', FF_MODS_ACTIVE='1'), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)

@@ -6,7 +6,10 @@
 static unsigned checks;
 static FF_Arena arena;
 static void tick(FF_Game *g,int a,int b,int n) {uint8_t in[FF_PLAYERS]={(uint8_t)a,(uint8_t)b};while(n--) ff_game_tick(g,&arena,in);}
-static void clean(FF_Game *g) {ff_arena_practice(&arena);arena.bonus_count=0;ff_game_init(g,&arena,1);memset(g->pickups,0,sizeof(g->pickups));for(int i=0;i<2;++i) g->players[i].invulnerable=0;}
+static void restart(FF_Game *g) {ff_game_init(g,&arena,1);memset(g->pickups,0,sizeof(g->pickups));for(int i=0;i<2;++i) g->players[i].invulnerable=0;}
+static void clean(FF_Game *g) {ff_arena_practice(&arena);arena.bonus_count=0;restart(g);}
+/* Where platform 0 is after n ticks of a fresh game on the current arena. */
+static int platform_after(int n) {static FF_Game g;restart(&g);tick(&g,0,0,n);return ff_device_position(&arena,&g,0).x;}
 static void physics(void) {
     FF_Game g;clean(&g);tick(&g,0,0,100);
     CHECK(g.players[0].grounded);CHECK(g.players[0].y==560*FF_FP);
@@ -136,13 +139,13 @@ static void arena_devices(void) {
     clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;
     arena.device_count=1;arena.devices[0]=(FF_Device){FF_BOUNCE_UP,80,295,48,16,0};
     tick(&g,0,0,1);CHECK(p->vy==-22*FF_FP/8);CHECK(p->bounce_wait>0);
-    clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;p->grounded=1;
-    arena.device_count=1;arena.devices[0]=(FF_Device){FF_MOVING_PLATFORM,80,300,48,16,0};
+    clean(&g);arena.device_count=1;arena.devices[0]=(FF_Device){FF_MOVING_PLATFORM,80,300,48,16,0};
+    restart(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;p->grounded=1;
     tick(&g,0,0,10);CHECK(p->x==120*FF_FP);CHECK(p->y==300*FF_FP);CHECK(p->grounded);
     tick(&g,FF_JUMP,0,1);CHECK(p->vy<0);CHECK(p->y<300*FF_FP);
-    CHECK(ff_device_position(&arena,0,0).x==80);
-    CHECK(ff_device_position(&arena,0,64).x==208);
-    CHECK(ff_device_position(&arena,0,128).x==80);
+    CHECK(platform_after(0)==80);
+    CHECK(platform_after(64)==208);
+    CHECK(platform_after(128)==80);
 }
 static void marker_collision_and_paths(void) {
     FF_Game g;clean(&g);FF_Player *p=&g.players[0];
@@ -153,12 +156,12 @@ static void marker_collision_and_paths(void) {
     CHECK(p->y==300*FF_FP&&p->grounded);
     /* Walking off the hidden marker resumes falling. */
     tick(&g,FF_RIGHT,0,50);CHECK(p->y>300*FF_FP);
-    clean(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;p->grounded=1;
-    arena.device_count=1;arena.devices[0]=(FF_Device){FF_MOVING_PLATFORM,80,300,48,16,0};
+    clean(&g);arena.device_count=1;arena.devices[0]=(FF_Device){FF_MOVING_PLATFORM,80,300,48,16,0};
     arena.paths[0]=(FF_Path){64,144,1,-1};
-    CHECK(ff_device_position(&arena,0,16).x==64);
-    CHECK(ff_device_position(&arena,0,96).x==144);
-    CHECK(ff_device_position(&arena,0,160).x==80);
+    CHECK(platform_after(16)==64);
+    CHECK(platform_after(96)==144);
+    CHECK(platform_after(160)==80);
+    restart(&g);p=&g.players[0];p->x=100*FF_FP;p->y=300*FF_FP;p->grounded=1;
     tick(&g,0,0,160);CHECK(p->x==100*FF_FP&&p->y==300*FF_FP&&p->grounded);
 }
 static void sensor_body_and_directional_bounces(void) {
@@ -220,12 +223,13 @@ static void hazards_and_blasts(void) {
     memset(&arena.mask[300][80],FF_PLATFORM,100);
     g.hazards[0]=(FF_Hazard){173*FF_FP,299*FF_FP,FF_FP,0,FF_BOMB_WALK,1,1,0};
     tick(&g,0,0,1);CHECK(g.hazards[0].vx<0);
-    /* Falling bombs bounce from one-way surfaces and solids alike, lower every time,
+    /* Falling bombs bounce on their bottom edge (the position is the sprite's centre)
+     * from one-way surfaces and solids alike, lower every time,
      * and go off once a bounce is spent; walking bombs never expire. */
-    g.hazards[0]=(FF_Hazard){120*FF_FP,299*FF_FP,0,FF_FP,FF_BOMB,1,0,4*FF_FP};
+    g.hazards[0]=(FF_Hazard){120*FF_FP,294*FF_FP,0,FF_FP,FF_BOMB,1,0,4*FF_FP};
     tick(&g,0,0,1);CHECK(g.hazards[0].life&&g.hazards[0].vy==-4*FF_FP);
     memset(&arena.mask[300][80],FF_SOLID,100);
-    g.hazards[0]=(FF_Hazard){120*FF_FP,299*FF_FP,0,FF_FP,FF_BOMB,1,0,4*FF_FP};
+    g.hazards[0]=(FF_Hazard){120*FF_FP,294*FF_FP,0,FF_FP,FF_BOMB,1,0,4*FF_FP};
     tick(&g,0,0,1);CHECK(g.hazards[0].life&&g.hazards[0].vy==-4*FF_FP);
     g.players[0].active=g.players[1].active=0;   /* nobody falls out of this floorless arena meanwhile */
     int top=g.hazards[0].y,bounces=1,ticks=1;
@@ -234,7 +238,7 @@ static void hazards_and_blasts(void) {
         if(g.hazards[0].life&&before>=0&&g.hazards[0].vy<0) {CHECK(-g.hazards[0].vy<4*FF_FP);++bounces;}
         if(g.hazards[0].life&&g.hazards[0].y<top) top=g.hazards[0].y;
     }
-    CHECK(!g.hazards[0].life&&g.blasts[0].life&&bounces>5&&top<270*FF_FP);
+    CHECK(!g.hazards[0].life&&g.blasts[0].life&&bounces>5&&top<265*FF_FP);
     clean(&g);arena.imported=true;memset(arena.tiles,0,sizeof(arena.tiles));
     memset(&arena.mask[300][80],FF_SOLID,100);
     g.hazards[0]=(FF_Hazard){130*FF_FP,299*FF_FP,FF_FP,0,FF_BOMB_WALK,1,1,0};
@@ -389,6 +393,56 @@ static void playtest_fixes(void) {
     int highest=p->y;for(int i=0;i<120;++i) {tick(&g,FF_FLY,0,1);if(p->y<highest) highest=p->y;}
     CHECK(highest<0);tick(&g,0,0,400);CHECK(p->grounded&&p->y==560*FF_FP&&p->lives==3);
 }
+/* Jan's second 2026-10-16 play-test, of 0.6.0, against the original's event rows. */
+static void second_playtest(void) {
+    FF_Game g;FF_Player *p;
+    /* Two platforms on one track meet in the middle and both turn back. */
+    clean(&g);arena.device_count=2;
+    arena.devices[0]=(FF_Device){FF_MOVING_PLATFORM,100,300,48,16,5};arena.paths[0]=(FF_Path){50,600,1,1};
+    arena.devices[1]=(FF_Device){FF_MOVING_PLATFORM,400,300,48,16,5};arena.paths[1]=(FF_Path){50,600,1,-1};
+    restart(&g);int closest=1000;
+    for(int i=0;i<300;++i) {
+        tick(&g,0,0,1);int gap=ff_device_position(&arena,&g,1).x-ff_device_position(&arena,&g,0).x-48;
+        CHECK(gap>=-2);if(gap<closest) closest=gap;
+    }
+    CHECK(closest<=0&&g.platform_dir[0]<0&&g.platform_dir[1]>0);
+    /* Platforms of different kinds pass each other, as in the original. */
+    arena.devices[1].image=6;restart(&g);tick(&g,0,0,300);CHECK(ff_device_position(&arena,&g,0).x>ff_device_position(&arena,&g,1).x);
+    /* Steps up to eight pixels are walked up; a taller one stops the furry. */
+    clean(&g);g.players[1].active=0;arena.imported=true;memset(arena.tiles,0,sizeof(arena.tiles));
+    for(int y=0;y<600;++y) memset(arena.mask[y],0,sizeof(arena.mask[y]));
+    for(int y=400;y<600;++y) memset(arena.mask[y],FF_SOLID,800);
+    for(int y=396;y<400;++y) memset(&arena.mask[y][300],FF_SOLID,500);
+    for(int y=384;y<396;++y) memset(&arena.mask[y][500],FF_SOLID,300);
+    p=&g.players[0];p->x=200*FF_FP;p->y=400*FF_FP;p->grounded=1;p->vx=p->vy=0;
+    tick(&g,FF_RIGHT,0,150);CHECK(p->y==396*FF_FP&&p->grounded);CHECK(p->x/FF_FP<500-10&&p->x/FF_FP>470);
+    /* A furry falling onto the other stands on its head and can jump off it. */
+    clean(&g);place(&g,0,300);place(&g,1,300);p=&g.players[0];
+    p->y=480*FF_FP;p->grounded=0;tick(&g,0,0,40);
+    CHECK(p->y==534*FF_FP&&p->grounded&&g.players[1].y==560*FF_FP);
+    tick(&g,FF_JUMP,0,1);CHECK(p->vy<0);
+    /* Walking past each other on the same floor stays possible. */
+    clean(&g);place(&g,0,300);place(&g,1,330);tick(&g,FF_RIGHT,0,30);CHECK(g.players[0].x>340*FF_FP&&g.players[0].y==560*FF_FP);
+    /* Shooting pushes the shooter back: ice by 4, a rocket by 15 (eighths of a pixel per tick). */
+    clean(&g);place(&g,0,300);place(&g,1,700);p=&g.players[0];p->facing=1;p->weapon=FF_ICE;p->ammo=5;
+    tick(&g,FF_FIRE,0,1);CHECK(p->vx==-4*FF_FP/8+FF_FP/8||p->vx==-4*FF_FP/8);
+    clean(&g);place(&g,0,300);place(&g,1,700);p=&g.players[0];p->facing=-1;p->weapon=FF_ROCKET;p->ammo=5;
+    tick(&g,FF_FIRE,0,1);CHECK(p->vx>=13*FF_FP/8);tick(&g,0,0,30);CHECK(p->x>310*FF_FP);
+    /* Rockets coming down stop on one-way tops, which they cross going up. */
+    clean(&g);g.players[1].active=0;for(int x=10;x<20;++x) arena.tiles[20][x]=FF_PLATFORM;
+    g.shots[0]=(FF_Shot){240*FF_FP,280*FF_FP,0,57*FF_FP/8,FF_ROCKET,1,100,24,0,0};
+    arena.weapons[FF_ROCKET].homing=0;
+    for(int i=0;i<10&&g.shots[0].life;++i) tick(&g,0,0,1);
+    CHECK(!g.shots[0].life&&g.blasts[0].life&&g.blasts[0].y/FF_FP<=320);
+    clean(&g);g.players[1].active=0;for(int x=10;x<20;++x) arena.tiles[20][x]=FF_PLATFORM;arena.weapons[FF_ROCKET].homing=0;
+    g.shots[0]=(FF_Shot){240*FF_FP,360*FF_FP,0,-57*FF_FP/8,FF_ROCKET,1,100,8,0,0};
+    tick(&g,0,0,10);CHECK(g.shots[0].life&&g.shots[0].y<300*FF_FP);
+    /* A bouncing bomb's sprite is centred on it: it bounces with its bottom edge on the floor. */
+    clean(&g);g.players[0].active=g.players[1].active=0;
+    g.hazards[0]=(FF_Hazard){400*FF_FP,500*FF_FP,0,0,FF_BOMB,1,0,4*FF_FP};
+    int lowest=0;for(int i=0;i<400&&g.hazards[0].life;++i) {tick(&g,0,0,1);if(g.hazards[0].y>lowest) lowest=g.hazards[0].y;}
+    CHECK(lowest/FF_FP<=560-5);
+}
 static void determinism(void) {
     FF_Game a,b;clean(&a);b=a;
     uint32_t r=17;
@@ -402,4 +456,4 @@ static void determinism(void) {
     b.players[0].previous^=FF_JUMP;CHECK(ff_game_hash(&a)!=ff_game_hash(&b));
     printf("replay=%08x\n",ff_game_hash(&a));
 }
-int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();sensor_body_and_directional_bounces();hazards_and_blasts();imported_weapon_geometry();reference_jump();wind_and_bonus_regions();four_players();playtest_fixes();determinism();printf("%u game checks passed\n",checks);return 0;}
+int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();sensor_body_and_directional_bounces();hazards_and_blasts();imported_weapon_geometry();reference_jump();wind_and_bonus_regions();four_players();playtest_fixes();second_playtest();determinism();printf("%u game checks passed\n",checks);return 0;}

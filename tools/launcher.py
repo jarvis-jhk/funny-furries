@@ -82,7 +82,7 @@ def import_copy(source, home, reader_source=None):
             raw, _ = unprotect(game)
         manifest, files = export_project.research_bundle(reader, raw)
         sha = manifest['source']['sha256']
-        target = Path(home) / ('arena-v7-' + sha)
+        target = Path(home) / ('arena-v8-' + sha)
         if target.exists():
             try:
                 check_import(target)
@@ -118,7 +118,7 @@ def keep_original(home, raw):
 
 def check_import(target):
     report = json.loads((target / 'import.json').read_text())
-    if report.get('importer') != 'arena-import/7' or not report.get('files'):
+    if report.get('importer') != 'arena-import/8' or not report.get('files'):
         raise project_index.InputError('Local import needs replacing. Choose your original copy again.')
     for name, digest in report['files'].items():
         if Path(name).name != name or '\\' in name or name in {'.', '..'}:
@@ -141,7 +141,7 @@ def save_selection(home, target):
 def selected(home):
     try:
         name = json.loads((home / 'selected.json').read_text())['arena']
-        if not isinstance(name, str) or Path(name).name != name or not name.startswith('arena-v7-'):
+        if not isinstance(name, str) or Path(name).name != name or not name.startswith('arena-v8-'):
             return None
         target = home / name
         check_import(target)

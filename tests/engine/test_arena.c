@@ -20,7 +20,9 @@ int main(void) {
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\nsprite 2 0 0 0 7\n"));
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\ndevice 10 0 0 16 16 7\n"));
     CHECK(load("FFARENA 1\nspawn 100 100\nspawn 200 100\ndevice 9 100 200 48 16 4\npath 0 50 200 1 -1\n"));
-    CHECK(ff_device_position(&arena,0,50).x==50);
+    {static FF_Game g;ff_game_init(&g,&arena,1);uint8_t in[FF_PLAYERS]={0};
+     for(int i=0;i<50;++i) ff_game_tick(&g,&arena,in);
+     CHECK(ff_device_position(&arena,&g,0).x==50);}
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\npath 0 50 200 1 -1\n"));
     CHECK(!load("FFARENA 1\nspawn 100 100\nspawn 200 100\ndevice 9 100 200 48 16 4\npath 0 100 100 1 -1\n"));
     CHECK(load("FFARENA 1\nspawn 100 100\nspawn 200 100\nbonus 120 150\nhazard 3 0 12\nblast 13\nsound 7 14\n"));

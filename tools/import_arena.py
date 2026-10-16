@@ -337,7 +337,14 @@ def import_lines(files, docs, frame):
             low, high = left[-1][2]-hx-px0, right[0][1]-hx-px1
             if not low <= x-hx <= high or low >= high:
                 raise ValueError('moving platform overlaps its reverse markers at start')
-            lines.append(f'path {device_count} {low} {high} 1 -1')
+            # A Changer on the platform at the start sends it left; the others go right.
+            def touches(n, cx, cy, cd):
+                if n != 'Changer' or ('Changer', 2) not in global_names:
+                    return False
+                c0, c1, c2, c3 = active_bounds(n, cd)
+                return cx+c0 <= x+px1 and cx+c2 >= x+px0 and cy+c1 <= y+py1 and cy+c3 >= y+py0
+            heading = -1 if any(touches(*placement) for placement in active_placements) else 1
+            lines.append(f'path {device_count} {low} {high} 1 {heading}')
         device_count += 1
 
     for kind, name in enumerate(('', 'IceGun', 'Flame Thrower', 'Rocket Launcher', 'Health 25', 'Jetpack')):
@@ -361,6 +368,13 @@ def import_lines(files, docs, frame):
                 ax, ay = map(signed16, info['action_point_raw_u16'])
                 hx, hy = map(signed16, info['hot_spot_raw_u16'])
                 lines.append(f'muzzle {player} {kind} {int(d["id"] == 16)} {ax-hx} {ay-hy-16}')
+    for name in ('P1 fly', 'P2 fly'):
+        if (name, 2) in global_names:
+            for d in next((a['directions'] for a in animations(name) if a['id'] == 0), []):
+                if d['id'] in (0, 16) and d['image_ids']:
+                    image_info(d['image_ids'][0])
+                    lines.append(f'jetpack {int(d["id"] == 16)} {d["image_ids"][0]}')
+            break
     if ('Bubble', 2) in global_names:
         for popping, anim_id in ((0, 0), (1, 12)):
             found = sequence('Bubble', anim_id)
@@ -531,7 +545,7 @@ def import_arena(bundle: Path, output: Path, frame=3):
     payloads = {name: files[name] for name in sorted(wanted)}
     payloads['arena.ff'] = text.encode('ascii')
     payloads.update(levels)
-    report = {'importer': 'arena-import/7', 'source_sha256': manifest['source']['sha256'], **summary,
+    report = {'importer': 'arena-import/8', 'source_sha256': manifest['source']['sha256'], **summary,
               'fidelity': 'prototype; collision flags, timing and feel need original-game acceptance',
               'files': {name: hashlib.sha256(raw).hexdigest() for name, raw in payloads.items()}}
     payloads['import.json'] = (json.dumps(report, indent=2, sort_keys=True) + '\n').encode()
@@ -563,7 +577,7 @@ def main():
         print(f'Import refused: {error}', file=sys.stderr)
         return 2
     except Exception as error:
-        project.report_fault(type(error).__name__, version='arena-import/7', title='Arena import failed')
+        project.report_fault(type(error).__name__, version='arena-import/8', title='Arena import failed')
         print('Arena import failed; original input was not modified.', file=sys.stderr)
         return 1
     print(f'Imported frame {summary["frame"]}: {summary["layers"]} layers, {summary["spawns"]} spawn candidates, '

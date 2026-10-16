@@ -42,7 +42,7 @@ static bool weapon_line(FF_Arena *a,char *line) {
     if(slot>a->rules.weapons+1) return false;   /* slots stay contiguous: they are pickup kinds */
     FF_Weapon w=a->weapons[slot];
     if(slot>a->rules.weapons) {
-        w=(FF_Weapon){"WEAPON",60,0,100,6,0,0,10,10,20,0,0,0,0,1,0,1,-1,-1,-1};
+        w=(FF_Weapon){"WEAPON",60,0,100,6,0,0,10,10,20,0,0,0,0,1,0,1,-1,-1,-1,0};
     }
     for(char *token=strtok(rest," \t\r\n");token;token=strtok(NULL," \t\r\n")) {
         char *eq=strchr(token,'=');if(!eq) return false;
@@ -59,7 +59,7 @@ static bool weapon_line(FF_Arena *a,char *line) {
             {"bounces",offsetof(FF_Weapon,bounces),0,20},{"pellets",offsetof(FF_Weapon,pellets),1,8},
             {"spread",offsetof(FF_Weapon,spread),0,8},{"sound",offsetof(FF_Weapon,sound),0,FF_SOUNDS-1},
             {"shot",offsetof(FF_Weapon,shot_image),-1,FF_IMAGES-1},{"pickup",offsetof(FF_Weapon,pickup_image),-1,FF_IMAGES-1},
-            {"hand",offsetof(FF_Weapon,hand_image),-1,FF_IMAGES-1},
+            {"hand",offsetof(FF_Weapon,hand_image),-1,FF_IMAGES-1},{"recoil",offsetof(FF_Weapon,recoil),-100,100},
         };
         bool known=false;
         for(size_t i=0;i<sizeof(fields)/sizeof(fields[0]);++i) if(!strcmp(key,fields[i].key)) {

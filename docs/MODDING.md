@@ -91,6 +91,7 @@ names; a new slot starts from a plain gun.
 | `life` | ticks before the shot ends | 100 |
 | `damage` | health taken on a hit | 6 |
 | `knock`, `lift` | push away and up on a hit (eighths of a pixel per tick) | 6, -7 |
+| `recoil` | pushes the shooter back on every shot (eighths of a pixel per tick) | 4 (rocket: 15) |
 | `cooldown` | ticks between shots | 8 |
 | `ammo`, `max` | shots a pickup gives, most you can carry | 25, 50 |
 | `homing` | turns this many steps per tick toward the nearest opponent | 0 (rocket: 1) |
@@ -104,7 +105,7 @@ names; a new slot starts from a plain gun.
 ### Picture numbers
 
 Numbers 0-1023 are the original game's pictures from the player's own import;
-the import directory (`~/.local/share/funny-furries/arena-v7-…`, or
+the import directory (`~/.local/share/funny-furries/arena-v8-…`, or
 `%LOCALAPPDATA%\funny-furries\…` on Windows) has them as `image-21-<number>.png`
 for you to look at. A replacement keeps the original's hot spot unless you give one.
 

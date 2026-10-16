@@ -139,7 +139,7 @@ class ArenaImportTests(unittest.TestCase):
                 docs['frame-layout.json']['frames'][0]['placements'][0]['records'].append({'raw_hex': raw.hex()})
             text, _, report = arena.import_lines(files, docs, 0)
             self.assertIn('device 9 196 300 32 16 2', text)
-            self.assertIn('path 0 127 365 1 -1', text)
+            self.assertIn('path 0 127 365 1 1', text)
             self.assertEqual(report['devices'], 1)
 
     def test_hidden_platform_direction_and_changer(self):
@@ -231,7 +231,7 @@ class ArenaImportTests(unittest.TestCase):
              patch.object(arena, 'import_arena', side_effect=OSError('private path/token')), \
              patch.object(arena.project, 'report_fault') as reporter:
             self.assertEqual(arena.main(), 1)
-        reporter.assert_called_once_with('OSError', version='arena-import/7', title='Arena import failed')
+        reporter.assert_called_once_with('OSError', version='arena-import/8', title='Arena import failed')
 
     @unittest.skipUnless(os.environ.get('FF_NATIVE_GAME'), 'native binary not supplied')
     def test_real_renderer_with_synthetic_import(self):
@@ -258,7 +258,7 @@ class ArenaImportTests(unittest.TestCase):
             for record in ('sprite 0 0', 'device 12 ', 'bonus ', 'hazard 3 ', 'blast ', 'fire 0 ', 'fire 1 ', 'muzzle 0 3 0 23 -11', 'muzzle 0 3 1 -23 -11', 'blastbox 0 -10 -10 20 20', 'sound 7 '):
                 self.assertIn(record, text)
             self.assertEqual(report['devices'], 38)
-            self.assertIn('path 16 352 688 1 -1', text)
+            self.assertIn('path 16 352 688 1 1', text)
             self.assertEqual(report['collision_markers'], 58)
             # The original's other nine levels, the event sounds and the shooting hand's timing.
             self.assertEqual(report['levels'], [4, 5, 6, 7, 8, 9, 10, 11, 12])

@@ -1,5 +1,23 @@
 # Notes
 
+**Current — 2026-10-16, 0.7.0: Jan's play-test of 0.6.0 (`t_mvbjl16p103j74` + `t_mvbjmho912loue`, `t_mvbjo2vu13mfbh`,
+`t_mvbjp82314bt1p`, `t_mvbjqnni15dkcu`, Opus):** method: compact dump of frame/global rows with names. Global event object
+refs are `0x4000|n` where n-1 indexes the global program's own object table (auxiliary block, 104-byte entries from
+offset 1046, `<name>:fs64-@:<kind>`), NOT the global object list; local refs <0x4000 are frame slots. Condition flags2 bit 0
+= NOT. Findings → changes: Bubble (frame rows 2-4, global 337-351): underwater fan (Changer-marked) shoots one at speed 3
+every 12+rand(12) ticks while <16 exist, +1 px up every 4 ticks (altB), +1 up/tick in Wind up, Wind R/L latch ±2 px/tick,
+destroyed on the Water surface object or backdrop, pop anim 12 only on touching a body → main.c `struct Bubbles`, a
+cosmetic simulation outside the game state. mph (global 313-335): ±1 px/tick by altA, Changer at start → left (altA=1)
+else right, reverse markers turn, mph-vs-mph collision → action 33 (taken as turn away) → FF_Game platform_x/dir/dx
+(hashed), same `image` = same kind collides; importer `arena-import/8` writes the heading. Sensors (rows 6-12): P1h lower
+body, P1u head (-26..-15), P1r/P1l side (+4..+12 / -12..-4, rows -21..-8), P1 wall; NOT P1u & P1h in backdrop → lift 2/tick,
+walls stop only via side sensors → `step_up` ≤8 px. Rows 258-263: feet on other's head sensor while falling → Y=other-26.
+Recoil rows 14/16: DirCalc push shooter opposite by 4 (ice) / 15 (rocket) → `FF_Weapon.recoil`, mod key. Bomb image 59 is
+10x10 with hot spot 5,5 → bounce on bottom edge. P1 fly/P2 fly shown while Fuel>0 → `jetpack` lines (images 363/364).
+Rockets: original row only tests backdrop; Jan's report says they must not go down through one-way tops → shots with vy>0
+stop on a platform top edge. Not verified against a Wine run; action 33 meaning and the Bubble -20 condition unproven.
+Tests: second_playtest in test_game.c with negative controls for each change. Next version > 0.7.0.
+
 **Current — 2026-10-16, 0.6.0: Jan's play-test of 0.5.0 (`t_mvbh783vldrdh` + follow-ups `t_mvbh7s6lmzmwh`,
 `t_mvbhe67ipk9s0`, `t_mvbhk46lq6zvl`, `t_mvbhm0rwrlbwr`, `t_mvbhq1d9sp9zg`, Opus):**
 Evidence from frame-3 events (tool: /tmp scripts, method = group rows by object name, actions -2/0 = play
