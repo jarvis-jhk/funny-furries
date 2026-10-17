@@ -19,6 +19,11 @@ only <100, fuel <300, ice when weapon<2 & ammo<50, rocket when weapon∈{0,2} & 
 `wants()`. (7) Explosion rows 373-382: push 50 on both axes, no invulnerability condition; our additive push left a
 furry falling at 8 px/tick still falling → the throw now replaces a slower speed and ignores blinking. Not verified
 against a Wine run: smoke position/motion, music timbres (no listening possible here), flame climb depth.
+Released https://github.com/jarvis-jhk/funny-furries/releases/tag/v0.8.0 (tag = 601750d): native 38984807688, exporter
+38984807653, packages 38984873002, rev-parse 601750d1 in logs. Downloaded Linux package: real ZIP import (21 s, stage lines
+on stderr) identical to local (arena-v9, both MIDIs), 10000 ticks fe838133 (level 1) / 1678b311 (level 3) = local build,
+repeat start 0.33 s; archives audited; assets re-downloaded, SHA256SUMS OK; mod ZIPs byte-identical to 0.7.0. Evidence
+agent `data/furries/v080-release/`. Next version > 0.8.0.
 
 **Current — 2026-10-16, 0.7.0: Jan's play-test of 0.6.0 (`t_mvbjl16p103j74` + `t_mvbjmho912loue`, `t_mvbjo2vu13mfbh`,
 `t_mvbjp82314bt1p`, `t_mvbjqnni15dkcu`, Opus):** method: compact dump of frame/global rows with names. Global event object
