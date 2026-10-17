@@ -1,5 +1,8 @@
 # Notes
 
+**CI 2026-10-17 (t_mvc6495210p5a5):** the rerun (attempt 2) of 39018411832 failed too, this time `test_3_ranked_1v1` timeout, same
+known libwarpzone shapes; not rerun again because main 4840983 (run 39019050189) is green on the same code. Waits for libwarpzone 0.1.3.
+
 **CI 2026-10-17 (t_mvc5s5roywtfo):** main cfd5985 run 39018411832 failed in Warpzone `test_4_ranked_ffa` (timeout), the known
 libwarpzone shapes again: host saw Tester3+Tester2 join but Tester0 got PEER_LEFT for the host, Tester2/Tester3 got ROOM_CLOSED while
 the host kept ROOM OPEN. Already filed (t_mvc4macrq7ykb, t_mvc5ffe8wno81), fixes ship in 0.1.3 (schedule 06e01937); failed job rerun.
