@@ -1,10 +1,20 @@
-# Funny Furries 0.7.0 — closer to the original
+# Funny Furries 0.8.0 — music and Jan's 0.7.0 play-test
 
 This preview plays all ten of the original's arenas with two to four players on
 controllers or the two keyboard layouts, free for all or 2 vs 2, on one screen or
 online. Movement, weapons and devices are based on the original, with approximate
 timing and collision details. It is not the complete original game. Automatic
 updates are not included yet.
+
+New in 0.8.0 (Jan's play-test of 0.7.0, checked against the original's event rows):
+the original's music, title song in the menus and game song in a match, played by a
+small built-in synthesizer (M switches it off and on); the first start shows a
+progress window while it imports your copy, instead of seeming not to start; fire
+from the flamethrower passes through walls; the jetpack puffs smoke while it fires;
+explosions throw harder, a furry falling onto a bomb is thrown up instead of only
+slowed; health, fuel and weapons are only picked up when they change something, as
+in the original; the pause text sits in the middle of the screen. The first start
+after the update imports your copy once more by itself.
 
 New in 0.7.0 (fixes from Jan's play-test of 0.6.0, checked against the original's
 event rows): bubbles from underwater fans look and move like the original's (a
@@ -158,7 +168,7 @@ unsupported game copies are not reported.
 5. Keep the live ntfy → issue → maintenance-queue relay running, with the private
    queue URL only in its local config. No new scheduler job is needed. A controlled
    anonymous transport probe must be received, deduplicated and cleaned up.
-6. Tag only that tested source (`v0.7.0` for the closer-to-the-original release), push the tag,
+6. Tag only that tested source (`v0.8.0` for the music release), push the tag,
    and upload the already checked binary/source archives, the example mod ZIPs
    (`mods/pack.py`) and SHA256SUMS as a GitHub prerelease. Confirm the release is published and
    every uploaded asset downloads with the expected hash. Record remaining human

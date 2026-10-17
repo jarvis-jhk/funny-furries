@@ -28,7 +28,8 @@ slash jetpack. Red: F/H move, T jump, Z punch, A weapon, Q jetpack. Every contro
 stick/D-pad, A jump, X punch, B/right trigger weapon, Y/left trigger jetpack.
 Controllers take seats 1-4 in connection order, so pads 3 and 4 play green and
 yellow. Start pauses, Back or Escape returns to the menu, P pauses, R resets the
-match, F1 shows controls, Escape in the menu exits. Focus loss pauses and clears
+match, M switches the music on or off (`--no-music` starts without it), F1 shows
+controls, Escape in the menu exits. Focus loss pauses and clears
 keyboard state. Unplugging a pad keeps the other seats and a newly connected pad
 takes the free seat. A furry that loses its three lives stays out until the round
 ends; the last furry (or team) standing scores a win.
@@ -178,15 +179,23 @@ uses one direction step per tick. This is an event-based approximation pending
 measured original turn-rate/speed comparison. Vertical and diagonal shots use
 pixel substeps, including one-pixel walls, and preserve fractional displacement.
 
-The flamethrower leaves falling fire that stops on terrain and burns for about
-250 ticks, then fades. Contact costs four health every six ticks, shared across
+The flamethrower leaves falling fire that passes through walls, as in the original,
+settles on one-way tops or on the ground (a flame that fell into the ground climbs up
+to 16 pixels back out) and burns for about 250 ticks, then fades. Contact costs four health every six ticks, shared across
 all overlapping flames. Settled fire can also burn its owner. Ice deals six
 health and pushes back/up; it does not disable the victim's controls. Fists add
-22/8 horizontal and 12/8 upward velocity; ice adds 6/8 and 7/8; explosions push
-50/8 away on both axes. External impulses decay instead of being immediately
+22/8 horizontal and 12/8 upward velocity; ice adds 6/8 and 7/8; explosions throw
+50/8 away on both axes, replacing a slower speed (a furry falling onto a bomb goes
+up), also while a furry is still blinking. External impulses decay instead of being immediately
 clamped to running speed. These changes follow frame rows 12–25/40–43 and global
 rows 373–396. Fire shape, fall motion and fade duration are approximations; its
 original 250 counter and six-tick damage gate are retained.
+
+Bonuses are only collected when they change something (the original's rows 54-63):
+health below 100, fuel below 300, and a weapon only with empty hands or the same
+weapon short of full ammo. While the jetpack fires it leaves a smoke puff with its
+sound every fifth tick. The menus play the original's title song and matches its
+game song, through a small built-in synthesizer (no sound font needed).
 
 New imports include the original looping and ending flame animation frames.
 Existing local imports continue to work with their single flame image; reimport

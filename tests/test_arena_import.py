@@ -231,7 +231,7 @@ class ArenaImportTests(unittest.TestCase):
              patch.object(arena, 'import_arena', side_effect=OSError('private path/token')), \
              patch.object(arena.project, 'report_fault') as reporter:
             self.assertEqual(arena.main(), 1)
-        reporter.assert_called_once_with('OSError', version='arena-import/8', title='Arena import failed')
+        reporter.assert_called_once_with('OSError', version='arena-import/9', title='Arena import failed')
 
     @unittest.skipUnless(os.environ.get('FF_NATIVE_GAME'), 'native binary not supplied')
     def test_real_renderer_with_synthetic_import(self):

@@ -85,6 +85,7 @@ typedef struct {
     int pickup_images[6], shot_images[4];
     FF_Point muzzles[2][4][2];
     int sound_ids[FF_SOUNDS];
+    int music_ids[2];   /* the title and the game song, -1 when the import has none */
     FF_Point bonuses[FF_SPAWNS]; int bonus_count;
     FF_Sequence hazard_sprites[3][2], blast_sprite, fire_sprites[2];
     FF_Box blast_boxes[FF_ANIM_FRAMES];
@@ -94,6 +95,7 @@ typedef struct {
     FF_Sequence device_sprites[FF_WIND_UP+1][2], pickup_sprites[6];
     FF_Sequence bubble_sprites[2];   /* rising, popping: drawing only */
     FF_Sequence jetpack[2];          /* worn on the back while there is fuel; drawing only */
+    FF_Sequence smoke;               /* the puffs a flying jetpack leaves; drawing only */
     FF_Weapon weapons[FF_WEAPONS]; FF_Rules rules;
     FF_Hud hud;
     bool imported;
@@ -102,6 +104,7 @@ typedef struct {
     int32_t x, y, vx, vy;
     int facing, health, lives, score, fuel, weapon, ammo;
     int grounded, cooldown, punch_ticks, invulnerable, burn_wait, respawn, bounce_wait;
+    int puff_wait;   /* ticks until the flying jetpack puffs smoke again */
     uint8_t previous;
     int active, team;
 } FF_Player;
@@ -110,6 +113,9 @@ typedef struct { int x, y, kind, active, timer; } FF_Pickup;
 /* bounce: the speed a bouncing bomb leaves the floor with next; it shrinks each time. */
 typedef struct { int32_t x, y, vx, vy; int kind, life, grounded, bounce; } FF_Hazard;
 typedef struct { int32_t x, y; int life; unsigned hit; } FF_Blast;
+/* A puff of jetpack smoke: the furry's body point and facing when it left the pack; drawing only. */
+typedef struct { int16_t x, y; int8_t facing; uint32_t tick; } FF_Puff;
+#define FF_PUFFS 16
 typedef struct {
     FF_Player players[FF_PLAYERS];
     FF_Shot shots[FF_SHOTS];
@@ -125,6 +131,7 @@ typedef struct {
     /* Ticks a bouncer last fired and a player last shot or punched; drawing only,
      * so they stay out of the hash. */
     uint32_t device_hit[FF_DEVICES], fired[FF_PLAYERS], punched[FF_PLAYERS];
+    FF_Puff puffs[FF_PUFFS]; int puff_next;
 } FF_Game;
 void ff_arena_practice(FF_Arena *a);
 int ff_pickup_kinds(const FF_Arena *a);

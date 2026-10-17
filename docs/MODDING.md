@@ -96,7 +96,7 @@ names; a new slot starts from a plain gun.
 | `ammo`, `max` | shots a pickup gives, most you can carry | 25, 50 |
 | `homing` | turns this many steps per tick toward the nearest opponent | 0 (rocket: 1) |
 | `blast` | 1: explodes where it ends | 0 (rocket: 1) |
-| `flame` | settles on floors and burns this much per touch instead of hitting | 0 (flames: 4) |
+| `flame` | passes through walls, settles on floors and burns this much per touch instead of hitting | 0 (flames: 4) |
 | `bounces` | walls and floors it bounces off before it ends | 0 |
 | `pellets`, `spread` | shots per pull of the trigger, fanned out by `spread` of 32 directions | 1, 0 |
 | `sound` | sound slot | 1 |

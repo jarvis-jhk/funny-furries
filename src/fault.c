@@ -11,8 +11,8 @@ static char endpoint[2048];
 #include <errno.h>
 static int courier=-1;
 #endif
-static const char runtime_payload[]="{\"lane\":\"furries\",\"kind\":\"bug\",\"title\":\"Game runtime failed\",\"detail\":\"native-runtime-fault\",\"source\":\"funny-furries/0.7.0 native-desktop\"}";
-static const char crash_payload[]="{\"lane\":\"furries\",\"kind\":\"bug\",\"title\":\"Game process crashed\",\"detail\":\"native-process-signal\",\"source\":\"funny-furries/0.7.0 native-desktop\"}";
+static const char runtime_payload[]="{\"lane\":\"furries\",\"kind\":\"bug\",\"title\":\"Game runtime failed\",\"detail\":\"native-runtime-fault\",\"source\":\"funny-furries/0.8.0 native-desktop\"}";
+static const char crash_payload[]="{\"lane\":\"furries\",\"kind\":\"bug\",\"title\":\"Game process crashed\",\"detail\":\"native-process-signal\",\"source\":\"funny-furries/0.8.0 native-desktop\"}";
 #ifndef _WIN32
 static void notify_courier(char code) {
     if(courier>=0) {

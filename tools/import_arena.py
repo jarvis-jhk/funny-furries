@@ -375,6 +375,11 @@ def import_lines(files, docs, frame):
                     image_info(d['image_ids'][0])
                     lines.append(f'jetpack {int(d["id"] == 16)} {d["image_ids"][0]}')
             break
+    if ('smoke', 2) in global_names:
+        # The puffs the original's fly object leaves while the jetpack fires (frame rows 26/27).
+        found = sequence('smoke', 0, 16)
+        if found:
+            lines += [f'smoke {found[0]} {image}' for image in found[1]]
     if ('Bubble', 2) in global_names:
         for popping, anim_id in ((0, 0), (1, 12)):
             found = sequence('Bubble', anim_id)
@@ -425,6 +430,13 @@ def import_lines(files, docs, frame):
             hx, hy = map(signed16, info['image']['hot_spot_raw_u16'])
             lines.append(f'hot {ident} {hx} {hy}')
 
+    # The title frame plays music 0, every arena music 1, both looping (frame rows "play music").
+    for bank in docs['audio-manifest.json']['banks']:
+        if bank['kind'] == 'music' and bank['segment_id'] == 22:
+            for entry in bank['entries']:
+                if entry['id'] in (0, 1) and entry['file'].endswith('.mid'):
+                    wanted.add(entry['file'])
+                    lines.append(f'music {entry["id"]} {entry["id"]}')
     sounds = {}
     for bank in docs['audio-manifest.json']['banks']:
         if bank['kind'] == 'sound':
@@ -545,7 +557,7 @@ def import_arena(bundle: Path, output: Path, frame=3):
     payloads = {name: files[name] for name in sorted(wanted)}
     payloads['arena.ff'] = text.encode('ascii')
     payloads.update(levels)
-    report = {'importer': 'arena-import/8', 'source_sha256': manifest['source']['sha256'], **summary,
+    report = {'importer': 'arena-import/9', 'source_sha256': manifest['source']['sha256'], **summary,
               'fidelity': 'prototype; collision flags, timing and feel need original-game acceptance',
               'files': {name: hashlib.sha256(raw).hexdigest() for name, raw in payloads.items()}}
     payloads['import.json'] = (json.dumps(report, indent=2, sort_keys=True) + '\n').encode()
@@ -577,7 +589,7 @@ def main():
         print(f'Import refused: {error}', file=sys.stderr)
         return 2
     except Exception as error:
-        project.report_fault(type(error).__name__, version='arena-import/8', title='Arena import failed')
+        project.report_fault(type(error).__name__, version='arena-import/9', title='Arena import failed')
         print('Arena import failed; original input was not modified.', file=sys.stderr)
         return 1
     print(f'Imported frame {summary["frame"]}: {summary["layers"]} layers, {summary["spawns"]} spawn candidates, '

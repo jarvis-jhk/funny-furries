@@ -4,6 +4,7 @@
 #include "netplay.h"
 #include "wz.h"
 #include "mod.h"
+#include "music.h"
 #include <SDL_image.h>
 #include <SDL_mixer.h>
 #include <stdio.h>
@@ -19,7 +20,25 @@ typedef struct {
     const char *assets; const FF_Mods *mods;
     int levels[16], level_count;   /* the import's other original levels, by frame number */
     struct Bubbles *bubbles;
+    FF_Song songs[2]; int song; bool music;   /* the original's title and game songs; song -1: silence */
 } App;
+static void play_song(void *user,Uint8 *stream,int bytes) {
+    App *app=user;
+    memset(stream,0,(size_t)bytes);
+    if(app->song>=0) ff_song_render(&app->songs[app->song],(int16_t *)stream,bytes/4,0.6f);
+}
+/* Title music in the menus, the game song in a match, as in the original's frames. */
+static void choose_song(App *app,bool menu) {
+    if(!app->audio) return;
+    int want=!app->music?-1:menu?0:1;
+    if(want>=0&&!app->songs[want].count) want=-1;
+    if(want==app->song) return;
+    /* Unhooking takes the mixer's lock, so the audio thread is out of the songs here. */
+    Mix_HookMusic(NULL,NULL);
+    if(want>=0) ff_song_restart(&app->songs[want]);
+    app->song=want;
+    Mix_HookMusic(play_song,app);
+}
 /* A mod's own file wins; otherwise the player's imported original. */
 static bool image_path(const App *app,int id,char *path,size_t capacity) {
     if(id<0||id>=FF_IMAGES) return false;
@@ -364,6 +383,17 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
         sprite(app,a,id,pos.x+a->hot_x[d->image],pos.y+a->hot_y[d->image]);
     }
     draw_bubbles(app,a,g);
+    /* Jetpack smoke leaves the bottom of the pack, stays there and plays its six frames
+     * once (the frames themselves sink). Where the original puts it is not decoded; the
+     * pack's own picture gives the spot. */
+    if(a->smoke.count) for(int i=0;i<FF_PUFFS;++i) {
+        const FF_Puff *puff=&g->puffs[i];uint32_t age=g->tick-puff->tick;
+        if(!puff->tick||age>=sequence_ticks(&a->smoke)) continue;
+        int x=puff->x,y=puff->y;const FF_Sequence *pack=&a->jetpack[puff->facing<0];
+        Image *im=pack->count?load_image(app,pack->image[0]):NULL;
+        if(im) {x+=im->w/2-a->hot_x[pack->image[0]];y+=im->h-a->hot_y[pack->image[0]]-4;}
+        sprite(app,a,a->smoke.image[ff_sequence_frame(&a->smoke,age,false)],x,y);
+    }
     for(int i=0;i<FF_HAZARDS;++i) {
         const FF_Hazard *h=&g->hazards[i];if(!h->life) continue;
         const FF_Sequence *seq=&a->hazard_sprites[h->kind-1][h->vx<0];
@@ -420,15 +450,15 @@ static void draw(App *app,const FF_Arena *a,const FF_Game *g,bool help,bool paus
     }
     hud(app,a,g);
     if(help||paused||g->winner>=0) {
-        color(app,12,20,33);rect(app,90,160,620,270);color(app,232,242,250);
+        color(app,12,20,33);rect(app,90,165,620,270);color(app,232,242,250);
         if(help) draw_help(app);
-        else if(paused) centered(app,270,4,"PAUSED - P TO PLAY");
+        else if(paused) centered(app,FF_H/2-10,4,"PAUSED - P TO PLAY");
         else {
             char s[64];
             if(g->winner==FF_DRAW) snprintf(s,sizeof(s),"DRAW");
             else if(g->winner>=FF_TEAM_WIN) snprintf(s,sizeof(s),"TEAM %s WINS",g->winner==FF_TEAM_WIN?"BLUE":"RED");
             else snprintf(s,sizeof(s),"%s WINS",seat_name[g->winner]);
-            centered(app,252,4,s);centered(app,302,2,"NEXT ROUND STARTS SHORTLY");
+            centered(app,270,4,s);centered(app,320,2,"NEXT ROUND STARTS SHORTLY");
         }
     }
 }
@@ -450,7 +480,7 @@ static void draw_help(App *app) {
             text(app,125,292,2,"      SHIFT FIRE  / JETPACK");
             text(app,125,324,2,"PAD   STICK MOVE  A JUMP  X PUNCH");
             text(app,125,346,2,"      B/RT FIRE  Y/LT JETPACK");
-            text(app,125,382,2,"ESC/BACK MENU  F1 CLOSE");
+            text(app,125,382,2,"ESC/BACK MENU  M MUSIC  F1 CLOSE");
 }
 typedef struct { unsigned joined; int mode, arena, arenas; uint8_t previous[FF_PLAYERS]; } Lobby;
 static bool seat_usable(const FF_Input *in,int seat) {return seat<2||ff_input_has_pad(in,seat);}
@@ -626,8 +656,9 @@ static bool assets_ready(App *app,const FF_Arena *a) {
     for(int i=0;i<a->device_count;++i) if(a->devices[i].image>=0&&!load_image(app,a->devices[i].image)) return false;
     for(int i=1;i<6;++i) if(a->pickup_images[i]>=0&&!load_image(app,a->pickup_images[i])) return false;
     for(int i=1;i<4;++i) if(a->shot_images[i]>=0&&!load_image(app,a->shot_images[i])) return false;
-    const FF_Sequence *more[FF_WIND_UP*2+5+4+4];int n=0;
+    const FF_Sequence *more[FF_WIND_UP*2+5+4+5];int n=0;
     for(int k=0;k<2;++k) {more[n++]=&a->jetpack[k];more[n++]=&a->bubble_sprites[k];}
+    more[n++]=&a->smoke;
     for(int k=1;k<=FF_WIND_UP;++k) {more[n++]=&a->device_sprites[k][0];more[n++]=&a->device_sprites[k][1];}
     for(int k=1;k<6;++k) more[n++]=&a->pickup_sprites[k];
     for(int k=0;k<4;++k) more[n++]=&a->hud.weapon[k];
@@ -724,13 +755,14 @@ static bool parse_ticks(const char *s,int *ticks) {
 int main(int argc,char **argv) {
     /* Start-up stages, reported only when the first frame is slow to come. */
     uint32_t started=ff_net_ms(),stage[4]={0};
-    const char *mod_dirs[16];int mod_dir_count=0,arena_index=0,level_number=0;bool no_mods=false;
+    const char *mod_dirs[16];int mod_dir_count=0,arena_index=0,level_number=0;bool no_mods=false,no_music=false;
     const char *data=NULL,*screenshot=NULL,*join=NULL,*wz_code=NULL,*ranked=NULL;bool wz_host=false;int ticks=0,players=2,local_players=0;bool auto_play=false,fullscreen=false,teams=false,show_lobby=false,host=false;
     for(int i=1;i<argc;++i) {
         if(!strcmp(argv[i],"--fullscreen")) fullscreen=true;
         else if(!strcmp(argv[i],"--data")&&i+1<argc) data=argv[++i];
         else if(!strcmp(argv[i],"--mod")&&i+1<argc&&mod_dir_count<16) mod_dirs[mod_dir_count++]=argv[++i];
         else if(!strcmp(argv[i],"--no-mods")) no_mods=true;
+        else if(!strcmp(argv[i],"--no-music")) no_music=true;
         else if(!strcmp(argv[i],"--arena")&&i+1<argc&&parse_ticks(argv[i+1],&arena_index)) ++i;
         else if(!strcmp(argv[i],"--level")&&i+1<argc&&parse_ticks(argv[i+1],&level_number)) ++i;
         else if(!strcmp(argv[i],"--smoke")&&i+1<argc&&parse_ticks(argv[i+1],&ticks)) {++i;auto_play=true;}
@@ -746,7 +778,7 @@ int main(int argc,char **argv) {
         else if(!strcmp(argv[i],"--warpzone-code")&&i+1<argc) wz_code=argv[++i];
         else if(!strcmp(argv[i],"--ranked")&&i+1<argc&&(!strcmp(argv[i+1],"1v1")||!strcmp(argv[i+1],"ffa")||!strcmp(argv[i+1],"2v2"))) ranked=argv[++i];
         else if(!strcmp(argv[i],"--local")&&i+1<argc&&argv[i+1][0]>='1'&&argv[i+1][0]<='3'&&!argv[i+1][1]) local_players=argv[++i][0]-'0';
-        else if(!strcmp(argv[i],"--help")) {puts("funny-furries [--fullscreen] [--data LOCAL_IMPORT] [--host | --join CODE] [--warpzone-host | --warpzone-join ROOM | --warpzone-code CODE | --ranked 1v1|ffa|2v2] [--local 1-3] [--mod DIR]... [--no-mods] [--arena N] [--level N] [--smoke TICKS [--players 2-4] [--teams] [--lobby]] [--screenshot FILE.bmp]\nWithout --data, play the asset-free practice arena. F1 shows controls.\n--host opens an online match and shows its join code; --join CODE joins one.\nThe --warpzone options do the same through Warpzone rooms (relay included) and its ranked queues.\nEveryone online needs the same arena import.\n--mod DIR loads a mod directory (docs/MODDING.md); without --no-mods the mods active in\nthe Warpzone launcher load too. --arena N starts on the N-th mod level, --level N on the original's level N.");return 0;}
+        else if(!strcmp(argv[i],"--help")) {puts("funny-furries [--fullscreen] [--data LOCAL_IMPORT] [--host | --join CODE] [--warpzone-host | --warpzone-join ROOM | --warpzone-code CODE | --ranked 1v1|ffa|2v2] [--local 1-3] [--mod DIR]... [--no-mods] [--no-music] [--arena N] [--level N] [--smoke TICKS [--players 2-4] [--teams] [--lobby]] [--screenshot FILE.bmp]\nWithout --data, play the asset-free practice arena. F1 shows controls.\n--host opens an online match and shows its join code; --join CODE joins one.\nThe --warpzone options do the same through Warpzone rooms (relay included) and its ranked queues.\nEveryone online needs the same arena import.\n--mod DIR loads a mod directory (docs/MODDING.md); without --no-mods the mods active in\nthe Warpzone launcher load too. M switches the music on and off. --arena N starts on the N-th mod level, --level N on the original's level N.");return 0;}
         else {fprintf(stderr,"Unknown or incomplete option. Use --help.\n");return 2;}
     }
     if(teams&&players!=4) {fprintf(stderr,"--teams needs --players 4.\n");return 2;}
@@ -776,7 +808,7 @@ int main(int argc,char **argv) {
     stage[0]=ff_net_ms();
     if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_AUDIO)<0) goto fail;
     if(!(IMG_Init(IMG_INIT_PNG)&IMG_INIT_PNG)) goto fail;
-    app.window=SDL_CreateWindow("Funny Furries 0.7.0 - test release",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1000,750,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
+    app.window=SDL_CreateWindow("Funny Furries 0.8.0 - test release",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1000,750,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
     if(!app.window) goto fail;
     app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
     if(!app.renderer) app.renderer=SDL_CreateRenderer(app.window,-1,SDL_RENDERER_SOFTWARE);
@@ -803,6 +835,16 @@ int main(int argc,char **argv) {
         if(!app.sounds[i]) {fprintf(stderr,"Incomplete local sound import.\n");result=2;goto cleanup;}
         Mix_VolumeChunk(app.sounds[i],MIX_MAX_VOLUME/3);
     }
+    app.song=-1;app.music=!no_music&&!getenv("FF_NO_MUSIC");
+    if(app.audio&&data) {
+        int rate=44100,channels=2;Uint16 format=0;
+        /* The synthesizer writes 16-bit stereo; anything else stays silent. */
+        if(Mix_QuerySpec(&rate,&format,&channels)&&format==AUDIO_S16SYS&&channels==2) for(int k=0;k<2;++k) if(arena.music_ids[k]>=0) {
+            char path[4096];snprintf(path,sizeof(path),"%s/music-22-%d.mid",data,arena.music_ids[k]);
+            if(!ff_song_load(&app.songs[k],path,rate)) fprintf(stderr,"Cannot play the imported music %d.\n",k);
+        }
+        Mix_HookMusic(play_song,&app);
+    }
     stage[3]=ff_net_ms();
     ff_input_init(&app.input);
     ff_game_setup(&game,&arena,12345,(1u<<players)-1,teams?FF_TEAMS:FF_FFA);
@@ -810,7 +852,7 @@ int main(int argc,char **argv) {
     /* Smoke runs stay off the network unless they test Warpzone itself. */
     bool wz_asked=wz_host||wz_code||ranked||getenv("WARPZONE_JOIN")||getenv("WARPZONE_HOST");
     for(int i=1;i<argc;++i) wz_asked|=!strcmp(argv[i],"--warpzone-join")||!strncmp(argv[i],"warpzone://",11);
-    static FF_Wz wz;if(!auto_play||wz_asked) ff_wz_open(&wz,"0.7.0");
+    static FF_Wz wz;if(!auto_play||wz_asked) ff_wz_open(&wz,"0.8.0");
     wz.arena=&arena;
     bool naming=false,ranked_menu=false;char name_entry[20]="";int ranked_choice=0;uint32_t wz_deadline=0;
     if(ff_wz_launch(&wz,argc,argv)==2) wz_host=true;
@@ -926,6 +968,7 @@ int main(int argc,char **argv) {
             if(event.type==SDL_KEYDOWN&&!event.key.repeat&&online) {
                 SDL_Keycode key=event.key.keysym.sym;
                 if(key==SDLK_F1) help=!help;
+                else if(key==SDLK_m) app.music=!app.music;
                 else if(key==SDLK_ESCAPE) leave=true;
                 else if(key==SDLK_RETURN||key==SDLK_KP_ENTER) start=true;
                 else if(key==SDLK_TAB) mode_key=true;
@@ -947,6 +990,7 @@ int main(int argc,char **argv) {
             if(event.type==SDL_KEYDOWN&&!event.key.repeat) {
                 SDL_Keycode key=event.key.keysym.sym;
                 if(key==SDLK_F1) help=!help;
+                else if(key==SDLK_m) app.music=!app.music;
                 else if(in_lobby&&key==SDLK_h) {
                     int local=seat_count(lobby.joined);
                     if(wz.online&&!getenv("FF_NET_LAN_ONLY")) ff_wz_host(&wz,local?local:1,lobby.mode);
@@ -1061,6 +1105,7 @@ int main(int argc,char **argv) {
             if(auto_play&&game.tick>=(uint32_t)ticks) {running=false;break;}
         }
         if(SDL_SetRenderTarget(app.renderer,app.scene)<0) goto fail;
+        choose_song(&app,!(np.phase==FF_NP_PLAYING||(np.phase==FF_NP_OFF&&!wz_screen&&!ranked_menu&&!entering&&!in_lobby)));
         if(np.finished&&np.phase!=FF_NP_OFF) {draw(&app,&arena,&np.rb.state,false,false);draw_result(&app,&np,&wz);}
         else if(np.phase==FF_NP_PLAYING) {
             draw(&app,&arena,&np.rb.state,help,false);draw_net_overlay(&app,&np,&wz);
@@ -1103,7 +1148,8 @@ cleanup:
     for(int i=0;i<FF_IMAGES;++i) if(app.images[i].texture) SDL_DestroyTexture(app.images[i].texture);
     for(int i=0;i<FF_SOUNDS;++i) if(app.sounds[i]) Mix_FreeChunk(app.sounds[i]);
     ff_mods_free(&mods);
-    if(app.audio) Mix_CloseAudio();
+    if(app.audio) {Mix_HookMusic(NULL,NULL);Mix_CloseAudio();}
+    for(int k=0;k<2;++k) ff_song_free(&app.songs[k]);
     if(app.scene) SDL_DestroyTexture(app.scene);
     if(app.backdrop) SDL_DestroyTexture(app.backdrop);
     if(app.renderer) SDL_DestroyRenderer(app.renderer);

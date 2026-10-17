@@ -8,6 +8,7 @@ static FF_Arena arena;
 static void tick(FF_Game *g,int a,int b,int n) {uint8_t in[FF_PLAYERS]={(uint8_t)a,(uint8_t)b};while(n--) ff_game_tick(g,&arena,in);}
 static void restart(FF_Game *g) {ff_game_init(g,&arena,1);memset(g->pickups,0,sizeof(g->pickups));for(int i=0;i<2;++i) g->players[i].invulnerable=0;}
 static void clean(FF_Game *g) {ff_arena_practice(&arena);arena.bonus_count=0;restart(g);}
+static void place(FF_Game *g,int i,int x) {FF_Player *p=&g->players[i];p->x=x*FF_FP;p->y=560*FF_FP;p->vx=p->vy=0;p->invulnerable=0;p->grounded=1;}
 /* Where platform 0 is after n ticks of a fresh game on the current arena. */
 static int platform_after(int n) {static FF_Game g;restart(&g);tick(&g,0,0,n);return ff_device_position(&arena,&g,0).x;}
 static void physics(void) {
@@ -123,9 +124,17 @@ static void bonuses(void) {
     g.pickups[0]=(FF_Pickup){p->x/FF_FP,544,FF_HEALTH,1,0};tick(&g,0,0,1);CHECK(p->health==100);CHECK(!g.pickups[0].active);
     g.pickups[0]=(FF_Pickup){p->x/FF_FP,544,FF_ICE,1,0};tick(&g,0,0,1);CHECK(p->weapon==FF_ICE&&p->ammo==25);
     g.pickups[0].active=1;tick(&g,0,0,1);CHECK(p->ammo==50);
+    /* Like the original, a bonus that would change nothing stays: full ice ammo, another
+     * weapon in hand, full health, a full tank. */
+    g.pickups[0]=(FF_Pickup){p->x/FF_FP,544,FF_ICE,1,0};tick(&g,0,0,1);CHECK(p->ammo==50&&g.pickups[0].active);
+    g.pickups[0]=(FF_Pickup){p->x/FF_FP,544,FF_ROCKET,1,0};tick(&g,0,0,1);CHECK(p->weapon==FF_ICE&&g.pickups[0].active);
+    CHECK(p->health==100);g.pickups[0]=(FF_Pickup){p->x/FF_FP,544,FF_HEALTH,1,0};tick(&g,0,0,1);CHECK(g.pickups[0].active);
+    p->health=99;tick(&g,0,0,1);CHECK(p->health==100&&!g.pickups[0].active);
+    p->weapon=FF_FISTS;p->ammo=0;
     g.pickups[0]=(FF_Pickup){p->x/FF_FP,544,FF_ROCKET,1,0};tick(&g,0,0,1);CHECK(p->weapon==FF_ROCKET&&p->ammo==8);
     g.pickups[0]=(FF_Pickup){p->x/FF_FP,544,FF_FUEL,1,0};tick(&g,0,0,1);CHECK(p->fuel==150);
     int y=p->y;tick(&g,FF_FLY,0,30);CHECK(p->y<y);CHECK(p->fuel==120);
+    p->fuel=300;g.pickups[0]=(FF_Pickup){p->x/FF_FP,p->y/FF_FP-16,FF_FUEL,1,0};tick(&g,0,0,1);CHECK(g.pickups[0].active&&p->fuel==300);
 }
 static void arena_devices(void) {
     FF_Game g;clean(&g);FF_Player *p=&g.players[0];
@@ -303,12 +312,11 @@ static void wind_and_bonus_regions(void) {
     g.pickup_wait=1;g.trap_wait=10000;tick(&g,0,0,1);
     CHECK(g.pickups[0].active&&g.pickups[0].x==400&&g.pickups[0].y==100);
     CHECK(g.pickup_wait>=100&&g.pickup_wait<1000);
-    p=&g.players[0];p->x=400*FF_FP;p->y=116*FF_FP;p->vy=0;
+    p=&g.players[0];p->x=400*FF_FP;p->y=116*FF_FP;p->vy=0;p->health=50;   /* any kind is wanted */
     tick(&g,0,0,1);CHECK(!g.pickups[0].active&&!g.pickups[0].kind);
     /* Consumed imported bonuses wait for the global timer, not a per-item respawn. */
     g.pickup_wait=500;tick(&g,0,0,301);CHECK(!g.pickups[0].kind);
 }
-static void place(FF_Game *g,int i,int x) {FF_Player *p=&g->players[i];p->x=x*FF_FP;p->y=560*FF_FP;p->vx=p->vy=0;p->invulnerable=0;p->grounded=1;}
 static void tick4(FF_Game *g,const uint8_t in[FF_PLAYERS],int n) {while(n--) ff_game_tick(g,&arena,in);}
 static void four_players(void) {
     FF_Game g;ff_arena_practice(&arena);arena.bonus_count=0;
@@ -456,4 +464,33 @@ static void determinism(void) {
     b.players[0].previous^=FF_JUMP;CHECK(ff_game_hash(&a)!=ff_game_hash(&b));
     printf("replay=%08x\n",ff_game_hash(&a));
 }
-int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();sensor_body_and_directional_bounces();hazards_and_blasts();imported_weapon_geometry();reference_jump();wind_and_bonus_regions();four_players();playtest_fixes();second_playtest();determinism();printf("%u game checks passed\n",checks);return 0;}
+/* Jan's play-test of 0.7.0, against the original's event rows. */
+static void third_playtest(void) {
+    FF_Game g;FF_Player *p;
+    /* Fire passes through a wall (global rows 385-388 never stop it on the backdrop)
+     * and burns on the floor behind it, on top of the ground. */
+    clean(&g);place(&g,0,360);place(&g,1,700);p=&g.players[0];p->facing=1;p->weapon=FF_FLAME;p->ammo=5;
+    for(int y=30;y<35;++y) arena.tiles[y][24]=FF_SOLID;
+    tick(&g,FF_FIRE,0,1);tick(&g,0,0,40);
+    int settled=-1;for(int i=0;i<FF_SHOTS;++i) if(g.shots[i].life&&g.shots[i].settled) settled=i;
+    CHECK(settled>=0&&g.shots[settled].x>400*FF_FP&&g.shots[settled].y/FF_FP==559);
+    /* An explosion throws a furry falling onto it upwards, and one still blinking too. */
+    clean(&g);place(&g,0,300);place(&g,1,700);p=&g.players[0];
+    p->y=500*FF_FP;p->grounded=0;p->vy=8*FF_FP;p->invulnerable=40;
+    g.blasts[0]=(FF_Blast){300*FF_FP,515*FF_FP,20,0};
+    tick(&g,0,0,1);CHECK(p->vy==-50*FF_FP/8&&!p->grounded);
+    int top=p->y;for(int i=0;i<40;++i) {tick(&g,0,0,1);if(p->y<top) top=p->y;}
+    CHECK(top<445*FF_FP);
+    /* Sideways the throw replaces a run toward the blast instead of slowing it. */
+    clean(&g);place(&g,0,300);place(&g,1,700);p=&g.players[0];p->vx=25*FF_FP/8;
+    g.blasts[0]=(FF_Blast){320*FF_FP,545*FF_FP,20,0};
+    tick(&g,FF_RIGHT,0,1);CHECK(p->vx==-50*FF_FP/8);
+    /* The flying jetpack puffs smoke with its sound every fifth tick, as the original's
+     * fly object does (frame rows 26/27). */
+    clean(&g);place(&g,0,300);place(&g,1,700);p=&g.players[0];p->fuel=100;
+    int sounds=0;for(int i=0;i<11;++i) {tick(&g,FF_FLY,0,1);sounds+=!!(g.sounds&FF_SOUND_JETPACK);}
+    int puffs=0;for(int i=0;i<FF_PUFFS;++i) puffs+=g.puffs[i].tick!=0;
+    CHECK(sounds==3&&puffs==3&&abs(g.puffs[0].x-300)<2&&g.puffs[2].tick-g.puffs[0].tick==10);
+    tick(&g,0,0,5);CHECK(!(g.sounds&FF_SOUND_JETPACK));
+}
+int main(void) {physics();melee_round();weapons();homing_rockets();persistent_flame_and_impulses();bonuses();arena_devices();marker_collision_and_paths();sensor_body_and_directional_bounces();hazards_and_blasts();imported_weapon_geometry();reference_jump();wind_and_bonus_regions();four_players();playtest_fixes();second_playtest();third_playtest();determinism();printf("%u game checks passed\n",checks);return 0;}

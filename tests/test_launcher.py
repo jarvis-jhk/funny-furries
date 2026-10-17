@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 import zipfile
 from tools import launcher
 
@@ -29,10 +29,10 @@ class LauncherTests(unittest.TestCase):
             home = Path(directory)
             (home / 'selected.json').write_text('{"arena":"../outside"}')
             self.assertIsNone(launcher.selected(home))
-            arena = home / 'arena-v8-test'
+            arena = home / 'arena-v9-test'
             arena.mkdir()
             (arena / 'arena.ff').write_bytes(b'local')
-            (arena / 'import.json').write_text('{"importer":"arena-import/8","files":{"arena.ff":"' + hashlib.sha256(b'local').hexdigest() + '"}}')
+            (arena / 'import.json').write_text('{"importer":"arena-import/9","files":{"arena.ff":"' + hashlib.sha256(b'local').hexdigest() + '"}}')
             launcher.save_selection(home, arena)
             self.assertEqual(launcher.selected(home), arena)
             (arena / 'arena.ff').write_bytes(b'damaged')
@@ -57,7 +57,7 @@ class LauncherTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
             found = home / 'Downloads' / 'funnyfurries.zip'
-            arena = home / 'arena-v8-x'
+            arena = home / 'arena-v9-x'
             with patch.dict(os.environ, {launcher.WARPZONE_DATA: str(found)}), \
                     patch.object(launcher, 'selected', return_value=None), \
                     patch.object(launcher, 'import_copy', return_value=arena) as copy, \
@@ -66,7 +66,7 @@ class LauncherTests(unittest.TestCase):
                     patch.object(launcher, 'run_game', return_value=0) as run, \
                     patch.object(launcher.sys, 'argv', ['launcher', '--home', str(home)]):
                 self.assertEqual(launcher.main(), 0)
-                copy.assert_called_once_with(found, home, None)
+                copy.assert_called_once_with(found, home, None, ANY)
                 save.assert_called_once_with(home, arena)
                 ask.assert_not_called()
                 run.assert_called_once_with(arena, [])
@@ -74,14 +74,14 @@ class LauncherTests(unittest.TestCase):
                 copy.reset_mock()
                 with patch.object(launcher.sys, 'argv', ['launcher', '--home', str(home), '--import-copy', str(found)]):
                     self.assertEqual(launcher.main(), 0)
-                copy.assert_called_once_with(found, home, None)
+                copy.assert_called_once_with(found, home, None, ANY)
                 ask.assert_not_called()
 
     def test_kept_copy_redoes_an_outdated_import_without_asking(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
             (home / launcher.KEPT).write_bytes(b'player bytes')
-            arena = home / 'arena-v8-new'
+            arena = home / 'arena-v9-new'
             os.environ.pop(launcher.WARPZONE_DATA, None)
             with patch.object(launcher, 'selected', return_value=None), \
                     patch.object(launcher, 'import_copy', return_value=arena) as copy, \
@@ -90,7 +90,7 @@ class LauncherTests(unittest.TestCase):
                     patch.object(launcher, 'run_game', return_value=0) as run, \
                     patch.object(launcher.sys, 'argv', ['launcher', '--home', str(home), '--mod', 'snow']):
                 self.assertEqual(launcher.main(), 0)
-            copy.assert_called_once_with(home / launcher.KEPT, home, None)
+            copy.assert_called_once_with(home / launcher.KEPT, home, None, ANY)
             save.assert_called_once_with(home, arena)
             ask.assert_not_called()
             run.assert_called_once_with(arena, ['--mod', 'snow'])
@@ -102,7 +102,7 @@ class LauncherTests(unittest.TestCase):
     def test_warpzone_copy_is_not_reimported_once_selected(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
-            arena = home / 'arena-v8-x'
+            arena = home / 'arena-v9-x'
             with patch.dict(os.environ, {launcher.WARPZONE_DATA: str(home / 'FF2xmas.cca')}), \
                     patch.object(launcher, 'selected', return_value=arena), \
                     patch.object(launcher, 'import_copy') as copy, \
@@ -120,7 +120,7 @@ class LauncherTests(unittest.TestCase):
             demo = home / 'funnyfurries.zip'
             with zipfile.ZipFile(demo, 'w') as stream:
                 stream.writestr('readme.txt', b'demo')
-            arena = home / 'arena-v8-chosen'
+            arena = home / 'arena-v9-chosen'
             for argv in (['launcher', '--home', str(home)],
                          ['launcher', '--home', str(home), '--import-copy', str(demo)]):
                 with patch.dict(os.environ, {launcher.WARPZONE_DATA: str(demo)}), \
@@ -154,7 +154,7 @@ class LauncherTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), before)
             self.assertTrue((target / 'arena.ff').is_file())
             self.assertFalse(list(home.glob('.import-*')))
-            self.assertEqual(len(list(home.glob('arena-v8-*'))), 1)
+            self.assertEqual(len(list(home.glob('arena-v9-*'))), 1)
             (target / 'arena.ff').write_bytes(b'damaged')
             self.assertIsNone(launcher.selected(home))
             repaired = launcher.import_copy(source, home, Path(os.environ['FF_KLIKBACK_SRC']))
@@ -163,6 +163,33 @@ class LauncherTests(unittest.TestCase):
             self.assertEqual(launcher.selected(home), repaired)
             self.assertEqual((target / 'arena.ff').read_bytes(), b'damaged')
             self.assertEqual(hashlib.sha256(source.read_bytes()).hexdigest(), before)
+
+    def test_long_import_shows_its_stages(self):
+        # Without a display the stages of a slow import go to stderr, so a first start
+        # never looks like a launch that failed; quick work shows nothing at all.
+        import io
+        from contextlib import redirect_stderr
+
+        def slow(progress):
+            progress('Extracting pictures, sounds and levels…', 0.06, 0.78)
+            time.sleep(0.9)
+            progress('Building the arenas…', 0.78, 0.97)
+            time.sleep(0.4)
+            return 'done'
+        err = io.StringIO()
+        with patch.dict(os.environ, {'DISPLAY': ''}), patch.dict('sys.modules', {'tkinter': None}), redirect_stderr(err):
+            self.assertEqual(launcher.with_progress(slow), 'done')
+            self.assertIn('Extracting pictures', err.getvalue())
+            self.assertIn('Building the arenas', err.getvalue())
+            quiet = io.StringIO()
+            with redirect_stderr(quiet):
+                self.assertEqual(launcher.with_progress(lambda progress: 7), 7)
+            self.assertEqual(quiet.getvalue(), '')
+
+            def broken(progress):
+                raise launcher.project_index.InputError('unsupported')
+            with self.assertRaises(launcher.project_index.InputError):
+                launcher.with_progress(broken)
 
 
 if __name__ == '__main__':

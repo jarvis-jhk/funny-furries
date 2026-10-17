@@ -10,6 +10,7 @@ static void asset_defaults(FF_Arena *a) {
     for(int i=0;i<6;++i) a->pickup_images[i]=-1;
     for(int i=0;i<4;++i) a->shot_images[i]=-1;
     for(int i=0;i<FF_SOUNDS;++i) a->sound_ids[i]=-1;
+    a->music_ids[0]=a->music_ids[1]=-1;
     for(int p=0;p<2;++p) for(int w=1;w<4;++w) for(int d=0;d<2;++d)
         a->muzzles[p][w][d]=(FF_Point){d?-16:16,-18};
     /* The original three, exactly as the engine had them built in; the last field is the
@@ -134,6 +135,8 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
         } else if (sscanf(line,"jetpack %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_ORIGINAL_IMAGES||
                !add_frame(&a->jetpack[n[0]],0,n[1])) {ok=false;break;}
+        } else if (sscanf(line,"smoke %d %d %c",&n[0],&n[1],&tail)==2) {
+            if(n[0]<1||n[0]>100||n[1]<0||n[1]>=FF_ORIGINAL_IMAGES||!add_frame(&a->smoke,n[0],n[1])) {ok=false;break;}
         } else if (sscanf(line,"fire %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<0||n[0]>1||n[1]<0||n[1]>=FF_ORIGINAL_IMAGES) {ok=false;break;}
             FF_Sequence *s=&a->fire_sprites[n[0]];
@@ -168,6 +171,8 @@ bool ff_arena_load(FF_Arena *a, const char *path, char *error, unsigned capacity
         } else if (sscanf(line,"hudfuel %x %d %d %c",&c[0],&n[0],&n[1],&tail)==3) {
             if(c[0]>0xffffff||n[0]<1||n[0]>FF_W||n[1]<1||n[1]>40) {ok=false;break;}
             a->hud.fuel_color=c[0];a->hud.fuel_width=n[0];a->hud.fuel_height=n[1];
+        } else if (sscanf(line,"music %d %d %c",&n[0],&n[1],&tail)==2) {
+            if(n[0]<0||n[0]>1||n[1]<0||n[1]>4096) {ok=false;break;} a->music_ids[n[0]]=n[1];
         } else if (sscanf(line,"sound %d %d %c",&n[0],&n[1],&tail)==2) {
             if(n[0]<0||n[0]>=FF_SOUNDS||(n[0]>=8&&n[0]<16)||n[1]<0||n[1]>4096) {ok=false;break;} a->sound_ids[n[0]]=n[1];
         } else {ok=false;break;}

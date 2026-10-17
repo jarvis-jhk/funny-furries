@@ -1,5 +1,25 @@
 # Notes
 
+**Current — 2026-10-17, 0.8.0: Jan's play-test of 0.7.0 (`t_mvbm0mng1oqjdd`, `t_mvbm2bdf1php9q`, `t_mvbm3bm41q61u3`,
+`t_mvbm3hxu1rc4u7`, `t_mvbm3tbt1sxk97`, `t_mvbm4i0m1tvpf3`, `t_mvbm5erg1ui9yc`, Opus):** compact row dump as before
+(/tmp script: global refs 0x4000|n → global object table; condition NOT = header byte 9 bit 0; op-37 = overlapping
+backdrop, op-4 = collides with, op-18 = overlaps, op-19/26 alterable value compare, cmp3 = less, cmp5 = greater-equal?).
+Findings → changes: (1) Launcher: the silent re-import (kept copy after an importer bump, Warpzone hand-over,
+`--import-copy`) took ~13 s with no window — `with_progress()` shows a Tk progress window after 0.5 s (stderr lines
+without a display), stages from `import_copy(progress)`; extraction is ~10 of the 13 s. (2) Flame (global 385-388):
+only Ice/`up` stop it, overlapping backdrop lifts it 1 px → fire passes SOLID; a falling flame in ground climbs ≤16 px
+to settle on top. (3) Jetpack (frame rows 26/27): while P1 fly is visible and the fly key held, P1 fly's alterable
+value < -4 → create `smoke` at P1 fly, play `fly`, reset; global row 35 subtracts 1 per tick → puff + sound every
+5 ticks (`puff_wait`, hashed); `FF_Game.puffs` ring (drawing only); `smoke` = 6 frames speed 30 once, drawn at the
+pack image's bottom centre (original position not decoded). (4) Music: frame 2 (title) plays music 0, every arena
+music 1, loop -1 → importer `arena-import/9` copies both MIDIs (`music <slot> <id>`); src/music.c is our own SMF parser +
+small synth (wave per GM family, noise drums), via Mix_HookMusic, title song in menus, game song in matches, M toggles,
+`--no-music`/FF_NO_MUSIC; tests/engine/test_music.c. (5) Pause/winner text centred on y=300. (6) Rows 54-63: health
+only <100, fuel <300, ice when weapon<2 & ammo<50, rocket when weapon∈{0,2} & <16, flame when ∈{0,3} & <30 →
+`wants()`. (7) Explosion rows 373-382: push 50 on both axes, no invulnerability condition; our additive push left a
+furry falling at 8 px/tick still falling → the throw now replaces a slower speed and ignores blinking. Not verified
+against a Wine run: smoke position/motion, music timbres (no listening possible here), flame climb depth.
+
 **Current — 2026-10-16, 0.7.0: Jan's play-test of 0.6.0 (`t_mvbjl16p103j74` + `t_mvbjmho912loue`, `t_mvbjo2vu13mfbh`,
 `t_mvbjp82314bt1p`, `t_mvbjqnni15dkcu`, Opus):** method: compact dump of frame/global rows with names. Global event object
 refs are `0x4000|n` where n-1 indexes the global program's own object table (auxiliary block, 104-byte entries from

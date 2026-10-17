@@ -250,6 +250,8 @@ static void player_land(FF_Game *g,const FF_Arena *a,int who,int32_t falling) {
     }
 }
 static const int direction_x[32];
+/* How far a flame that fell into the ground climbs back out to burn on top. */
+enum { FLAME_CLIMB=16 };
 static int direction_y(int direction);
 static void shoot(FF_Game *g,const FF_Arena *a,FF_Player *p,int owner) {
     if(p->weapon==FF_FISTS||p->ammo<=0||p->cooldown) return;
@@ -382,7 +384,7 @@ static bool blast_overlap(const FF_Blast *b,const FF_Arena *a,int32_t x,int32_t 
     }
     return near(x+w*FF_FP/2,y+h*FF_FP/2,b->x,b->y,42);
 }
-static void blast_tick(FF_Game *g,const FF_Arena *a,int damage[FF_PLAYERS],int knock[FF_PLAYERS],int lift[FF_PLAYERS]) {
+static void blast_tick(FF_Game *g,const FF_Arena *a,int damage[FF_PLAYERS],int throw_x[FF_PLAYERS],int throw_y[FF_PLAYERS]) {
     /* A bounded repeat propagates chains regardless of the hazard slot order. */
     for(int pass=0;pass<FF_HAZARDS;++pass) {
         bool changed=false;
@@ -401,8 +403,8 @@ static void blast_tick(FF_Game *g,const FF_Arena *a,int damage[FF_PLAYERS],int k
         for(int k=0;k<FF_PLAYERS;++k) {
             FF_Player *p=&g->players[k];if(!live(p)||(b->hit&(1u<<k))) continue;
             if(blast_overlap(b,a,p->x-11*FF_FP,p->y-32*FF_FP,22,32)) {
-                b->hit|=1u<<k;damage[k]+=8;knock[k]=(p->x<b->x?-50:50)*FF_FP/8;
-                lift[k]=(p->y-16*FF_FP<b->y?-50:50)*FF_FP/8;
+                b->hit|=1u<<k;damage[k]+=8;throw_x[k]=(p->x<b->x?-50:50)*FF_FP/8;
+                throw_y[k]=(p->y-16*FF_FP<b->y?-50:50)*FF_FP/8;
             }
         }
         --b->life;
@@ -418,6 +420,16 @@ static void pickup_spawn(FF_Game *g,const FF_Arena *a) {
         g->pickups[i]=(FF_Pickup){p.x,p.y,1+(int)(random_word(g)%(uint32_t)ff_pickup_kinds(a)),1,0};
         g->sounds|=FF_SOUND_PICKUP;return;
     }
+}
+/* As in the original, a bonus stays where it is unless it changes something: health
+ * below 100, fuel below 300, and a weapon only for empty hands or that same weapon
+ * short of full ammo (the original's rows 54-63). */
+static bool wants(const FF_Player *p,const FF_Arena *a,int kind) {
+    if(kind==FF_HEALTH) return p->health<100;
+    if(kind==FF_FUEL) return p->fuel<300;
+    int weapon=ff_pickup_weapon(kind);
+    if(weapon<=0||weapon>=FF_WEAPONS) return true;
+    return (p->weapon==FF_FISTS||p->weapon==weapon)&&p->ammo<a->weapons[weapon].max_ammo;
 }
 static void pickup(FF_Player *p,const FF_Arena *a,int kind) {
     int weapon=ff_pickup_weapon(kind);
@@ -440,6 +452,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
         return;
     }
     int damage[FF_PLAYERS]={0}, burning[FF_PLAYERS]={0}, knock[FF_PLAYERS]={0}, lift[FF_PLAYERS]={0};
+    int throw_x[FF_PLAYERS]={0}, throw_y[FF_PLAYERS]={0};
     platforms_move(g,a);
     for(int i=0;i<FF_PLAYERS;++i) {
         FF_Player *p=&g->players[i];uint8_t keys=input[i];
@@ -475,9 +488,16 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
                 p->vy=out;
             } else if((keys&FF_JUMP)&&p->vy>-20*FF_FP/8) p->vy=clamp(p->vy-2*FF_FP/8,-20*FF_FP/8,100*FF_FP/8);
         }
+        if(p->puff_wait) --p->puff_wait;
         if((keys&FF_FLY)&&p->fuel) {
             p->vy=clamp(p->vy-FF_FP/2,-5*FF_FP,8*FF_FP);--p->fuel;
-            if(g->tick%8==0) g->sounds|=FF_SOUND_JETPACK;
+            /* The original's fly object counts down every tick and, while the pack fires,
+             * leaves a smoke puff with the fly sound whenever five ticks have passed. */
+            if(!p->puff_wait) {
+                p->puff_wait=5;g->sounds|=FF_SOUND_JETPACK;
+                g->puffs[g->puff_next]=(FF_Puff){(int16_t)(p->x/FF_FP),(int16_t)(p->y/FF_FP-16),(int8_t)p->facing,g->tick};
+                g->puff_next=(g->puff_next+1)%FF_PUFFS;
+            }
         }
         device_forces(g,p,a,airborne);
         int32_t old_y=p->y,falling=p->vy;
@@ -521,6 +541,15 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
             s->x=start_x+s->vx*(j+1)/steps;s->y=start_y+s->vy*(j+1)/steps;
             int x=s->x/FF_FP,y=s->y/FF_FP;
             int terrain=tile(a,x,y);
+            /* Fire passes through walls as in the original, which only lifts a flame stuck
+             * in the backdrop a pixel a tick: falling into ground it settles on top, if
+             * that top is near. */
+            if(w->flame&&terrain==FF_SOLID) {
+                int lift=0;
+                if(s->vy>=0) for(int up=1;up<=FLAME_CLIMB&&!lift;++up) if(tile(a,x,y-up)!=FF_SOLID) lift=up;
+                if(!lift) continue;
+                s->x=start_x+s->vx*j/steps;s->y=(y-lift)*FF_FP;s->vx=s->vy=0;s->settled=1;break;
+            }
             /* One-way tops stop shots coming down through them, like furries; falling
              * shots stop anywhere on them. */
             bool surface=terrain==FF_SOLID||(terrain==FF_PLATFORM&&
@@ -576,7 +605,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
             s->life=0;
         }
     }
-    blast_tick(g,a,damage,knock,lift);
+    blast_tick(g,a,damage,throw_x,throw_y);
     for(int i=0;i<FF_PLAYERS;++i) {
         FF_Player *p=&g->players[i];
         if((damage[i]||burning[i])&&(!p->invulnerable||damage[i]>=1000)&&live(p)) {
@@ -586,6 +615,13 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
             if(lift[i]) p->grounded=0;
             p->invulnerable=damage[i]?10:0;if(burning[i]) g->sounds|=FF_SOUND_HIT;
             if(!p->health) {--p->lives;p->respawn=75;g->sounds|=FF_SOUND_DEATH;}
+        }
+        /* The original's explosion pushes a furry away with speed 50 on both axes, whatever
+         * it was doing: a furry falling onto a bomb is thrown up, not merely slowed down. */
+        if((throw_x[i]||throw_y[i])&&live(p)) {
+            if(throw_x[i]>0?p->vx<throw_x[i]:p->vx>throw_x[i]) p->vx=throw_x[i];
+            if(throw_y[i]>0?p->vy<throw_y[i]:p->vy>throw_y[i]) p->vy=throw_y[i];
+            if(throw_y[i]<0) p->grounded=0;
         }
     }
     /* Resolve all deaths together so simultaneous final hits draw. */
@@ -614,7 +650,7 @@ void ff_game_tick(FF_Game *g,const FF_Arena *a,const uint8_t input[FF_PLAYERS]) 
         }
         for(int j=0;j<FF_PLAYERS;++j) {
             FF_Player *p=&g->players[j];
-            if(live(p)&&abs(p->x/FF_FP-b->x)<22&&abs(p->y/FF_FP-16-b->y)<26) {
+            if(live(p)&&abs(p->x/FF_FP-b->x)<22&&abs(p->y/FF_FP-16-b->y)<26&&wants(p,a,b->kind)) {
                 pickup(p,a,b->kind);b->active=0;b->timer=300;if(a->imported) b->kind=0;g->sounds|=FF_SOUND_COLLECT;break;
             }
         }
@@ -629,7 +665,7 @@ uint32_t ff_game_hash(const FF_Game *g) {
     for(int i=0;i<FF_PLAYERS;++i) {const FF_Player *p=&g->players[i];HASH(p->active);HASH(p->team);
         HASH(p->x);HASH(p->y);HASH(p->vx);HASH(p->vy);HASH(p->facing);HASH(p->health);HASH(p->lives);HASH(p->score);
         HASH(p->fuel);HASH(p->weapon);HASH(p->ammo);HASH(p->grounded);HASH(p->cooldown);HASH(p->punch_ticks);
-        HASH(p->invulnerable);HASH(p->burn_wait);HASH(p->respawn);HASH(p->previous);HASH(p->bounce_wait);
+        HASH(p->invulnerable);HASH(p->burn_wait);HASH(p->respawn);HASH(p->previous);HASH(p->bounce_wait);HASH(p->puff_wait);
     }
     for(int i=0;i<FF_SHOTS;++i) {const FF_Shot *s=&g->shots[i];
         HASH(s->x);HASH(s->y);HASH(s->vx);HASH(s->vy);HASH(s->kind);HASH(s->owner);HASH(s->life);HASH(s->direction);HASH(s->settled);HASH(s->bounced);
