@@ -118,7 +118,15 @@ class Warpzone(unittest.TestCase):
     def finish(self, procs):
         outs = []
         for p in procs:
-            out, _ = p.communicate(timeout=240)
+            try:
+                out, _ = p.communicate(timeout=240)
+            except subprocess.TimeoutExpired:
+                # A bare traceback says nothing about which player hung or where: show every tail.
+                tails = []
+                for q in procs[len(outs):]:
+                    q.kill()
+                    tails.append(q.communicate()[0][-1500:])
+                self.fail('timed out after 240 s\n' + '\n----\n'.join(tails))
             outs.append(out)
             self.assertEqual(p.returncode, 0, out[-3000:])
         return outs
