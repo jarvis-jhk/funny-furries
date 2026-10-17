@@ -4,6 +4,12 @@
 caught faults and crashes; waits for libwarpzone 0.1.3 (latest release v0.1.2). ROADMAP item added; a daily check
 (schedule 06e01937, 07:30 UTC) starts the work once the release exists. Current ntfy/report-API relay in src/fault.c stays until then.
 
+**CI 2026-10-17 (t_mvc4jxs4ohv9p):** main 51bb247 run 39016112641 failed in Warpzone `test_4_ranked_ffa` (timeout). The new tails show
+why: in the ranked room the host never got PEER_JOINED for Tester3 (its own ROOM_JOINED listed only 3 members), Tester3 never connected
+and gave up after 30 s, and two connected pairs got PEER_LEFT (libwarpzone Lost, 15 s silence) although nobody left. Likely libwarpzone:
+`on_server` drops PeerJoined that arrives before the client's own RoomState exists. Filed to the warpzone lane (t_mvc4macrq7ykb);
+failed job rerun. No game-side requeue on a stuck ranked lobby until that is answered (abandon semantics are the server's).
+
 **CI 2026-10-17 (t_mvbnwuj62mxgk9):** v0.8.0 tag run 38986005566 failed only in Warpzone `test_5_ranked_2v2`
 (240 s timeout) while the same 601750d passed on main; rerun of the failed job green — flake, release unaffected.
 Ranked match length varies a lot (1v1 45–140 s). 895a7f4 makes a timeout print every unfinished player's tail,
