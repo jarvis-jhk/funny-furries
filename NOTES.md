@@ -1,5 +1,9 @@
 # Notes
 
+**CI 2026-10-17 (t_mvc5s5roywtfo):** main cfd5985 run 39018411832 failed in Warpzone `test_4_ranked_ffa` (timeout), the known
+libwarpzone shapes again: host saw Tester3+Tester2 join but Tester0 got PEER_LEFT for the host, Tester2/Tester3 got ROOM_CLOSED while
+the host kept ROOM OPEN. Already filed (t_mvc4macrq7ykb, t_mvc5ffe8wno81), fixes ship in 0.1.3 (schedule 06e01937); failed job rerun.
+
 **CI 2026-10-17 (t_mvc5e9gtu2eab):** main 2a1c7b5 run 39017751821 failed in Warpzone `test_3_ranked_1v1` (timeout), a new shape:
 both sides matched, joined, got PEER_JOINED + PEER_CONNECTED (direct), then only the GUEST got ROOM_CLOSED while the host kept
 the room open with no PEER_LEFT. Filed to the warpzone lane (t_mvc5ffe8wno81); failed job rerun. Game-side gap noted: a guest
