@@ -177,6 +177,11 @@ in sync.
       (gravity, jump, lives), image and sound replacements. Loaded from the Warpzone launcher's
       active set or `--mod`; rooms carry the host's lockfile and guests sync it before connecting;
       ranked queues use it as ruleset. Three example mods in `mods/`. docs/MODDING.md.
+- [ ] Report faults through Warpzone (warpzone lane, t_mvc434i38k2u7, Jan's request t_mvc38s7b0g6uv): once
+      libwarpzone 0.1.3 is released, pin it, send caught faults with `wz_report(wz,"bug",<stable title>,<detail>)`,
+      write title+backtrace to a file in the crash handler and send it on the next start with
+      `wz_report_problem(NULL,"funny-furries",<version>,"crash",...)`; game id "funny-furries" routes to this lane.
+      Blocked: only v0.1.2 is out (checked 2026-10-17). Launcher-started crashes are already reported by Warpzone.
 - [ ] Publish the example mods on the public Warpzone (needs the descriptor live, then Jan's approval).
 - [ ] Animated mod pictures (sequences with speed) and mod furry skins with all animation frames.
 
