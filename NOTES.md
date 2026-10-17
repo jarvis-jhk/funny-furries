@@ -1,5 +1,10 @@
 # Notes
 
+**CI 2026-10-17 (t_mvbnwuj62mxgk9):** v0.8.0 tag run 38986005566 failed only in Warpzone `test_5_ranked_2v2`
+(240 s timeout) while the same 601750d passed on main; rerun of the failed job green — flake, release unaffected.
+Ranked match length varies a lot (1v1 45–140 s). 895a7f4 makes a timeout print every unfinished player's tail,
+so a repeat shows where it hangs.
+
 **Current — 2026-10-17, 0.8.0: Jan's play-test of 0.7.0 (`t_mvbm0mng1oqjdd`, `t_mvbm2bdf1php9q`, `t_mvbm3bm41q61u3`,
 `t_mvbm3hxu1rc4u7`, `t_mvbm3tbt1sxk97`, `t_mvbm4i0m1tvpf3`, `t_mvbm5erg1ui9yc`, Opus):** compact row dump as before
 (/tmp script: global refs 0x4000|n → global object table; condition NOT = header byte 9 bit 0; op-37 = overlapping
