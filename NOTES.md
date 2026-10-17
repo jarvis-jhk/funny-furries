@@ -1,5 +1,11 @@
 # Notes
 
+**CI 2026-10-17 (t_mvc5e9gtu2eab):** main 2a1c7b5 run 39017751821 failed in Warpzone `test_3_ranked_1v1` (timeout), a new shape:
+both sides matched, joined, got PEER_JOINED + PEER_CONNECTED (direct), then only the GUEST got ROOM_CLOSED while the host kept
+the room open with no PEER_LEFT. Filed to the warpzone lane (t_mvc5ffe8wno81); failed job rerun. Game-side gap noted: a guest
+that gets ROOM_CLOSED before the game starts (virtual_net not yet set) only forgets the room and sits at "IN THE ROOM" forever —
+it should say the room closed and go back to the menu/queue. Do that together with the libwarpzone 0.1.3 bump (schedule 06e01937).
+
 **2026-10-17 (t_mvc51iags4f1z, warpzone lane answer to t_mvc4macrq7ykb):** ranked lobby hang confirmed in libwarpzone
 (client.rs: PeerJoined overtook the join answer and was dropped). Fixed on warpzone main, ships in 0.1.3. Also new: a peer lost by
 timeout that is still a room member re-handshakes — PEER_LEFT then PEER_JOINED with a NEW peer id for the same account, so the slot
