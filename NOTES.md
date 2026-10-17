@@ -2,7 +2,7 @@
 
 **2026-10-17 (t_mvc434i38k2u7, from the warpzone lane):** Warpzone feedback API (wz_report/wz_report_problem) wanted for
 caught faults and crashes; waits for libwarpzone 0.1.3 (latest release v0.1.2). ROADMAP item added; a daily check
-(schedule, see agent schedules) starts the work once the release exists. Current ntfy/report-API relay in src/fault.c stays until then.
+(schedule 06e01937, 07:30 UTC) starts the work once the release exists. Current ntfy/report-API relay in src/fault.c stays until then.
 
 **CI 2026-10-17 (t_mvbnwuj62mxgk9):** v0.8.0 tag run 38986005566 failed only in Warpzone `test_5_ranked_2v2`
 (240 s timeout) while the same 601750d passed on main; rerun of the failed job green — flake, release unaffected.
