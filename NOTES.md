@@ -1,5 +1,11 @@
 # Notes
 
+**2026-10-17 (t_mvc51iags4f1z, warpzone lane answer to t_mvc4macrq7ykb):** ranked lobby hang confirmed in libwarpzone
+(client.rs: PeerJoined overtook the join answer and was dropped). Fixed on warpzone main, ships in 0.1.3. Also new: a peer lost by
+timeout that is still a room member re-handshakes — PEER_LEFT then PEER_JOINED with a NEW peer id for the same account, so the slot
+must be re-added by account. The 0.1.3 bump (schedule 06e01937) must pin CI's warpzone-server/wz too and re-run ranked tests;
+if it still hangs, report again with FF_WZ_VERBOSE logs.
+
 **2026-10-17 (t_mvc434i38k2u7, from the warpzone lane):** Warpzone feedback API (wz_report/wz_report_problem) wanted for
 caught faults and crashes; waits for libwarpzone 0.1.3 (latest release v0.1.2). ROADMAP item added; a daily check
 (schedule 06e01937, 07:30 UTC) starts the work once the release exists. Current ntfy/report-API relay in src/fault.c stays until then.

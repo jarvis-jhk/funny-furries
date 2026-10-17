@@ -181,6 +181,8 @@ in sync.
       libwarpzone 0.1.3 is released, pin it, send caught faults with `wz_report(wz,"bug",<stable title>,<detail>)`,
       write title+backtrace to a file in the crash handler and send it on the next start with
       `wz_report_problem(NULL,"funny-furries",<version>,"crash",...)`; game id "funny-furries" routes to this lane.
+      Same bump fixes the ranked lobby hang (warpzone t_mvc51iags4f1z): pin CI's warpzone-server/wz to 0.1.3,
+      handle PEER_LEFT→PEER_JOINED with a new peer id by re-adding the slot by account, re-run CI ranked tests.
       Blocked: only v0.1.2 is out (checked 2026-10-17). Launcher-started crashes are already reported by Warpzone.
 - [ ] Publish the example mods on the public Warpzone (needs the descriptor live, then Jan's approval).
 - [ ] Animated mod pictures (sequences with speed) and mod furry skins with all animation frames.
