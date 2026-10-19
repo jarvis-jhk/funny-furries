@@ -1,5 +1,13 @@
 # Notes
 
+**2026-10-19 (t_mvezfg0g2u02u): Part 1 analysed, nothing built.** "The Funny Furries" is `funnyfurries/furries1.exe` inside the
+same funnyfurries.zip the launcher imports: MMF2 build 247 (a rebuild of the Klik & Play v1.0 game), 4 frames (playable menu,
+two arenas, one unreachable, unfinished ice/wind level with its start point off-screen), 708 events, 321 RGB555 images, 10 WAV,
+3 MIDI. Kliktopia's "Furries_2_source" furries2.gam is the same game (TGF/CnC, 4 levels). KlikBack's mmf2 read_app reads it.
+Integration plan in Jan's report (/f/r/t_mvezfg0g2u02u-funny-furries-part-1/): importer → FFLEVEL arenas (up=ledge, wall=solid,
+Start Point=spawn, Gate=bonus, mp+Turn=moving), Part 1 rules (water kills, fist 10/knock 25, laser 3 dmg speed 100, heart to 200),
+punchable crates, six-piece furry skin. Decoded events and scripts: agent data/furries/ff1/ (private). Waiting for Jan's go.
+
 **CI 2026-10-17 (t_mvc6495210p5a5):** the rerun (attempt 2) of 39018411832 failed too, this time `test_3_ranked_1v1` timeout, same
 known libwarpzone shapes; not rerun again because main 4840983 (run 39019050189) is green on the same code. Waits for libwarpzone 0.1.3.
 
