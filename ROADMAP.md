@@ -187,3 +187,28 @@ in sync.
 - [ ] Publish the example mods on the public Warpzone (needs the descriptor live, then Jan's approval).
 - [ ] Animated mod pictures (sequences with speed) and mod furry skins with all animation frames.
 
+
+## M5 — macOS support
+Jan, 2026-10-19: macOS on every game's roadmap (combined roadmap `furries-macos-support`).
+Done when: a release carries a macOS build that a player can download, import their own FF2 Xmas
+copy with, and play — built and smoke-tested in CI.
+- [ ] macOS build of the engine (universal arm64+x86_64, or two separate builds) on a GitHub
+      `macos-*` runner in engine.yml; all CTest suites pass there, including the 10000-tick renderer hash.
+- [ ] Release job: a `.app` bundle (or tar.gz with the binary + frozen launcher) attached to every
+      release, smoke-tested in CI like the Linux/Windows packages (packaging/smoke.py, audit.py).
+- [ ] Player docs (README/docs/PLAYING.md): install, first-start import, and the unsigned-app Gatekeeper
+      workaround (right-click → Open, or `xattr -dr com.apple.quarantine`). Unsigned is fine.
+Known risks:
+- Rendering: SDL_Renderer picks Metal on macOS (OpenGL is deprecated there); check the scene/backdrop
+  textures, integer scaling, vsync and HiDPI (`SDL_WINDOW_ALLOW_HIGHDPI`, drawable vs window size).
+- Controllers: SDL2 HIDAPI/GameController on macOS (Xbox/PS/Switch pads, hotplug, rumble); keyboard
+  focus and Cmd-Q/fullscreen shortcuts.
+- Paths: `src/mod.c` `warpzone_home()` falls back to `~/.local/share/warpzone`; macOS wants
+  `~/Library/Application Support/...` (must match what the Warpzone launcher uses), same for the
+  imported data and settings. App bundles start with cwd `/`, so resolve paths from the executable.
+- Launcher: the PyInstaller-frozen Python/Tk importer has to be built per architecture (no cross
+  freezing); Tk on macOS needs a framework Python (actions/setup-python), not the system one.
+- Warpzone: CMakeLists only downloads linux/windows libwarpzone packages; needs macOS packages
+  (arm64/x86_64 or universal) from the warpzone lane, or a source build; ranked/relay CI against
+  warpzone-server on macOS.
+- Fault relay and update check must work without a signed binary; quarantine can strip/delay first start.
