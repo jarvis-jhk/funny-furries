@@ -116,9 +116,9 @@ jobs:
           SDL_AUDIODRIVER: dummy
           FF_NO_REPORT: '1'
         run: |
-          build/native/funny-furries --smoke 1000 --screenshot build/practice.bmp
-          build/native/funny-furries --smoke 3000 --players 4 --teams --screenshot build/four.bmp
-          build/native/funny-furries --smoke 60 --lobby --screenshot build/lobby.bmp
+          time build/native/funny-furries --smoke 1000 --screenshot build/practice.bmp
+          time build/native/funny-furries --smoke 3000 --players 4 --teams --screenshot build/four.bmp
+          time build/native/funny-furries --smoke 60 --lobby --screenshot build/lobby.bmp
       - name: Online match between two real game processes on a bad line
         env:
           SDL_VIDEODRIVER: dummy

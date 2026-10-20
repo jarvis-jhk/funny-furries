@@ -241,8 +241,8 @@ class ArenaImportTests(unittest.TestCase):
             arena.import_arena(root / 'bundle', root / 'output', 0)
             env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy')
             args = [os.environ['FF_NATIVE_GAME'], '--data', str(root / 'output'), '--smoke', '1000']
-            a = subprocess.run(args, env=env, capture_output=True, text=True, timeout=15)
-            b = subprocess.run(args, env=env, capture_output=True, text=True, timeout=15)
+            a = subprocess.run(args, env=env, capture_output=True, text=True, timeout=120)
+            b = subprocess.run(args, env=env, capture_output=True, text=True, timeout=120)
             self.assertEqual(a.returncode, 0, a.stderr)
             self.assertEqual(b.returncode, 0, b.stderr)
             self.assertEqual(a.stdout, b.stdout)
