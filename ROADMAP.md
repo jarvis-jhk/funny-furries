@@ -183,7 +183,8 @@ in sync.
       `wz_report_problem(NULL,"funny-furries",<version>,"crash",...)`; game id "funny-furries" routes to this lane.
       Same bump fixes the ranked lobby hang (warpzone t_mvc51iags4f1z): pin CI's warpzone-server/wz to 0.1.3,
       handle PEER_LEFT→PEER_JOINED with a new peer id by re-adding the slot by account, re-run CI ranked tests.
-      Blocked: only v0.1.2 is out (checked 2026-10-17). Launcher-started crashes are already reported by Warpzone.
+      Unblocked 2026-10-20: libwarpzone 0.1.11 pinned (ranked lobby fix verified in CI); wz_report work remains.
+      Launcher-started crashes are already reported by Warpzone.
 - [ ] Publish the example mods on the public Warpzone (needs the descriptor live, then Jan's approval).
 - [ ] Animated mod pictures (sequences with speed) and mod furry skins with all animation frames.
 
@@ -192,8 +193,9 @@ in sync.
 Jan, 2026-10-19: macOS on every game's roadmap (combined roadmap `furries-macos-support`).
 Done when: a release carries a macOS build that a player can download, import their own FF2 Xmas
 copy with, and play — built and smoke-tested in CI.
-- [ ] macOS build of the engine (universal arm64+x86_64, or two separate builds) on a GitHub
-      `macos-*` runner in engine.yml; all CTest suites pass there, including the 10000-tick renderer hash.
+- [x] macOS build of the engine on a GitHub `macos-14` runner in engine.yml (2026-10-20, arm64, Homebrew SDL):
+      all CTest suites, renderer/online smoke, offline hashes identical to Linux/Windows. The 10000-tick
+      original-renderer hash needs the private import, so it is checked locally, not in CI.
 - [ ] Release job: a `.app` bundle (or tar.gz with the binary + frozen launcher) attached to every
       release, smoke-tested in CI like the Linux/Windows packages (packaging/smoke.py, audit.py).
 - [ ] Player docs (README/docs/PLAYING.md): install, first-start import, and the unsigned-app Gatekeeper
@@ -208,7 +210,6 @@ Known risks:
   imported data and settings. App bundles start with cwd `/`, so resolve paths from the executable.
 - Launcher: the PyInstaller-frozen Python/Tk importer has to be built per architecture (no cross
   freezing); Tk on macOS needs a framework Python (actions/setup-python), not the system one.
-- Warpzone: CMakeLists only downloads linux/windows libwarpzone packages; needs macOS packages
-  (arm64/x86_64 or universal) from the warpzone lane, or a source build; ranked/relay CI against
-  warpzone-server on macOS.
+- Warpzone: the universal macOS libwarpzone package is pinned since 0.1.11 (2026-10-20); ranked/relay
+  CI still runs against warpzone-server on Linux only.
 - Fault relay and update check must work without a signed binary; quarantine can strip/delay first start.

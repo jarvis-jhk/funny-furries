@@ -1,5 +1,24 @@
 # Notes
 
+**2026-10-20 work session (t_mvg5n90w12d96p):** GitHub: no open issues/PRs, main green. **Upstream check
+2026-10-20:** libwarpzone 0.1.0 → **0.1.11** adopted (3e40f9a; CMake SHA-256 pins for linux-gnu/windows-gnu and the new
+universal-apple-darwin package, Linux now also links rt+util per NATIVE_LIBS; CI warpzone-server/wz 0.1.11). 0.1.3 carries
+the ranked-lobby fix (early PeerJoined kept, re-handshake as PEER_LEFT→PEER_JOINED). Two game-side changes: 0.1.6's
+`wz_handle_launch` now also handles `--warpzone-code` and joins at once, which the server refuses before the name is
+registered (`needs_account`, test_1_room_direct hung) → ff_wz_launch strips `--warpzone-code` and keeps our own
+account-first path; ROOM_CLOSED/KICKED before the match runs now sets wz.error. Local + CI test_warpzone.py: all 6 green
+incl. ranked 1v1/ffa/2v2. API additions not used yet: wz_report/wz_report_problem (M4 item, now unblocked; schedule
+06e01937 does it — the pin is already done), wz_adopt_identity (Android only). SDL2: release packages pin 2.30.12,
+upstream is 2.32.10 — not adopted now, belongs to the macOS packaging slice that builds SDL from source anyway
+(re-run every package smoke then). KlikBack: still 6e178b9 upstream (2026-08-28), nothing to adopt.
+**M5 slice 1:** engine.yml `macos` job on macos-14 (Homebrew SDL, arm64, Debug+UBSan): all 9 CTest suites, synthetic
+import renderer, smoke runs, two-process online match on a bad line, unreachable-Warpzone exit 1, and its offline
+net_probe hashes join same-simulation — macOS arm64 matches Linux and Windows (b74b2b98/cefeb50b/5752e4f2). Green on
+86f650e (run 39369453594, rev-parse in log checked). Dummy-video rendering is ~17 ms/tick there (1000 ticks 17 s), so the
+synthetic-import renderer test now allows 120 s. No release yet: the Warpzone fixes ship together with the macOS
+package (next slice: universal SDL2 2.32 + media libs + libwarpzone, .app bundle, frozen launcher, smoke/audit). Next
+version > 0.8.0.
+
 **2026-10-19 (t_mvezfg0g2u02u): Part 1 analysed, nothing built.** "The Funny Furries" is `funnyfurries/furries1.exe` inside the
 same funnyfurries.zip the launcher imports: MMF2 build 247 (a rebuild of the Klik & Play v1.0 game), 4 frames (playable menu,
 two arenas, one unreachable, unfinished ice/wind level with its start point off-screen), 708 events, 321 RGB555 images, 10 WAV,
