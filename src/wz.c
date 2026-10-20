@@ -61,7 +61,14 @@ bool ff_wz_open(FF_Wz *wz,const char *version) {
 void ff_wz_close(FF_Wz *wz) {if(wz->client) wz_destroy(wz->client);wz->client=NULL;wz->available=false;}
 int ff_wz_launch(FF_Wz *wz,int argc,char **argv) {
     if(!wz->client) return 0;
-    int intent=wz_handle_launch(wz->client,argc,(const char *const *)argv);
+    /* --warpzone-code is ours: run() waits for the account first, while the library
+     * (since 0.1.6) would send the join at once and be refused as "needs_account". */
+    const char *args[64];int n=0;
+    for(int i=0;i<argc&&n<64;++i) {
+        if(!strcmp(argv[i],"--warpzone-code")) {++i;continue;}
+        args[n++]=argv[i];
+    }
+    int intent=wz_handle_launch(wz->client,n,args);
     if(intent==1) {wz->pending=FF_WZ_NONE;wz->busy=true;snprintf(wz->status,sizeof(wz->status),"JOINING THE ROOM");wz->hosting=false;wz->local_count=1;}
     return intent;
 }
@@ -312,8 +319,13 @@ void ff_wz_update(FF_Wz *wz,FF_Netplay *np,const FF_Arena *arena) {
             break;
         case WZ_EVENT_PEER_LEFT: {FF_WzPeer *p=find_peer(wz,e.peer);if(p) p->used=false;break;}
         case WZ_EVENT_ROOM_CLOSED: case WZ_EVENT_KICKED:
-            if(np->virtual_net) ff_np_end(np,e.type==WZ_EVENT_KICKED?"YOU WERE REMOVED FROM THE ROOM":"THE ROOM WAS CLOSED");
+        {
+            const char *why=e.type==WZ_EVENT_KICKED?"YOU WERE REMOVED FROM THE ROOM":"THE ROOM WAS CLOSED";
+            /* Before the game runs there is no match to end: say so instead of waiting in a room that is gone. */
+            if(np->virtual_net) ff_np_end(np,why);
+            else if(wz->in_room||wz->busy) snprintf(wz->error,sizeof(wz->error),"%s",why);
             forget_room(wz);break;
+        }
         case WZ_EVENT_QUEUED: {
             int64_t waiting=0;json_int(j,"waiting",&waiting);wz->waiting=(int)waiting;wz->queued=json_bool(j,"queued");wz->queue_confirmed=wz->queued;
             if(wz->queued) snprintf(wz->status,sizeof(wz->status),"LOOKING FOR A MATCH - %d WAITING",wz->waiting);
